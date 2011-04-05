@@ -1,0 +1,263 @@
+/**
+ * dbWatchSite
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2010
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ */
+
+td
+{
+  font-size: 8pt;
+  vertical-align: top;
+}
+td.label {
+  font-weight: bold;
+}
+
+tr.flip {
+  background-color: #FFFFCC;
+}
+tr.flop {
+  background-color: transparent;
+}
+input
+{
+  width: 98%;
+  background-color: transparent;
+}
+input[type=submit],
+input[type=button]
+{
+  width: 150px;
+}
+input[type=radio],
+input[type=checkbox]
+{
+  width: auto;
+}
+input[type=text].disabled {
+  color: #999999;
+  background-color: transparent;
+  border: none;
+}
+
+select
+{
+  width: 98%;
+  font-size:8pt;
+}
+textarea
+{
+  width: 98%;
+  font-size:8pt;
+}
+
+.nav_tab
+{
+
+  padding: 3px 0 3px 10px;
+  margin: 15px 0;
+  border-bottom: 1px solid #dddddd;
+  list-style-type: none;
+  text-align: left; /*set to left, center, or right to align the menu as desired*/
+}
+.nav_tab li
+{
+  display: inline;
+  margin: 0;
+}
+.nav_tab li a
+{
+  text-decoration: none;
+  padding: 3px 7px;
+  margin-right: 3px;
+  border: 1px solid #dddddd;
+  border-bottom: none;
+  background-color: #E8E8E8;
+}
+.nav_tab li a:link,
+.nav_tab li a:visited
+{
+  color: #AFAFAF;
+  background-color: #e8e8e8;
+}
+.nav_tab li.extra_tab a {
+  color:#003366;
+  background-color: #e8e8e8;
+}
+.nav_tab li a:hover,
+.nav_tab li a:active
+{
+  background-color: #FFFFCC;
+  color: #000;
+}
+.nav_tab li.selected a
+{ /*selected tab effect*/
+  position: relative;
+  top: 1px;
+  padding-top: 4px;
+  color: #000;
+  background-color: #fff;
+  font-weight: bold;
+}
+
+.form_backend {
+  width: 100%;
+  clear: both;
+  background-image: none;
+  color: #000000;
+  background-color: transparent;
+  font-size: 9pt;
+}
+.small
+{
+  font-size: 7pt;
+}
+.intro {
+  border: 1px solid #000000;
+  color: #000000;
+  background-color: #ffffdd;
+  margin: 20px 0 10px 0;
+  padding: 10px;
+  font-size: 8pt;
+}
+.message
+{
+  border: 1px solid #0000CC;
+  color: #000;
+  background-color: #FFFFCC;
+  margin: 20px 0 10px 0;
+  padding: 10px;
+  font-size: 8pt;
+}
+.error
+{
+ border: 1px solid #ff0000;
+ color: #ff0000;
+ background-color: #ffdddd;
+ margin: 20px 0 10px 0;
+ padding: 10px;
+ font-size: 8pt;
+}
+.small-input
+{
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  font-size: 8pt;
+}
+.about_logo {
+  margin: 0;
+  padding: 0 0 30px 0;
+  text-align: left;
+}
+.about_text {
+  font-size: 9pt;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.about_text h2 {
+  margin: 0;
+  padding: 0;
+  font-size: 12pt;
+  font-weight: bold;
+  line-height: 100%;
+}
+.about_text p {
+  line-height: 120%;
+}
+.additional {
+  margin: 10px 0 5px 0;
+  text-align: right;
+  font-size: 8pt;
+}
+.hint_form_edit {
+  font-size: 8pt;
+  font-style: italic;
+  color: #646464;
+  background-color: transparent;
+}
+td.label_form_edit {
+  font-weight: bold;
+  text-align: right;
+  padding: 0 10px 0 0;
+}
+td.label_free_field,
+td.label_kit_field_inactive,
+td.label_kit_field {
+  font-weight: bold;
+  text-align: right;
+  padding: 0 10px 0 0;
+}
+td.label_kit_field_inactive {
+  font-weight: normal;
+  color: #646464;
+  background-color: transparent;
+}
+td.check_kit_field {
+  color: #000;
+  background-color: #008000;
+  text-align: center;
+}
+td.check_free_field {
+  color: #000;
+  background-color: cornflowerblue;
+  text-align: center;
+}
+td.check_free_must_field,
+td.check_kit_must_field {
+  color: #000;
+  background-color: #800000;
+  text-align: center;
+}
+td.check_kit_must_text {
+  padding: 0 0 0 10px;
+  font-style: italic;
+  color: #646464;
+  background-color: transparent;
+}
+td.sub_label_free_field_html,
+td.sub_label_free_field_hint,
+td.sub_label_free_field_must,
+td.sub_label_free_field
+{
+  font-size: 7pt;
+  font-style: italic;
+  text-align: right;
+  padding: 0 5px 0 0;
+  vertical-align: middle;
+}
+td.sub_label_free_field_must {
+  font-size: 8pt;
+  text-align: left;
+  padding: 0 0 0 10px;
+}
+td.sub_label_free_field_html, 
+td.sub_label_free_field_hint {
+  vertical-align: top;
+  padding: 4px 5px 0 0;
+}
+td.sub_value_free_field {
+  font-size: 7pt;
+}
+.sub_value_free_field input {
+  font-size: 7pt;
+}
+#sorter {
+  color: #003366;
+  background-color: #fdf5e6;
+  border: 1px solid #000;
+  padding: 10px;
+}
+input[name=fft] {
+  color: #b3b3b3;
+  background-color: transparent;
+}
+th.form_list_timestamp,
+td.form_list_timestamp {
+  text-align: right;
+}

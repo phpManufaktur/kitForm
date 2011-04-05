@@ -1,0 +1,436 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+<form name="form_edit" action="{$form_action}" method="post">
+  <input type="hidden" name="{$action_name}" value="{$action_value}" />
+  <input type="hidden" name="{$form_name}" value="{$form_value}" />
+  <input type="hidden" name="{$fields_name}" value="{$fields_value}" />
+  <input type="hidden" name="{$must_fields_name}" value="{$must_fields_value}" />
+  <input id="sorter_table" type="hidden" name="sorter_table" value="{$sorter_table}" />
+  <input id="sorter_value" type="hidden" name="sorter_value" value="{$sorter_value}" />
+  <input id="sorter_active" type="hidden" name="sorter_active" value="{$sorter_active}" />
+  <h2>{$header}</h2>
+  <div class="{if $is_intro==1}intro{else}message{/if}">{$intro}</div>
+  <table width="100%">
+    <colgroup>
+      <col width="200" />
+      <col width="*" />
+      <col width="300" />
+    </colgroup>
+    <tr>
+      <td class="label_form_edit">{$form.form_id.label}</td>
+      <td class="value_{$form.form_id.name}">{$form.form_id.value}</td>
+      <td class="hint_form_edit">{$form.form_id.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_name.label}</td>
+      <td class="value_{$form.form_name.name}"><input type="text" name="{$form.form_name.name}" value="{$form.form_name.value}" /></td>
+      <td class="hint_form_edit">{$form.form_name.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_title.label}</td>
+      <td class="value_{$form.form_title.name}"><input type="text" name="{$form.form_title.name}" value="{$form.form_title.value}" /></td>
+      <td class="hint_form_edit">{$form.form_title.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_desc.label}</td>
+      <td class="value_{$form.form_desc.name}"><textarea name="{$form.form_desc.name}">{$form.form_desc.value}</textarea></td>
+      <td class="hint_form_edit">{$form.form_desc.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_captcha.label}</td>
+      <td class="value_{$form.form_captcha.name}">
+        <select name="{$form.form_captcha.name}">
+          {foreach $form.form_captcha.items captcha}
+          <option value="{$captcha.value}"{if $form.form_captcha.value == $captcha.value} selected="selected"{/if}>{$captcha.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td class="hint_form_edit">{$form.form_captcha.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_status.label}</td>
+      <td class="value_{$form.form_status.name}">
+        <select name="{$form.form_status.name}">
+          {foreach $form.form_status.items status}
+          <option value="{$status.value}"{if $form.form_status.value == $status.value} selected="selected"{/if}>{$status.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td class="hint_form_edit">{$form.form_status.hint}</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td colspan="2"><div class="intro">{$kit_fields_intro}</div></td>
+    </tr>
+  </table>
+  {*
+     Für Rückmeldungen des jQuery Sorter den folgenden Container einfügen!
+     <div id="response"></div>
+   *}
+  <div id="sorter">
+    <table width="100%">
+      <colgroup>
+        <col width="200" />
+        <col width="20" />
+        <col width="20" />
+        <col width="*" />
+        <col width="300" />
+      </colgroup>
+      <tbody>
+      {foreach $fields field}
+      <tr id="rowID_{$field.id}">
+        {if $field.id < 100}
+          {* KIT Datenfelder *}
+          <td class="label_kit_field">{$field.label}</td>
+          <td class="check_kit_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked"{if $field.disabled == 1} disabled="disabled"{/if} />{if $field.disabled}<input type="hidden" name="{$field.name}" value="1" />{/if}</td>
+          <td class="{if $field.must.value == 1}check_kit_must_field{else}uncheck_kit_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if}{if $field.disabled == 1} disabled="disabled"{/if} />{if $field.disabled}<input type="hidden" name="{$field.must.name}" value="{$field.must.value}" />{/if}</td>
+          <td class="check_kit_must_text">{$field.must.text}</td>
+          <td class="hint_form_edit">{$field.hint.dialog}</td>
+        {else}
+          {* ALLGEMEINE Datenfelder *}
+          {if $field.type.type == 'text'}
+            {* Einfache Text Eingabefelder *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="40%" />
+                  <col width="60%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.type.label}</td>
+                  <td class="sub_value_free_field">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.title.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.field.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.default.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.default.name}" value="{$field.default.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.data_type.label}</td>
+                  <td class="sub_value_free_field">
+                    <select name="{$field.data_type.name}">
+                      {foreach $field.data_type.array option}
+                      <option value="{$option.value}"{if $option.value == $field.data_type.value} selected="selected"{/if}>{$option.text}</option>
+                      {/foreach}
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field_hint">{$field.hint.label}</td>
+                  <td class="sub_value_free_field"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'html'}
+            {* HTML Ausgabe *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="uncheck_free_must_field"><input type="checkbox" name="{$field.must.name}" value="1" disabled="disabled" /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="40%" />
+                  <col width="60%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.type.label}</td>
+                  <td class="sub_value_free_field">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.title.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field_html">{$field.html.label}</td>
+                  <td class="sub_value_free_field"><textarea name="{$field.html.name}">{$field.html.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'hidden'}
+            {* HIDDEN Fields *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="uncheck_free_must_field"><input type="checkbox" name="{$field.must.name}" value="1" disabled="disabled" /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="40%" />
+                  <col width="60%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.type.label}</td>
+                  <td class="sub_value_free_field">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.title.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field_html">{$field.value.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.value.name}" value="{$field.value.value}" /></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'text_area'}
+            {* Eingabefeld fuer Massentext *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="40%" />
+                  <col width="60%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.type.label}</td>
+                  <td class="sub_value_free_field">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.title.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.field.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.default.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.default.name}" value="{$field.default.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field_hint">{$field.hint.label}</td>
+                  <td class="sub_value_free_field"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'checkbox'}
+            {* Checkboxen definieren *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="5%" />
+                  <col width="35%" />
+                  <col width="55%" />
+                  <col width="5%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.type.label}</td>
+                  <td class="sub_value_free_field" colspan="2">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.title.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                {foreach $field.checkbox checkbox}
+                  <tr>
+                    <td><input type="checkbox" name="cb_active_{$checkbox.name}" value="1"{if count_characters($checkbox.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
+                    <td><input type="text" name="cb_value_{$checkbox.name}" value="{$checkbox.value}" title="{$field.hint.hint_val}" /></td>
+                    <td><input type="text" name="cb_text_{$checkbox.name}" value="{$checkbox.text}" title="{$field.hint.hint_txt}" /></td>
+                    {if count_characters($checkbox.value) > 0}
+                    <td><input type="checkbox" name="cb_checked_{$checkbox.name}" value="1"{if $checkbox.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    {else}
+                    <td>&nbsp;</td>
+                    {/if}
+                  </tr>
+                {/foreach}
+                <tr>
+                  <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'radio'}
+            {* RADIOBUTTONS definieren *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="5%" />
+                  <col width="35%" />
+                  <col width="55%" />
+                  <col width="5%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.type.label}</td>
+                  <td class="sub_value_free_field" colspan="2">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.title.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                {foreach $field.radios radio}
+                  <tr>
+                    <td><input type="checkbox" name="rb_active_{$radio.name}" value="1"{if count_characters($radio.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
+                    <td><input type="text" name="rb_value_{$radio.name}" value="{$radio.value}" title="{$field.hint.hint_val}" /></td>
+                    <td><input type="text" name="rb_text_{$radio.name}" value="{$radio.text}" title="{$field.hint.hint_txt}" /></td>
+                    {if count_characters($radio.value) > 0}
+                    <td><input type="radio" name="rb_checked_{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    {else}
+                    <td>&nbsp;</td>
+                    {/if}
+                  </tr>
+                {/foreach}
+                <tr>
+                  <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'select'}
+            {* SELECT Auswahlliste definieren *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="5%" />
+                  <col width="35%" />
+                  <col width="55%" />
+                  <col width="5%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.type.label}</td>
+                  <td class="sub_value_free_field" colspan="2">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.title.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.size.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.size.name}" value="{$field.size.value}" /></td>
+                </tr>
+                {foreach $field.options option}
+                  <tr>
+                    <td><input type="checkbox" name="opt_active_{$option.name}" value="1"{if count_characters($option.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
+                    <td><input type="text" name="opt_value_{$option.name}" value="{$option.value}" title="{$field.hint.hint_val}" /></td>
+                    <td><input type="text" name="opt_text_{$option.name}" value="{$option.text}" title="{$field.hint.hint_txt}" /></td>
+                    {if count_characters($option.value) > 0}
+                    <td><input type="radio" name="opt_checked_{$field.name}" value="{$option.value}"{if $option.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    {else}
+                    <td>&nbsp;</td>
+                    {/if}
+                  </tr>
+                {/foreach}
+                <tr>
+                  <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {else}
+            <td colspan="5">UNBEKANNTER DATENTYP {$field.type.type}</td>
+          {/if}
+        {/if}
+      </tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div><!-- /sorter -->
+  <table width="100%">
+    <colgroup>
+      <col width="200" />
+      <col width="150" />
+      <col width="*" />
+      <col width="300" />
+    </colgroup>
+    <tr><td colspan="4">&nbsp;</td></tr>
+    <tr>
+      <td class="label_form_edit">{$form.kit_field.label}</td>
+      <td class="value_{$form.kit_field.name}">
+        <select name="{$form.kit_field.name}">
+          {foreach $form.kit_field.value option}
+          <option value="{$option.value}">{$option.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td>&nbsp;</td>
+      <td class="hint_form_edit">{$form.kit_field.hint}</td>
+    </tr>
+    <tr><td colspan="4">&nbsp;</td></tr>
+    <tr>
+      <td class="label_form_edit">{$form.free_field.label}</td>
+      <td class="value_{$form.free_field.name}">
+        <select name="{$form.free_field.name}">
+          {foreach $form.free_field.value option}
+          <option value="{$option.value}">{$option.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td><input type="text" name="{$form.free_field.title.name}" value="{$form.free_field.title.value}" onfocus="if(this.value=='{$form.free_field.title.label}')\{this.value='';this.style.color='#000';}else\{this.select();}" onblur="if(this.value=='')\{this.value='{$form.free_field.title.label}';this.style.color='#b3b3b3';}" /></td>
+      <td class="hint_form_edit">{$form.free_field.hint}</td>
+    </tr>
+    <tr><td colspan="4">&nbsp;</td></tr>
+    <tr>
+      <td></td>
+      <td colspan="3">
+        <input type="submit" value="{$btn_ok}" />&nbsp;
+        <input type="button" value="{$btn_abort}" onclick="javascript: window.location = '{$abort_location}'; return false;" />
+      </td>
+    </tr>
+  </table>
+</form>
