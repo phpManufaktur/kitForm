@@ -43,8 +43,14 @@ define('form_data_type_password',							'Passwort');
 define('form_data_type_text',									'Text');
 define('form_data_type_undefined',						'- nicht festgelegt -');
 
+define('form_error_preset_not_exists',				'<p>Das Presetverzeichnis <b>%s</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!</p>');
 define('form_error_template_error',						'<p>Fehler bei der Ausführung des Template <b>%s</b>:</p><p>%s</p>');
 define('form_error_field_type_not_implemented','<p>Der Feldtyp <b>%s</b> ist nicht implementiert!</p>');
+define('form_error_form_name_empty',					'<p>Es wurde kein Formular Bezeichner übergeben!</p>');
+define('form_error_form_name_invalid',				'<p>Das Formular mit dem Bezeichner <b>%s</b> wurde nicht gefunden!</p>');
+define('form_error_data_type_invalid',				'<p>Der Datentyp <b>%s</b> wird nicht unterstützt!</p>');
+define('form_error_kit_field_id_invalid',			'<p>Der <b>ID %03d</b> ist kein KeepInTouch Datenfeld zugeordnet!</p>');
+define('form_error_form_id_missing',					'<p>Es wurde keine ID für das Formular übergeben!</p>');
 
 define('form_header_edit_form',								'Formular bearbeiten');
 define('form_header_form_list',								'Übersicht über die verfügbaren Formulare');
@@ -118,6 +124,7 @@ define('form_label_size_label',								'Größe');
 define('form_label_title_label',							'Feld Titel');
 define('form_label_type_label',								'Feld Typ');
 
+define('form_msg_captcha_invalid',						'<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>');
 define('form_msg_form_deleted',								'<p>Das Formular mit der <b>ID %03d</b> wurde gelöscht!</p>');
 define('form_msg_form_inserted',							'<p>Das Formular mit der <b>ID %03d</b> wurde angelegt.</p>');
 define('form_msg_form_name_empty',						'<p>Der <b>Formular Bezeichner</b> darf nicht leer sein und muss mindestens 3 Zeichen enthalten!</p>');
@@ -133,6 +140,7 @@ define('form_msg_free_radio_invalid',					'<p>Die Definition des neuen Radiobutt
 define('form_msg_free_select_invalid',				'<p>Die Definition des neuen Eintrag für die Auswahlliste ist nicht vollständig, bitte geben Sie einen <b>Wert</b> und einen <b>Text</b> für den Eintrag an!</p>');
 define('form_msg_kit_field_add_form_null',		'<p>Das KIT Datenfeld <b>%s</b> kann erst eingefügt werden, wenn der Datensatz für das Formular erfolgreich angelegt ist.</p>');
 define('form_msg_kit_field_add_success',			'<p>Das KIT Datenfeld <b>%s</b> wurde dem Formular hinzugefügt.</p>');
+define('form_msg_must_field_missing',					'<p>Das Feld <b>%s</b> ist ein <i>Pflichtfeld</i> und muss ausgefüllt werden.</p>');
 define('form_msg_field_removed',							'<p>Das Datenfeld <b>%s</b> wurde aus dem Formular entfernt.</p>');
 
 define('form_status_active',									'Aktiv');

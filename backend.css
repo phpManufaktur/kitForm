@@ -53,6 +53,8 @@ textarea
 {
   width: 98%;
   font-size:8pt;
+  color: #000;
+  background-color: transparent;
 }
 
 .nav_tab

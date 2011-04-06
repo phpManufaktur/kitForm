@@ -1,0 +1,61 @@
+/*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ */
+
+.error
+{
+ border: 1px solid #ff0000;
+ color: #ff0000;
+ background-color: #ffdddd;
+ margin: 20px 0 10px 0;
+ padding: 10px;
+ font-size: 8pt;
+}
+
+td {
+  font-size: 8pt;
+  vertical-align: top;
+}
+input {
+  width: 98%;
+  background-color: transparent;
+}
+input[type=submit],
+input[type=button] {
+  width: 150px;
+}
+input[type=radio],
+input[type=checkbox] {
+  width: auto;
+}
+select {
+  width: 98%;
+  font-size:8pt;
+}
+textarea {
+  width: 98%;
+  font-size:8pt;
+}
+.form_must_indicator {
+  font-weight: bold;
+  color: #ff0000;
+  background-color: transparent;
+  padding: 0 0 3px 3px;
+}
+.form_hint {
+  font-style: italic;
+  color: #b3b3b3;
+  background-color: transparent;
+}
+input[name=kit_zip] {
+  width: 70px;
+}
+input[name=kit_city] {
+  width: auto;
+}

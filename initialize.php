@@ -54,6 +54,7 @@ if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_l
 if (!class_exists('Dwoo')) 								require_once(WB_PATH.'/modules/dwoo/include.php');
 if (!class_exists('kitContactInterface')) require_once(WB_PATH.'/modules/kit/class.interface.php');	
 
+require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.tools.php');
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
 
 global $parser;

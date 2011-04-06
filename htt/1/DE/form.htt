@@ -1,0 +1,149 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="kit_form">
+   <form name="{$form.name}" action="{$form.action.link}" method="post">
+    <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
+    <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
+    <h2>{$form.title}</h2>
+    {if isset($form.response)}
+      {*entfernen Sie den Block $response nicht, er ermöglicht es dem Programm
+        Mitteilungen auszugeben! *}
+      <div class="message">{$form.response}</div>
+    {/if}
+    <table width="100%">
+      <colgroup>
+        <col width="30%" />
+        <col width="50%" />
+        <col width="20%" />
+      </colgroup>
+      {foreach $fields as field}
+        {if $field.id < 100}
+          {* KIT Datenfelder *}
+          {if (($field.type == 'kit_title') || ($field.type == 'kit_title_academic'))}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <select name="{$field.name}" size="1">
+                  {foreach $field.titles title}
+                  <option value="{$title.value}"{if $title.checked == 1} selected="selected"{/if}>{$title.text}</option>
+                  {/foreach}
+                </select>
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'kit_address_type'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <select name="{$field.name}" size="1">
+                  {foreach $field.address_types address_type}
+                  <option value="{$address_type.value}"{if $address_type.checked == 1} selected="selected"{/if}>{$address_type.text}</option>
+                  {/foreach}
+                </select>
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'kit_zip_city'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="text" name="{$field.name_zip}" value="{$field.value_zip}" /><input type="text" name="{$field.name_city}" value="{$field.value_city}" /></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
+                   $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
+                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email') }
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'kit_newsletter'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                {foreach $field.newsletters newsletter}
+                <input type="checkbox" name="{$field.name}[]" value="{$newsletter.value}"{if $newsletter.checked == 1} checked="checked"{/if} /> {$newsletter.text}<br />
+                {/foreach}
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {/if}
+        {else}
+          {* allgemeine Datenfelder *}
+          {if $field.type == 'checkbox'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                {foreach $field.checkbox checkbox}
+                <input type="checkbox" name="{$field.name}[]" value="{$checkbox.value}"{if $checkbox.checked == 1} checked="checked"{/if} /> {$checkbox.text}<br />
+                {/foreach}
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'hidden'}
+            <input type="hidden" name="{$field.name}" value="{$field.value}" />
+          {elseif $field.type == 'html' }
+            <tr>
+              <td class="form_html" colspan="3">{$field.value}</td>
+            </tr>
+          {elseif $field.type == 'radio'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                {foreach $field.radio radio}
+                <input type="radio" name="{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} /> {$radio.text}<br />
+                {/foreach}
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'select'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <select name="{$field.name}" size="{$field.value}">
+                {foreach $field.option option}
+                <option value="{$option.value}"{if $option.checked == 1} selected="selected"{/if}>{$option.text}</option>
+                {/foreach}
+                </select>
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'text'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
+              <td class="form_hint">{$field.hint}</td> 
+            </tr>
+          {elseif $field.type == 'text_area'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><textarea name="{$field.name}">{$field.value}</textarea></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {/if}
+        {/if}
+      {/foreach}
+      {if $form.captcha.active == 1}
+        <tr>
+          <td>&nbsp;</td>
+          <td colspan="2">
+            {$form.captcha.code}
+          </td>
+        </tr>
+      {/if}
+      <tr>
+        <td>&nbsp;</td>
+        <td colspan="2">
+          <input type="submit" value="{$form.btn.ok}" /> <input type="button" value="{$form.btn.abort}" onclick="javascript: window.location = '{$form.action.link}'; return false;" />
+        </td>
+      </tr>
+    </table>
+   </form>
+ </div>
