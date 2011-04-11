@@ -157,13 +157,6 @@ class dbKITformFields extends dbConnectLE {
   			if (!$this->sqlCreateTable()) {
   				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
   			}
-  			else {
-	  			$SQL = sprintf("ALTER TABLE %s AUTO_INCREMENT = 100", $this->getTableName());
-	  			$result = array();
-	  			if (!$this->sqlExec($SQL, $result)) {
-	  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
-	  			}
-  			}
   		}
   	}
   } // __construct()

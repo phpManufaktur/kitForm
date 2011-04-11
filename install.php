@@ -40,6 +40,14 @@ foreach ($tables as $table) {
 	}
 }
 
+// AUTO_INCREMENT FUER dbKITformFields auf 200 setzen!!!
+$dbKITformFields = new dbKITformFields();
+$SQL = sprintf("ALTER TABLE %s AUTO_INCREMENT = 200", $dbKITformFields->getTableName());
+$result = array();
+if (!$dbKITformFields->sqlExec($SQL, $result)) {
+  $error .= sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError());
+}
+
 // Install Droplets
 $droplets = new checkDroplets();
 if ($droplets->insertDropletsIntoTable()) {
