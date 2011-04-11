@@ -7,7 +7,7 @@
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  *}
-{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
+{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_title} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
 
 vielen Dank für die Übermittlung der folgenden Daten:
 
