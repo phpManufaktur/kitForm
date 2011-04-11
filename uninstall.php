@@ -22,6 +22,26 @@ else {
 	define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
 
+require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
+
 global $admin;
+
+$tables = array('dbKITform', 'dbKITformData', 'dbKITformFields', 'dbKITformTableSort');
+$error = '';
+
+foreach ($tables as $table) {
+	$delete = null;
+	$delete = new $table();
+	if ($delete->sqlTableExists()) {
+		if (!$delete->sqlDeleteTable()) {
+			$error .= sprintf('[UNINSTALL] %s', $delete->getError());
+		}
+	}
+}
+
+// Prompt Errors
+if (!empty($error)) {
+	$admin->print_error($error);
+}
 
 ?>

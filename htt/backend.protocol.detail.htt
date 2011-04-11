@@ -1,0 +1,39 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="form_protocol_detail">
+   <h2>{$head}</h2>
+   <div class="{if $is_message == 1}message{else}intro{/if}">{$intro}</div>
+   <table width="100%">
+     <colgroup>
+       <col width="200" />
+       <col width="*" />
+     </colgroup>
+     <tr>
+       <td></td>
+       <td>
+         <a href="{$contact.link}">{string_format($contact.id, '%03d')}</a><br /><br />
+         {$contact.kit_first_name} {$contact.kit_last_name}<br />
+         {$contact.kit_company}<br />
+         {$contact.kit_department}<br />
+         {$contact.kit_street}<br />
+         {$contact.kit_zip} {$contact.kit_city}<br /><br />
+         <a href="mailto:{$contact.kit_email}">{$contact.kit_email}</a><br />
+         {$contact.kit_phone} <br />
+         {$contact.kit_phone_mobile}
+       </td>
+     </tr>
+     {foreach $items as item}
+     <tr class="{cycle values=array('flip', 'flop')}">
+       <td>{$item.label}</td>
+       <td>{$item.value}</td>
+     </tr>
+     {/foreach}
+   </table>
+ </div>

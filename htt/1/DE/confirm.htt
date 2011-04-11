@@ -1,0 +1,28 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="kit_confirm">
+   <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
+   <p>vielen Dank für die Übermittlung der folgenden Daten:</p>
+   <table width="100%">
+     <colgroup>
+       <col width="150" />
+       <col width="*" />
+     </colgroup>
+     {foreach $items item}
+     <tr>
+       <td>{$item.label}</td>
+       <td>{$item.value}</td>
+     </tr>
+   {/foreach}
+   </table>
+   <p>Wir haben Ihnen zusätzlich eine Bestätigung an Ihre E-Mail Adresse <b>{$contact.kit_email}</b> gesendet.</p>
+   <p>Wir werden uns in Kürze mit Ihnen in Verbindung setzen!</p>
+   <p>Mit freundlichen Grüßen<br /><i>Ihr Website Betreiber</i></p>
+ </div>

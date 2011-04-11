@@ -51,9 +51,12 @@ define('form_error_form_name_invalid',				'<p>Das Formular mit dem Bezeichner <b
 define('form_error_data_type_invalid',				'<p>Der Datentyp <b>%s</b> wird nicht unterstützt!</p>');
 define('form_error_kit_field_id_invalid',			'<p>Der <b>ID %03d</b> ist kein KeepInTouch Datenfeld zugeordnet!</p>');
 define('form_error_form_id_missing',					'<p>Es wurde keine ID für das Formular übergeben!</p>');
+define('form_error_sending_email',						'<p>Die E-Mail an <b>%s</b> konnte nicht versendet werden!</p>'); 
 
 define('form_header_edit_form',								'Formular bearbeiten');
 define('form_header_form_list',								'Übersicht über die verfügbaren Formulare');
+define('form_header_protocol_detail',					'Protokoll, Details');
+define('form_header_protocol_list',						'Protokoll');
 
 define('form_hint_form_id',										'');
 define('form_hint_form_name',									'Legen Sie einen <b>Bezeichner</b> z.B. "kontakt" für diesen Dialog fest. Der Bezeichner darf keine Sonderzeichen, Leerzeichen, Umlaute o.ä. enthalten, er wird im Droplet <i>[[kit_form?form=<b>kontakt</b>]]</i> als Parameter für das Formular verwendet. Bezeichner werden automatisch bereinigt und in Kleinbuchstaben umgewandelt!');
@@ -100,8 +103,10 @@ define('form_hint_kit_zip',										'');
 define('form_hint_kit_zip_city',							'Die Eingabefelder für Postleitzahl und Stadt werden in einer Zeile zusammengefasst');
 
 define('form_intro_edit_form',								'<p>Mit diesem Dialog erstellen und bearbeiten Sie Formulare für KeepInTouch (KIT)</p>');
-define('form_intro_kit_fields',								'<p>Wählen Sie die Kontaktfelder aus KeepInTouch (KIT) aus, die im Formular verwendet werden sollen.</p>');
 define('form_intro_form_list',								'<p>Wählen Sie das gewünschte Formular zum Bearbeiten aus.</p><p>Um ein neues Formular zu erstellen wählen Sie direkt den Reiter "Bearbeiten".</p>');
+define('form_intro_kit_fields',								'<p>Wählen Sie die Kontaktfelder aus KeepInTouch (KIT) aus, die im Formular verwendet werden sollen.</p>');
+define('form_intro_protocol_detail',					'<p>Details zu dem abgesendeten Formular</p>');
+define('form_intro_protocol_list',						'<p>Protokoll über die verwendeten Formulare.</p><p>Klicken Sie auf die <b>ID</b> oder das <b>Absendedatum</b> um Details des Formulars zu sehen, klicken Sie auf <b>Kontak</b>t um zu dem jeweiligen Eintrag in KeepInTouch zu gelangen.</p>');
 
 define('form_label_data_type_label',					'Datentyp');
 define('form_label_default_label',						'Vorgabewert');
@@ -124,7 +129,11 @@ define('form_label_size_label',								'Größe');
 define('form_label_title_label',							'Feld Titel');
 define('form_label_type_label',								'Feld Typ');
 
+define('form_mail_subject_client',						'Ihre Anfrage');
+define('form_mail_subject_provider',					'Anfrage über die Website');
+
 define('form_msg_captcha_invalid',						'<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>');
+define('form_msg_date_invalid',								'<p><b>%s</b> ist kein gültiges Datum, bitte prüfen Sie Ihre Eingabe!</p>');
 define('form_msg_form_deleted',								'<p>Das Formular mit der <b>ID %03d</b> wurde gelöscht!</p>');
 define('form_msg_form_inserted',							'<p>Das Formular mit der <b>ID %03d</b> wurde angelegt.</p>');
 define('form_msg_form_name_empty',						'<p>Der <b>Formular Bezeichner</b> darf nicht leer sein und muss mindestens 3 Zeichen enthalten!</p>');
@@ -143,6 +152,8 @@ define('form_msg_kit_field_add_success',			'<p>Das KIT Datenfeld <b>%s</b> wurde
 define('form_msg_must_field_missing',					'<p>Das Feld <b>%s</b> ist ein <i>Pflichtfeld</i> und muss ausgefüllt werden.</p>');
 define('form_msg_field_removed',							'<p>Das Datenfeld <b>%s</b> wurde aus dem Formular entfernt.</p>');
 
+define('form_protocol_form_send',							'[kitForm] Der Kontakt hat ein <a href="%s">Formular übermittelt</a>.'); 
+
 define('form_status_active',									'Aktiv');
 define('form_status_deleted',									'Gelöscht');
 define('form_status_locked',									'Gesperrt');
@@ -150,12 +161,17 @@ define('form_status_locked',									'Gesperrt');
 define('form_tab_about',											'?');
 define('form_tab_edit',												'Bearbeiten');
 define('form_tab_list',												'Formulare');
+define('form_tab_protocol',										'Protokoll');
 
 define('form_text_must_field',								'als Pflichtfeld');
 define('form_text_not_established',						'<i>- nicht festgelegt -</i>');
 define('form_text_select_free_field',					'- Datenfeld auswählen -');
 define('form_text_select_kit_field',					'- Datenfeld auswählen -');
 
+define('form_th_contact',											'Kontakt');
+define('form_th_datetime',										'Datum/Zeit');
+define('form_th_email',												'E-Mail');
+define('form_th_form_name',										'Formular');
 define('form_th_id',													'ID');
 define('form_th_name',												'Bezeichner');
 define('form_th_status',											'Status');

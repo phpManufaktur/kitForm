@@ -17,10 +17,12 @@ require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 global $dbKITform;
 global $dbKITformFields;
 global $dbKITformTableSort;
+global $dbKITformData;
 
 if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
 if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
 if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
 
 class dbKITform extends dbConnectLE {
 	
@@ -208,6 +210,41 @@ class dbKITformTableSort extends dbConnectLE {
 	
 } // class dbKITformTableSort
   
-  
+class dbKITformData extends dbConnectLE {
+	
+	const field_id				= 'data_id';
+	const field_form_id		= 'form_id';
+	const field_kit_id		= 'kit_id';
+	const field_date			=	'data_date';
+	const field_fields		= 'data_fields';
+	const field_values		= 'data_values';
+	const field_timestamp	= 'data_timestamp';
+	
+	public $create_tables = false;
+	
+	public function __construct($create_tables=false) {
+		$this->create_tables = $create_tables;
+		parent::__construct();
+		$this->setTableName('mod_kit_form_data');
+		$this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true);
+		$this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
+		$this->addFieldDefinition(self::field_kit_id, "INT(11) NOT NULL DEFAULT '-1'");
+		$this->addFieldDefinition(self::field_date, "DATETIME");
+		$this->addFieldDefinition(self::field_fields, "TEXT NOT NULL DEFAULT ''");
+		$this->addFieldDefinition(self::field_values, "MEDIUMTEXT NOT NULL DEFAULT ''");
+		$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
+		$this->setIndexFields(array(self::field_form_id, self::field_kit_id));
+		$this->checkFieldDefinitions();
+		if ($this->create_tables) {
+			if (!$this->sqlTableExists()) {
+				if (!$this->sqlCreateTable()) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+					return false;
+				}
+			}
+		}
+	} // __construct()	
+	
+} // class dbKITformData 
 
 ?>

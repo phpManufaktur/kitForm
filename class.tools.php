@@ -357,20 +357,30 @@ class kitFormTools {
 
   /**
    * Wandelt einen String in einen Float Wert um.
-   * Geht davon aus, dass Dezimalzahlen mit ',' und nicht mit '.'
-   * eingegeben wurden.
+   * Verwendet per Default die deutschen Trennzeichen
    *
    * @param STR $string
+   * @param STR $thousand_separator
+   * @param STR $decimal_separator
    * @return FLOAT
    */
-  public function str2float($string) {
-  	$string = str_replace('.', '', $string);
-		$string = str_replace(',', '.', $string);
+  public function str2float($string, $thousand_separator='.', $decimal_separator=',') {
+  	$string = str_replace($thousand_separator, '', $string);
+		$string = str_replace($decimal_separator, '.', $string);
 		$float = floatval($string);
 		return $float;
   }
 
-  public function str2int($string) {
+  /**
+   * Wandelt einen String in einen Integer Wert um.
+   * Verwendet per Default die deutschen Trennzeichen
+   * 
+   * @param STR $string
+   * @param STR $thousand_separator
+   * @param STR $decimal_separator
+   * @return INT
+   */
+  public function str2int($string, $thousand_separator='.', $decimal_separator=',') {
   	$string = str_replace('.', '', $string);
 		$string = str_replace(',', '.', $string);
 		$int = intval($string);
@@ -384,8 +394,6 @@ class kitFormTools {
 	 * @return BOOL
 	 */
 	public function validateEMail($email) {
-		//if(eregi("^([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", $email)) {
-		// PHP 5.3 compatibility - eregi is deprecated
 		if(preg_match("/^([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$/i", $email)) {
 			return true; }
 		else {

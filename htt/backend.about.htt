@@ -8,9 +8,11 @@
  * @version $Id$
  *}
 <div class="about">
+  {if isset($img_url)}
   <div class="about_logo">
-    <img src="{$img_url}" width="424" height="283" alt="kitEventCalendar" />
+    <img src="{$img_url}" width="400" height="267" alt="kitForm" />
   </div>
+  {/if}
   <div class="about_text">
     <h2>kitForm</h2>
     <p>Release {$version}</b> - &copy 2011 by phpManufaktur, Ralf Hertsch (Berlin)</p>

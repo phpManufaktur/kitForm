@@ -1,0 +1,38 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="form_protocol">
+   <h2>{$head}</h2>
+   <div class="{if $is_message == 1}message{else}intro{/if}">{$intro}</div>
+   <table width="100%">
+     <colgroup>
+       <col width="50" />
+       <col width="150" />
+       <col width="*" />
+       <col width="200" />
+       <col width="200" />
+     </colgroup>
+     <tr>
+       <th class="form_protocol_id">{$header.id}</th>
+       <th class="form_protocol_datetime">{$header.datetime}</th>
+       <th class="form_protocol_form_name">{$header.form_name}</th>
+       <th class="form_protocol_contact">{$header.contact}</th>
+       <th class="form_protocol_email">{$header.email}</th>
+     </tr>
+     {foreach $list as item}
+     <tr class="{cycle values=array('flip', 'flop')}">
+       <td class="form_protocol_id"><a href="{$item.form.link}">{string_format($item.form.id, '%03d')}</a></td>
+       <td class="form_protocol_datetime"><a href="{$item.form.link}">{$item.form.datetime}</a></td>
+       <td class="form_protocol_name">{$item.form.form_name}</td>
+       <td class="form_protocol_contact"><a href="{$item.contact.link}">{$item.contact.kit_last_name}{if count_characters($item.contact.kit_first_name) > 0}, {$item.contact.kit_first_name}{/if}</td>
+       <td class="form_protocol_email"><a href="mailto:{$item.contact.kit_email}">{$item.contact.kit_email}</a></td>
+     </tr>
+     {/foreach}
+   </table>
+ </div>

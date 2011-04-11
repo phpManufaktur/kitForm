@@ -17,6 +17,23 @@
  padding: 10px;
  font-size: 8pt;
 }
+.intro {
+  border: 1px solid #000000;
+  color: #000000;
+  background-color: #ffffdd;
+  margin: 20px 0 10px 0;
+  padding: 10px;
+  font-size: 8pt;
+}
+.message
+{
+  border: 1px solid #0000CC;
+  color: #000;
+  background-color: #FFFFCC;
+  margin: 20px 0 10px 0;
+  padding: 10px;
+  font-size: 8pt;
+}
 
 td {
   font-size: 8pt;

@@ -22,16 +22,20 @@ class formBackend {
 	const request_add_kit_field			= 'akf';
 	const request_fields						= 'fld';
 	const request_free_field_title	= 'fft';
+	const request_protocol_id				= 'pid';
 	
 	const action_about						= 'abt';
 	const action_default					= 'def';
 	const action_edit							= 'edt';
 	const action_edit_check				= 'edtc';
 	const action_list							= 'lst';
+	const action_protocol					= 'pro';
+	const action_protocol_id			= 'pid';
 	
 	private $tab_navigation_array = array(
 		self::action_list								=> form_tab_list,
 		self::action_edit								=> form_tab_edit,
+		self::action_protocol						=> form_tab_protocol,
 		self::action_about							=> form_tab_about
 	);
 	
@@ -179,6 +183,12 @@ class formBackend {
   		break;
   	case self::action_edit_check:
   		$this->show(self::action_edit, $this->checkFormEdit());
+  		break;
+  	case self::action_protocol:
+  		$this->show(self::action_protocol, $this->dlgProtocolList());
+  		break;
+  	case self::action_protocol_id:
+  		$this->show(self::action_protocol, $this->dlgProtocolItem());
   		break;
   	case self::action_list:
   	default:
@@ -1183,12 +1193,147 @@ class formBackend {
   public function dlgAbout() {
   	$data = array(
   		'version'					=> sprintf('%01.2f', $this->getVersion()),
-  		'img_url'					=> $this->img_url.'/kit_form_logo_424x283.jpg',
+  		'img_url'					=> $this->img_url.'/kit_form_logo_400_267.jpg',
   		'release_notes'		=> file_get_contents(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/info.txt'),
   	);
   	return $this->getTemplate('backend.about.htt', $data);
   } // dlgAbout()
   
+	public function dlgProtocolList() {
+		global $dbKITform;
+		global $dbKITformData;
+		global $kitContactInterface;
+		
+		$SQL = sprintf( "SELECT * FROM %s ORDER BY %s DESC LIMIT 100",
+										$dbKITformData->getTableName(),
+										dbKITformData::field_date);
+		$items = array();
+		if (!$dbKITformData->sqlExec($SQL, $items)) {
+			$this->setError($dbKITformData->getError()); return false;
+		}
+		$list = array();		
+		foreach ($items as $item) {
+			if (!$kitContactInterface->getContact($item[dbKITformData::field_kit_id], $contact)) {
+				$this->setError($kitContactInterface->getError()); return false;
+			}
+			$contact['link'] = sprintf(	'%s&%s=%s',
+																	ADMIN_URL.'/admintools/tool.php?tool=kit&act=con',
+																	dbKITcontact::field_id,
+																	$item[dbKITformData::field_kit_id]);
+			$where = array(dbKITform::field_id => $item[dbKITformData::field_form_id]);
+			$form = array();
+			if (!$dbKITform->sqlSelectRecord($where, $form)) {
+				$this->setError($dbKITform->getError()); return false;
+			}
+			if (count($form) < 1) {
+				$this->setError(sprintf(kit_error_invalid_id, $item[dbKITformData::field_form_id])); return false;
+			}
+			$form = $form[0];
+			$form['id'] = $item[dbKITformData::field_id];
+			$form['link'] = sprintf('%s&%s=%s&%s=%s', $this->page_link, self::request_action, self::action_protocol_id, self::request_protocol_id, $item[dbKITformData::field_id]);
+			$form['datetime'] = date(form_cfg_datetime_str, strtotime($item[dbKITformData::field_date]));
+			$list[] = array(
+				'contact'		=> $contact,
+				'form'			=> $form
+			);
+		} // foreach
+		
+		$data = array(
+			'head'			=> form_header_protocol_list,
+			'intro'			=> form_intro_protocol_list,
+			'header'		=> array(	'id'				=> form_th_id,
+														'form_name'	=> form_th_form_name,
+														'datetime'	=> form_th_datetime,
+														'contact'		=> form_th_contact,
+														'email'			=> form_th_email),
+			'list'			=> $list
+		);
+		return $this->getTemplate('backend.protocol.list.htt', $data); 
+	} // dlgProtocolList()
+  
+	public function dlgProtocolItem() {
+		global $dbKITform;
+		global $dbKITformData;
+		global $dbKITformFields;
+		global $kitContactInterface;
+		
+		$protocol_id = (isset($_REQUEST[self::request_protocol_id])) ? $_REQUEST[self::request_protocol_id] : -1;
+		
+		$SQL = sprintf( "SELECT * FROM %s WHERE %s='%s'",
+										$dbKITformData->getTableName(),
+										dbKITformData::field_id,
+										$protocol_id);
+		$protocol = array();
+		if (!$dbKITformData->sqlExec($SQL, $protocol)) {
+			$this->setError($dbKITformData->getError()); return false;
+		}
+		if (count($protocol) < 1) {
+			$this->setError(sprintf(kit_error_invalid_id, $protocol_id));
+			return false;
+		}
+		
+		$protocol = $protocol[0];
+		$protocol['datetime'] = date(form_cfg_datetime_str, strtotime($protocol[dbKITformData::field_date]));
+		
+		if (!$kitContactInterface->getContact($protocol[dbKITformData::field_kit_id], $contact)) {
+			$this->setError($kitContactInterface->getError()); return false;
+		}
+		$contact['id'] = $protocol[dbKITformData::field_kit_id];
+		$contact['link'] = sprintf(	'%s&%s=%s',
+																ADMIN_URL.'/admintools/tool.php?tool=kit&act=con',
+																dbKITcontact::field_id,
+																$protocol[dbKITformData::field_kit_id]);
+		$where = array(dbKITform::field_id => $protocol[dbKITformData::field_form_id]);
+		$form = array();
+		if (!$dbKITform->sqlSelectRecord($where, $form)) {
+			$this->setError($dbKITform->getError()); return false;
+		}
+		if (count($form) < 1) {
+			$this->setError(sprintf(kit_error_invalid_id, $protocol[dbKITformData::field_form_id])); return false;
+		}
+		$form = $form[0];
+
+		parse_str($protocol[dbKITformData::field_values], $form_values);
+		$form_fields = explode(',', $protocol[dbKITformData::field_fields]);
+		$items = array();
+		foreach ($form_fields as $fid) {
+			$where = array(dbKITformFields::field_id => $fid);
+			$field = array();
+			if (!$dbKITformFields->sqlSelectRecord($where, $field)) {
+				$this->setError($dbKITformFields->getError()); return false;
+			}
+			if (count($field) < 1) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $fid))); return false;
+			}
+			$field = $field[0];
+			switch ($field[dbKITformFields::field_data_type]):
+			case dbKITformFields::data_type_date:
+				$value = date(form_cfg_datetime_str, $form_values[$fid]);
+				break;
+			case dbKITformFields::data_type_float:
+				$value = number_format($form_values[$fid], 2, form_cfg_decimal_separator, form_cfg_thousand_separator);
+				break;
+			case dbKITformFields::data_type_integer:
+			case dbKITformFields::data_type_text:
+			default:
+				$value = (is_array($form_values[$fid])) ? implode(', ', $form_values[$fid]) : $form_values[$fid];
+			endswitch;
+			$items[] = array(
+				'label'		=> $field[dbKITformFields::field_title],
+				'value'		=> $value
+			);
+		}
+		
+		$data = array(
+			'head'			=> form_header_protocol_detail,
+			'intro'			=> form_intro_protocol_detail,
+			'protocol'	=> $protocol,
+			'contact'		=> $contact,
+			'form'			=> $form,
+			'items'			=> $items
+		);
+		return $this->getTemplate('backend.protocol.detail.htt', $data);
+	} // dlgProtocolItem()
 	
 } // class formBackend
 

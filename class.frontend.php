@@ -13,8 +13,10 @@
 if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
+require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.backend.php');
 require_once(WB_PATH.'/include/captcha/captcha.php');
 require_once(WB_PATH.'/framework/class.wb.php');
+require_once(WB_PATH.'/modules/kit/class.mail.php');
 
 class formFrontend {
 	
@@ -211,7 +213,7 @@ class formFrontend {
   													'value'		=> self::action_check_form),
   		'id'				=> array(	'name'		=> dbKITform::field_id,
   													'value'		=> $fdata[dbKitform::field_id]),
-  		'response'	=> ($this->isMessage()) ? $this->getMessage() : '',
+  		'response'	=> ($this->isMessage()) ? $this->getMessage() : NULL,
   		'btn'				=> array(	'ok'			=> form_btn_ok,
   													'abort'		=> form_btn_abort),
   		'title'			=> $fdata[dbKITform::field_title],
@@ -466,11 +468,19 @@ class formFrontend {
   	return $this->getTemplate('form.htt', $data);
   }	// showForm()
   
+  /**
+   * Ueberprueft das Formular, zeigt das Formular bei Fehlern erneut an.
+   * Wenn alles in Ordnung ist, werden die Daten gesichert und 
+   * Benachrichtigungs E-Mails versendet.
+   * @return STR FORMULAR oder ERFOLGSMELDUNG
+   */
   public function checkForm() {
 		global $dbKITform;
 		global $dbKITformFields;
 		global $kitContactInterface;
 		global $formTools;
+		global $dbKITformData;
+		global $dbContact;
 
 		if (!isset($_REQUEST[dbKITform::field_id])) {
 			$this->setError(form_error_form_id_missing); return false;
@@ -492,11 +502,13 @@ class formFrontend {
 		
 		// CAPTCHA pruefen?
 		if ($form[dbKITform::field_captcha] == dbKITform::captcha_on) {
-			if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) $message .= form_msg_captcha_invalid;
-			$checked = false;
+			if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
+				$message .= form_msg_captcha_invalid;
+				$checked = false;
+			}			
 		}
 		
-		// Pflichtfelder pruefen
+		// zuerst die Pflichtfelder pruefen
 		$must_array = explode(',', $form[dbKITform::field_must_fields]);
 		foreach ($must_array as $must_id) {
 			if ($must_id < 100) {
@@ -510,19 +522,195 @@ class formFrontend {
   				$message .= sprintf(form_msg_must_field_missing, $kitContactInterface->field_array[$field_name]);
   				$checked = false;
   			}
-  			// E-Mail Adresse pruefen
-  			if (($field_name == kitContactInterface::kit_email) && isset($_REQUEST[kitContactInterface::kit_email]) && !empty($_REQUEST[kitContactInterface::kit_email])) {
-  				if (!$formTools->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
-  					$message .= sprintf(kit_msg_email_invalid, $_REQUEST[kitContactInterface::kit_email]);
-  					$checked = false;
-  				}
+  			elseif (($field_name == kitContactInterface::kit_email) && !$formTools->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
+  				// E-Mail Adresse pruefen
+  				$message .= sprintf(kit_msg_email_invalid, $_REQUEST[kitContactInterface::kit_email]);
+  				$checked = false;
   			}
 			}
 			else {
 				// freie Datenfelder
+				$where = array(dbKITformFields::field_id => $must_id);
+	  		$field = array();
+	  		if (!$dbKITformFields->sqlSelectRecord($where, $field)) {
+	  			$this->setError($dbKITformFields->getError()); return false;
+	  		}
+	  		if (count($field) < 1) {
+	  			$this->setError(sprintf(kit_error_invalid_id, $must_id)); return false;
+	  		}
+	  		$field = $field[0];
+	  		$field_name = $field[dbKITformFields::field_name];
+	  		if (!isset($_REQUEST[$field_name]) || empty($_REQUEST[$field_name])) {
+	  			// Feld muss gesetzt sein
+  				$message .= sprintf(form_msg_must_field_missing, $field[dbKITformFields::field_title]);
+  				$checked = false;
+	  		}
+	  		else {
+	  			// erweiterte Pruefung
+	  			switch ($field[dbKITformFields::field_data_type]):
+	  			case dbKITformFields::data_type_date:
+	  				if (false === ($timestamp = strtotime($_REQUEST[$field_name]))) {
+	  					$message .= sprintf(form_msg_date_invalid, $_REQUEST[$field_name]);
+	  					$checked = false;
+	  				}
+	  				break;
+	  			default:
+	  				// alle anderen Datentypen ohne Pruefung...
+	  			endswitch;
+	  		}
 			}
-		}
+		} // foreach
 		
+		if ($checked) { 
+			// Daten sind ok und koennen uebernommen werden 
+			$contact_array = array();
+			foreach ($kitContactInterface->field_array as $key => $value) {
+				switch ($key):
+				case kitContactInterface::kit_zip_city:
+					// nothing to do...
+					break;
+				case kitContactInterface::kit_newsletter:
+					if (isset($_REQUEST[$key])) $contact_array[$key] = implode(',', $_REQUEST[$key]);
+					break;
+				default:
+					if (isset($_REQUEST[$key])) $contact_array[$key] = $_REQUEST[$key];
+					break;
+				endswitch;
+			}
+			
+			if ($kitContactInterface->isEMailRegistered($_REQUEST[kitContactInterface::kit_email], $contact_id, $status)) { 
+				// E-Mail Adresse existiert bereits, Datensatz ggf. aktualisieren
+				if (!$kitContactInterface->updateContact($contact_id, $contact_array)) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+					return false;
+				}				
+			}
+			elseif ($kitContactInterface->isError()) {
+				// Fehler bei der Datenbankabfrage
+				$this->setError($kitContactInterface->getError()); 
+				return false;
+			}
+			else {
+				// E-Mail Adresse ist noch nicht registriert
+				if (!$kitContactInterface->addContact($contact_array, $contact_id)) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+					return false;
+				}				
+			}
+			
+			// Kontakt Datensatz ist erstellt oder aktualisiert, allgemeine Daten uebernehmen und E-Mails versenden
+			$fields = array();
+			$values = array();
+			$fields_array = explode(',', $form[dbKITform::field_fields]);
+			foreach ($fields_array as $fid) {
+				if ($fid > 99) $fields[] = $fid;
+			}	
+			foreach ($fields as $fid) {
+				$where = array(dbKITformFields::field_id => $fid);
+				$field = array();
+				if (!$dbKITformFields->sqlSelectRecord($where, $field)) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+					return false;
+				}
+				if (count($field) < 1) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+					return false;
+				}
+				$field = $field[0];
+				switch ($field[dbKITformFields::field_data_type]):
+				case dbKITformFields::data_type_date:
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? date('Y-m-d H:i:s', strtotime($_REQUEST[$field[dbKITformFields::field_name]])) : '0000-00-00 00:00:00';
+					break;
+				case dbKITformFields::data_type_float:
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $formTools->str2float($_REQUEST[$field[dbKITformFields::field_name]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
+					break;
+				case dbKITformFields::data_type_integer:
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $formTools->str2int($_REQUEST[$field[dbKITformFields::field_nam]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
+					break;
+				default:
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $_REQUEST[$field[dbKITformFields::field_name]] : '';
+					break;
+				endswitch;
+			}
+			$form_data = array(
+				dbKITformData::field_form_id			=> $form_id,
+				dbKITformData::field_kit_id				=> $contact_id,
+				dbKITformData::field_date					=> date('Y-m-d H:i:s'),
+				dbKITformData::field_fields				=> implode(',', $fields),
+				dbKITformData::field_values				=> http_build_query($values)
+			);
+			if (!$dbKITformData->sqlInsertRecord($form_data, $data_id)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformData->getError()));
+				return false;
+			}
+			// ok - Daten sind gesichert, vorab LOG schreiben
+			$dbContact->addSystemNotice($contact_id, sprintf(form_protocol_form_send, 
+																	sprintf('%s&%s=%s&%s=%s',
+																	ADMIN_URL.'/admintools/tool.php?tool=kit_form',
+																	formBackend::request_action,
+																	formBackend::action_protocol_id,
+																	formBackend::request_protocol_id,
+																	$data_id))); 
+			
+			if (!$kitContactInterface->getContact($contact_id, $contact)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+				return false;
+			}
+			
+			$items = array();
+			foreach ($fields as $fid) {
+				$where = array(dbKITformFields::field_id => $fid);
+				$field = array();
+				if (!$dbKITformFields->sqlSelectRecord($where, $field)) {
+					$this->setError($dbKITformFields->getError()); return false;
+				}
+				if (count($field) < 1) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $fid))); return false;
+				}
+				$field = $field[0];
+				switch ($field[dbKITformFields::field_data_type]):
+				case dbKITformFields::data_type_date:
+					$value = date(form_cfg_datetime_str, $values[$fid]);
+					break;
+				case dbKITformFields::data_type_float:
+					$value = number_format($values[$fid], 2, form_cfg_decimal_separator, form_cfg_thousand_separator);
+					break;
+				case dbKITformFields::data_type_integer:
+				case dbKITformFields::data_type_text:
+				default:
+					$value = (is_array($values[$fid])) ? implode(', ', $values[$fid]) : $values[$fid];
+				endswitch;
+				$items[] = array(
+					'label'		=> $field[dbKITformFields::field_title],
+					'value'		=> $value
+				);
+			}
+		
+			$form = $form_data;
+			$form['datetime'] = date(form_cfg_datetime_str, strtotime($form[dbKITformData::field_date]));
+			
+			$data = array(
+				'form'		=> $form,
+				'contact'	=> $contact,
+				'items'		=> $items
+			);
+			$client_mail = $this->getTemplate('mail.client.htt', $data);
+			
+			$mail = new kitMail();
+			if (!$mail->mail(form_mail_subject_client, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
+				return false;
+			}
+			
+			$provider_mail = $this->getTemplate('mail.provider.htt', $data);
+			$mail = new kitMail();
+			if (!$mail->mail(form_mail_subject_provider, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
+				return false;
+			}
+			
+			return $this->getTemplate('confirm.htt', $data);
+		} // checked
 		
 		$this->setMessage($message);
 		return $this->showForm();
