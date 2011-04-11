@@ -15,6 +15,17 @@ if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 require_once(WB_PATH.'/framework/functions.php');
 
+global $dbKITform;
+global $dbKITformFields;
+global $dbKITformTableSort;
+global $dbKITformData;
+
+if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
+if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
+
+
 class formBackend {
 	
 	const request_action						= 'act';

@@ -57,17 +57,6 @@ if (!class_exists('kitContactInterface')) require_once(WB_PATH.'/modules/kit/cla
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.tools.php');
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
 
-global $dbKITform;
-global $dbKITformFields;
-global $dbKITformTableSort;
-global $dbKITformData;
-
-if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
-if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
-if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
-if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
-
-
 global $parser;
 
 if (!is_object($parser)) $parser = new Dwoo();

@@ -18,6 +18,16 @@ require_once(WB_PATH.'/include/captcha/captcha.php');
 require_once(WB_PATH.'/framework/class.wb.php');
 require_once(WB_PATH.'/modules/kit/class.mail.php');
 
+global $dbKITform;
+global $dbKITformFields;
+global $dbKITformTableSort;
+global $dbKITformData;
+
+if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
+if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
+
+
 class formFrontend {
 	
 	const request_action						= 'act';
