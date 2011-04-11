@@ -43,11 +43,11 @@ set_error_handler("kit_error_handler");
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {
 	require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.php'); // Vorgabe: DE verwenden 
-	define('KIT_FORM_LANGUAGE', 'DE'); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
+	if (!defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', 'DE'); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
 else {
 	require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php');
-	define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
+	if (!defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
 
 if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
@@ -56,6 +56,17 @@ if (!class_exists('kitContactInterface')) require_once(WB_PATH.'/modules/kit/cla
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.tools.php');
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
+
+global $dbKITform;
+global $dbKITformFields;
+global $dbKITformTableSort;
+global $dbKITformData;
+
+if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
+if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
+
 
 global $parser;
 
