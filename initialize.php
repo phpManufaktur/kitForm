@@ -13,6 +13,9 @@
 // prevent this file from being accessed directly
 if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 
+// for extended error reporting set to true!
+if (!defined('KIT_DEBUG')) define('KIT_DEBUG', false);
+
 function kit_error_handler($level, $message, $file, $line) {
 	switch ($level):
 		case 1:			$type = 'E_ERROR'; break;
@@ -36,9 +39,11 @@ function kit_error_handler($level, $message, $file, $line) {
 								'<tr><td style="vertical-align:top;">Line:File</td><td><b>%s</b> : <i>%s</i></td></tr></table></div>', 
 								$type, $message, $line, $file);
 }
-// Prompt all errors and use own error_handler
-ini_set('error_reporting', E_ALL);
-set_error_handler("kit_error_handler");
+if (KIT_DEBUG == true) {
+	// Prompt all errors and use own error_handler
+	ini_set('error_reporting', E_ALL);
+	set_error_handler("kit_error_handler");
+}
 
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {

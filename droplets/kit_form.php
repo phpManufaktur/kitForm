@@ -11,12 +11,12 @@
  */
 if (file_exists(WB_PATH.'/modules/kit_form/class.frontend.php')) {
 	require_once(WB_PATH.'/modules/kit_form/class.frontend.php');
-	$form = new formFrontend();
-	$params = $form->getParams();
+	$formular = new formFrontend();
+	$params = $formular->getParams();
 	$params[formFrontend::param_form] = (isset($form)) ? strtolower(trim($form)) : '';
 	$params[formFrontend::param_preset] = (isset($preset)) ? (int) $preset : 1;
-	if (!$form->setParams($params)) return $form->getError();
-	return $form->action();
+	if (!$formular->setParams($params)) return $formular->getError();
+	return $formular->action();
 }
 else {
 	return "kitForm is not installed!";
