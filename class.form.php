@@ -23,6 +23,7 @@ class dbKITform extends dbConnectLE {
 	const field_description						= 'form_desc';
 	const field_fields								= 'form_fields';
 	const field_must_fields						= 'form_must_fields';
+	const field_action								= 'form_action';
 	const field_captcha								= 'form_captcha';
 	const field_status								= 'form_status';
 	const field_timestamp							= 'form_timestamp';
@@ -45,6 +46,20 @@ class dbKITform extends dbConnectLE {
 		self::captcha_off				=> form_captcha_off
 	);
 	
+	const action_none									= 0;
+	const action_login								= 1;
+	const action_register							= 2;
+	const action_send_password				= 3;
+	const action_newsletter						= 4;
+	
+	public $action_array = array(
+		//self::action_none						=> form_action_none,
+		self::action_login					=> form_action_login,
+		self::action_register				=> form_action_register,
+		self::action_send_password	=> form_action_send_password,
+		self::action_newsletter			=> form_action_newsletter
+	);
+	
 	private $createTables 		= false;
   
   public function __construct($createTables = false) {
@@ -57,6 +72,7 @@ class dbKITform extends dbConnectLE {
   	$this->addFieldDefinition(self::field_description, "TEXT NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_fields, "TEXT NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_must_fields, "TEXT NOT NULL DEFAULT ''"); 
+  	$this->addFieldDefinition(self::field_action, "TINYINT NOT NULL DEFAULT '".self::action_none."'");
   	$this->addFieldDefinition(self::field_captcha, "TINYINT NOT NULL DEFAULT '".self::captcha_on."'");
   	$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
   	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");

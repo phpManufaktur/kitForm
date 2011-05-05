@@ -30,7 +30,7 @@ if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
 
 class formFrontend {
 	
-	const request_action						= 'act';
+	const request_action						= 'fact';
 	
 	const action_default						= 'def';
 	const action_check_form					= 'acf';
@@ -41,12 +41,14 @@ class formFrontend {
 	private $error							= '';
 	private $message						= '';
 	
-	const param_preset					= 'preset';
+	const param_preset					= 'fpreset';
 	const param_form						= 'form';
+	const param_return					= 'return';
 	
 	private $params = array(
 		self::param_preset			=> 1, 
-		self::param_form				=> ''	
+		self::param_form				=> '',	
+		self::param_return			=> false
 	);
 	
 	public function __construct() {
@@ -215,7 +217,7 @@ class formFrontend {
 			$call_captcha = ob_get_contents();
 		ob_end_clean();
 		
-  	// Formulardaten
+		// Formulardaten
   	$form_data = array(
   		'name'			=> 'kit_form',
   		'action'		=> array(	'link'		=> $this->page_link,
@@ -228,14 +230,15 @@ class formFrontend {
   													'abort'		=> form_btn_abort),
   		'title'			=> $fdata[dbKITform::field_title],
   		'captcha'		=> array(	'active'	=> ($fdata[dbKITform::field_captcha] == dbKITform::captcha_on) ? 1 : 0,
-  													'code'		=> $call_captcha)
+  													'code'		=> $call_captcha),
+  		'kit_action'=> array(	'name'		=> dbKITform::field_action,
+  													'value'		=> $fdata[dbKITform::field_action])
   	);
-  	
+		
   	// Felder auslesen und Array aufbauen
   	$fields_array = explode(',', $fdata[dbKITform::field_fields]);
   	$must_array = explode(',', $fdata[dbKITform::field_must_fields]);
   	$form_fields = array();
-  	
   	foreach ($fields_array as $field_id) {
   		if ($field_id < 100) {
   			// IDs 1-99 sind fuer KIT reserviert
@@ -306,6 +309,8 @@ class formFrontend {
   			case kitContactInterface::kit_city:
   			case kitContactInterface::kit_zip:
   			case kitContactInterface::kit_email:
+  			case kitContactInterface::kit_password:
+  			case kitContactInterface::kit_password_retype:
   				$form_fields[$field_name] = array(
   					'id'				=> $field_id,
   					'type'			=> $field_name,
@@ -473,7 +478,6 @@ class formFrontend {
   	$data = array(
   		'form'		=> $form_data,
   		'fields'	=> $form_fields,
-  		'captcha'	=> $call_captcha
   	);
   	return $this->getTemplate('form.htt', $data);
   }	// showForm()
@@ -507,11 +511,19 @@ class formFrontend {
 		}
 		$form = $form[0];
 		
+		// pruefen, ob eine Aktion ausgefuehrt werden soll
+		switch ($form[dbKITform::field_action]):
+  	case dbKITform::action_login:
+  		return $this->checkLogin();
+  	default:
+  		// nothing to do - go ahead...
+		endswitch;
+		
 		$message = '';
 		$checked = true;
-		
 		// CAPTCHA pruefen?
 		if ($form[dbKITform::field_captcha] == dbKITform::captcha_on) {
+			unset($_SESSION['kf_captcha']);
 			if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
 				$message .= form_msg_captcha_invalid;
 				$checked = false;
@@ -667,6 +679,15 @@ class formFrontend {
 				return false;
 			}
 			
+			if ($this->params[self::param_return] == true) {
+				// direkt zum aufrufenden Programm zurueckkehren
+				$result = array(
+					'contact'		=> $contact,
+					'result'		=> true
+				);
+				return $result;
+			}
+			
 			$items = array();
 			foreach ($fields as $fid) {
 				$where = array(dbKITformFields::field_id => $fid);
@@ -713,7 +734,7 @@ class formFrontend {
 			}
 			
 			$provider_mail = $this->getTemplate('mail.provider.htt', $data);
-			$mail = new kitMail();
+			$mail = new mail(); //new kitMail();
 			if (!$mail->mail(form_mail_subject_provider, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
 				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
 				return false;
@@ -725,6 +746,10 @@ class formFrontend {
 		$this->setMessage($message);
 		return $this->showForm();
   } // checkForm()
+  
+  public function checkLogin() {
+  	return __METHOD__;
+  } // checkLogin()
   
 } // class formFrontend
 

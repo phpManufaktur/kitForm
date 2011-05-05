@@ -16,7 +16,7 @@ if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 // for extended error reporting set to true!
 if (!defined('KIT_DEBUG')) define('KIT_DEBUG', false);
 
-function kit_error_handler($level, $message, $file, $line) {
+function kit_form_error_handler($level, $message, $file, $line) {
 	switch ($level):
 		case 1:			$type = 'E_ERROR'; break;
 		case 2:			$type = 'E_WARNING'; break;
@@ -31,7 +31,7 @@ function kit_error_handler($level, $message, $file, $line) {
 		case 1024: 	$type = 'E_USER_NOTICE'; break;
 		case 2047: 	$type = 'E_ALL'; break;
 		case 2048: 	$type = 'E_STRICT';	break;
-		default:		$type = $level;	break;
+		default:		$type = $level;	break; 
 	endswitch;
 	echo sprintf(	'<div style="margin:5px 15px;padding:10px;border:1px solid #000;color:#000;background-color:#ffd;">'.
 								'<table width="99%%"><colgroup><col width="120" /><col width="*" /></colgroup>'.
@@ -42,7 +42,7 @@ function kit_error_handler($level, $message, $file, $line) {
 if (KIT_DEBUG == true) {
 	// Prompt all errors and use own error_handler
 	ini_set('error_reporting', E_ALL);
-	set_error_handler("kit_error_handler");
+	set_error_handler("kit_form_error_handler");
 }
 
 // include language file

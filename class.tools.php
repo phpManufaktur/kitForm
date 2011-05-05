@@ -15,7 +15,7 @@ if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 
 global $formTools;
 if (!is_object($formTools)) $formTools = new kitFormTools();
-
+ 
 class kitFormTools {
 	
   const   	unkownUser = 'UNKNOWN USER';

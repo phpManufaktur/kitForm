@@ -11,7 +11,7 @@
 
 // prevent this file from being accessed directly
 if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
-
+ 
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {
 	require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.php'); // Vorgabe: DE verwenden 

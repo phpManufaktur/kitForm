@@ -11,6 +11,7 @@
    <form name="{$form.name}" action="{$form.action.link}" method="post">
     <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
     <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
+    <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
     <h2>{$form.title}</h2>
     {if isset($form.response)}
       {*entfernen Sie den Block $form.response nicht, er ermöglicht es dem Programm
@@ -38,6 +39,12 @@
               </td>
               <td class="form_hint">{$field.hint}</td>
             </tr>
+          {elseif ($field.type == 'kit_password') || ($field.type == 'kit_password_retype')}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="password" name="{$field.name}" value="{$field.value}" /></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr> 
           {elseif $field.type == 'kit_address_type'}
             <tr>
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>

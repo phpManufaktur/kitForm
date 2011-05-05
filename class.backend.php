@@ -30,6 +30,7 @@ class formBackend {
 	
 	const request_action						= 'act';
 	const request_add_free_field		= 'aff';
+	//const request_add_kit_action		= 'aka';
 	const request_add_kit_field			= 'akf';
 	const request_fields						= 'fld';
 	const request_free_field_title	= 'fft';
@@ -297,6 +298,7 @@ class formBackend {
   				$checked = false;
   			}
   			break;
+  		case dbKITform::field_action: 
   		case dbKITform::field_description:
   		case dbKITform::field_fields:
   		case dbKITform::field_must_fields:
@@ -459,7 +461,7 @@ class formBackend {
   						if (!isset($_REQUEST['rb_active_'.$rb_name])) continue;
 							if (!empty($_REQUEST['rb_value_'.$rb_name])) $radio['value'] = $_REQUEST['rb_value_'.$rb_name];
 							if (!empty($_REQUEST['rb_text_'.$rb_name])) $radio['text'] = $_REQUEST['rb_text_'.$rb_name];
-							$radio['checked'] = ($_REQUEST['rb_checked_'.$field_name] == $radio['value']) ? 1 : 0;
+							$radio['checked'] = (isset($_REQUEST['rb_checked_'.$field_name]) && ($_REQUEST['rb_checked_'.$field_name] == $radio['value'])) ? 1 : 0;
 							$radios[] = $radio;
   					}
   					// neuen Radiobutton dazunehmen
@@ -750,11 +752,16 @@ class formBackend {
   		$form_data[dbKITform::field_fields] = $kitContactInterface->index_array[kitContactInterface::kit_email];
   		$form_data[dbKITform::field_must_fields] = $kitContactInterface->index_array[kitContactInterface::kit_email];
   		$form_data[dbKITform::field_captcha] = dbKITform::captcha_on;
+  		$form_data[dbKITform::field_action] = dbKITform::action_none;
   	}
   	
+  	// alle Felder
   	$fields = explode(',', $form_data[dbKITform::field_fields]);
+  	// Pflichtfelder
   	$must_fields = explode(',', $form_data[dbKITform::field_must_fields]);
-
+  	// gesperrte Felder
+		$disabled_fields = array(kitContactInterface::kit_email);
+		
   	// pruefen ob Daten per REQUEST uebergeben wurden
   	foreach ($form_data as $field => $value) {
   		if (!isset($_REQUEST[$field])) continue;
@@ -804,6 +811,19 @@ class formBackend {
   			// Value Feld nur setzen, wenn dies noch nicht geschehen ist
   			if (!isset($form[$field]['value'])) $form[$field]['value'] = $form_data[$field];
   			break;
+  		case dbKITform::field_action:
+  			if ($value == dbKITform::action_login) {
+  				// beim Login Dialog muss das Passwort Feld enthalten sein
+  				if (!in_array($kitContactInterface->index_array[kitContactInterface::kit_password], $fields)) {
+  					$fields[] = $kitContactInterface->index_array[kitContactInterface::kit_password];	
+  					$form_data[dbKITform::field_fields] = implode(',', $fields);
+  				}
+  				if (!in_array($kitContactInterface->index_array[kitContactInterface::kit_password], $must_fields)) {
+  					$must_fields[] = $kitContactInterface->index_array[kitContactInterface::kit_password];
+  					$form_data[dbKITform::field_must_fields] = implode(',', $must_fields);
+  				}
+  				if (!in_array(kitContactInterface::kit_password, $disabled_fields)) $disabled_fields[] = kitContactInterface::kit_password; 
+  			}
   		default:
   			// nothing to do, skip
   			break;
@@ -823,7 +843,7 @@ class formBackend {
 	  															'value'		=> (in_array($field_id, $must_fields)) ? 1 : 0,
 	  															'text'		=> form_text_must_field),
 	  			'hint'				=> array(	'dialog' 	=> constant('form_hint_'.$field_name)),
-	  			'disabled'		=> ($field_name == kitContactInterface::kit_email) ? 1 : 0
+	  			'disabled'		=> in_array($field_name, $disabled_fields) ? 1 : 0
 	  		);
   		}
   		else {
@@ -841,7 +861,7 @@ class formBackend {
   			if (empty($data[dbKITformFields::field_name])) $data[dbKITformFields::field_name] = 'field_'.$field_id;
   			$field_name = $data[dbKITformFields::field_name];
   			// Datentypen Auswahl
-  			$data_types = array();
+  			$data_types = array(); 
   			foreach ($dbKITformFields->data_type_array as $value => $text) {
   				$data_types[] = array(
   					'value'	=> $value,
@@ -1067,6 +1087,25 @@ class formBackend {
   			endswitch;
   		}
   	}
+  	// neue KIT Aktion hinzufuegen
+  	$form['kit_action']['label'] = form_label_kit_action_add;
+  	$form['kit_action']['name'] = dbKITform::field_action; //self::request_add_kit_action;
+  	$form['kit_action']['hint'] = form_hint_kit_action_add;
+  	$form['kit_action']['value'] = array();
+  	$form['kit_action']['value'][] = array(
+  		'value'	=> -1,
+  		'text'	=> form_text_select_kit_action
+  	);
+  	$field_array = $dbKITform->action_array;
+  	asort($field_array);
+  	foreach ($field_array as $value => $text) {
+  		$form['kit_action']['value'][] = array(
+  			'value'			=> $value,
+  			'text'			=> $text,
+  			'selected'	=> ($value == $form_data[dbKITform::field_action]) ? 1 : 0
+  		);
+  	}
+  	
 
   	// neues KIT Feld hinzufuegen
   	$form['kit_field']['label'] = form_label_kit_field_add;

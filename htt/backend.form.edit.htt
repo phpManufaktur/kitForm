@@ -400,6 +400,19 @@
     </colgroup>
     <tr><td colspan="4">&nbsp;</td></tr>
     <tr>
+      <td class="label_form_edit">{$form.kit_action.label}</td>
+      <td class="value_{$form.kit_action.name}">
+        <select name="{$form.kit_action.name}">
+          {foreach $form.kit_action.value option}
+          <option value="{$option.value}"{if $option.selected == 1} selected="selected"{/if}>{$option.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td>&nbsp;</td>
+      <td class="hint_form_edit">{$form.kit_action.hint}</td>
+    </tr>
+    <tr><td colspan="4">&nbsp;</td></tr>
+    <tr>
       <td class="label_form_edit">{$form.kit_field.label}</td>
       <td class="value_{$form.kit_field.name}">
         <select name="{$form.kit_field.name}">

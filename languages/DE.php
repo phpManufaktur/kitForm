@@ -9,20 +9,20 @@
  * @version $Id$
  */
 
-/*
-define('form_address_type_business',					'Dienstlich');
-define('form_address_type_private',						'Privat');
-define('form_address_type_null',							'- nicht festgelegt -');
-*/
+define('form_action_login',										'Anmeldung');
+define('form_action_newsletter',							'Newsletter An-/Abmeldung');
+define('form_action_none',										'- keine Aktion -');
+define('form_action_register',								'Registrierung');
+define('form_action_send_password',						'Passwort zusenden');
 
-define('form_btn_abort',											'Abbruch');
+define('form_btn_abort',											'Abbruch'); 
 define('form_btn_ok',													'Übernehmen');
 
 define('form_captcha_on',											'Aktiviert');
 define('form_captcha_off',										'Ausgeschaltet');
 
 define('form_cfg_currency',										'%s €');
-define('form_cfg_date_separator',							'.');
+define('form_cfg_date_separator',							'.');  
 define('form_cfg_date_str',										'd.m.Y');
 define('form_cfg_datetime_str',								'd.m.Y H:i');
 define('form_cfg_day_names',									"Sonntag, Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag");
@@ -84,9 +84,11 @@ define('form_hint_free_field_type_hidden',		'Versteckte Datenfelder');
 define('form_hint_free_field_type_html',			'HTML CODE');
 define('form_hint_free_field_type_radiobutton','RADIOBUTTONS definieren');
 define('form_hint_free_field_type_select',		'SELECT Auswahl definieren');
+define('form_hint_kit_action_add',						'Sie können Aktionen festlegen, die für KeepInTouch automatisch durchgeführt werden, z.B. das Formular als Anmelde- oder Registrierdialog zu verwenden.');
 define('form_hint_kit_address_type',					'Adresstyp (Privat, Dienstlich) zur Auswahl anzeigen');
 define('form_hint_kit_city',									'');
 define('form_hint_kit_company',								'');
+define('form_hint_kit_country',								'');
 define('form_hint_kit_department',						'');
 define('form_hint_kit_email',									'<span style="color:#800000;">Das E-Mail Feld ist grundsätzlich Pflicht!</span>');
 define('form_hint_kit_fax',										'');
@@ -94,6 +96,8 @@ define('form_hint_kit_field_add',							'KIT Datenfelder werden automatisch in K
 define('form_hint_kit_first_name',						'');
 define('form_hint_kit_last_name',							'');
 define('form_hint_kit_newsletter',						'Anmeldung für die Newsletter ermöglichen');
+define('form_hint_kit_password',							'Passwortabfrage für die Anmeldung und Registrierung');
+define('form_hint_kit_password_retype',				'Passwortwiederholung (für die Registrierung)');
 define('form_hint_kit_phone',									'');
 define('form_hint_kit_phone_mobile',					'');
 define('form_hint_kit_street',								'');
@@ -121,6 +125,7 @@ define('form_label_free_field_title',					'Titel eingeben...');
 define('form_label_free_label_marker',				'%s <i style="font-weight:normal;">(FREE)</i>');
 define('form_label_hint_label',								'Hilfe, Hinweis');
 define('form_label_html_label',								'HTML Code');
+define('form_label_kit_action_add',						'<i>KIT</i> Aktion hinzufügen');
 define('form_label_kit_field_add',						'<i>KIT</i> Datenfeld hinzufügen');
 define('form_label_kit_label_marker',					'%s <i style="font-weight:normal;">(KIT)</i>');
 define('form_label_value_label',							'Feld Wert');
@@ -166,6 +171,7 @@ define('form_tab_protocol',										'Protokoll');
 define('form_text_must_field',								'als Pflichtfeld');
 define('form_text_not_established',						'<i>- nicht festgelegt -</i>');
 define('form_text_select_free_field',					'- Datenfeld auswählen -');
+define('form_text_select_kit_action',					'- Aktion auswählen -');
 define('form_text_select_kit_field',					'- Datenfeld auswählen -');
 
 define('form_th_contact',											'Kontakt');
