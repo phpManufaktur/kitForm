@@ -13,6 +13,7 @@
 // prevent this file from being accessed directly
 if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 
+/*
 // for extended error reporting set to true!
 if (!defined('KIT_DEBUG')) define('KIT_DEBUG', false);
 
@@ -44,6 +45,11 @@ if (KIT_DEBUG == true) {
 	ini_set('error_reporting', E_ALL);
 	set_error_handler("kit_form_error_handler");
 }
+*/
+// for extended error reporting set to true!
+if (!defined('KIT_DEBUG')) define('KIT_DEBUG', true);
+require_once(WB_PATH.'/modules/kit_tools/debug.php');
+
 
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {
@@ -58,12 +64,15 @@ else {
 if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
 if (!class_exists('Dwoo')) 								require_once(WB_PATH.'/modules/dwoo/include.php');
 if (!class_exists('kitContactInterface')) require_once(WB_PATH.'/modules/kit/class.interface.php');	
+if (!class_exists('kitToolsLibrary'))   	require_once(WB_PATH.'/modules/kit_tools/class.tools.php');
 
-require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.tools.php');
+//require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.tools.php');
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
 
 global $parser;
+global $kitLibrary;
 
 if (!is_object($parser)) $parser = new Dwoo();
+if (!is_object($kitLibrary)) $kitLibrary = new kitToolsLibrary();
 
 ?>

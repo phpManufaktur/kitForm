@@ -177,16 +177,25 @@ textarea
   text-align: right;
   font-size: 8pt;
 }
+.hint_form_edit_small,
 .hint_form_edit {
   font-size: 8pt;
   font-style: italic;
   color: #646464;
   background-color: transparent;
 }
+.hint_form_edit_small {
+  font-size: smaller;
+}
+td.label_form_edit_small,
 td.label_form_edit {
   font-weight: bold;
   text-align: right;
   padding: 0 10px 0 0;
+}
+td.label_form_edit_small {
+  font-weight: normal;
+  font-size: smaller;
 }
 td.label_free_field,
 td.label_kit_field_inactive,

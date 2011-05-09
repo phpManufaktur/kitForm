@@ -194,6 +194,10 @@
                   <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
                 </tr>
                 <tr>
+                  <td class="sub_label_free_field">{$field.field.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>
+                <tr>
                   <td class="sub_label_free_field_html">{$field.value.label}</td>
                   <td class="sub_value_free_field"><input type="text" name="{$field.value.name}" value="{$field.value.value}" /></td>
                 </tr>
@@ -398,6 +402,21 @@
       <col width="*" />
       <col width="300" />
     </colgroup>
+    <tr><td colspan="4">&nbsp;</td></tr>
+      {foreach $form.kit_link link}
+      <tr>
+        <td class="label_form_edit_small">{$link.label}</td>
+        <td class="value_{$link.name}">
+          <select name="{$link.name}">
+            {foreach $link.value option}
+            <option value="{$option.value}"{if $option.selected == 1} selected="selected"{/if}>{$option.text}</option>
+            {/foreach}
+          </select>
+        </td>
+        <td>&nbsp;</td>
+        <td class="hint_form_edit_small">{$link.hint}</td>
+      </tr>
+      {/foreach}
     <tr><td colspan="4">&nbsp;</td></tr>
     <tr>
       <td class="label_form_edit">{$form.kit_action.label}</td>

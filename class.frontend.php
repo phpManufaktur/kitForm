@@ -30,16 +30,20 @@ if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
 
 class formFrontend {
 	
-	const request_action						= 'fact';
+	const request_action						= 'act';
+	const request_link							= 'link';
+	const request_key								= 'key';
 	
 	const action_default						= 'def';
 	const action_check_form					= 'acf';
+	const action_activation_key			= 'key';
 	
 	private $page_link 					= '';
 	private $img_url						= '';
 	private $template_path			= '';
 	private $error							= '';
 	private $message						= '';
+	private $contact						= array();
 	
 	const param_preset					= 'fpreset';
 	const param_form						= 'form';
@@ -52,10 +56,10 @@ class formFrontend {
 	);
 	
 	public function __construct() {
-		global $formTools;
+		global $kitLibrary;
 		$url = '';
 		$_SESSION['FRONTEND'] = true;	
-		$formTools->getPageLinkByPageID(PAGE_ID, $url);
+		$kitLibrary->getPageLinkByPageID(PAGE_ID, $url);
 		$this->page_link = $url; 
 		$this->template_path = WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/htt/' ;
 		$this->img_url = WB_URL. '/modules/'.basename(dirname(__FILE__)).'/images/';
@@ -103,6 +107,15 @@ class formFrontend {
     return (bool) !empty($this->error);
   } // isError
 
+  public function setContact($contact) {
+  	$this->contact = $contact;
+  } // setContact();
+  
+  
+  public function getContact() {
+  	return $this->contact;
+  } // getContact()
+  
   /**
    * Reset Error to empty String
    */
@@ -172,10 +185,13 @@ class formFrontend {
   			$_REQUEST[$key] = $this->xssPrevent($value);	  			
   		} 
   	} 
-    isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
+  	isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
   	switch ($action):
   	case self::action_check_form:
   		$result = $this->checkForm();
+  		break;
+  	case self::action_activation_key:
+  		$result = $this->checkActivationKey();
   		break;
   	case self::action_default:
   	default:
@@ -195,27 +211,84 @@ class formFrontend {
   	if (empty($this->params)) {
   		$this->setError(form_error_form_name_empty); return false;
   	}
+  	$form_id = -1;
+  	$form_name = 'none';
   	
-  	$SQL = sprintf(	"SELECT * FROM %s WHERE %s='%s' AND %s='%s'",
-  									$dbKITform->getTableName(),
-  									dbKITform::field_name,
-  									$this->params[self::param_form],
-  									dbKITform::field_status,
-  									dbKITform::status_active);
+  	if (isset($_REQUEST[self::request_link])) {
+  		$form_name = $_REQUEST[self::request_link];	
+  	}
+  	elseif (isset($_REQUEST[dbKITform::field_id])) {
+  		$form_id = $_REQUEST[dbKITform::field_id];
+  	}
+  	else {
+  	 	$form_name = $this->params[self::param_form];
+  	}
+  	if ($form_id > 0) {
+  		$SQL = sprintf( "SELECT * FROM %s WHERE %s='%s'",
+  										$dbKITform->getTableName(),
+  										dbKITform::field_id,
+  										$form_id);
+  	}
+  	else {
+	  	$SQL = sprintf(	"SELECT * FROM %s WHERE %s='%s' AND %s='%s'",
+	  									$dbKITform->getTableName(),
+	  									dbKITform::field_name,
+	  									$form_name,
+	  									dbKITform::field_status,
+	  									dbKITform::status_active);
+  	}
   	$fdata = array();
   	if (!$dbKITform->sqlExec($SQL, $fdata)) {
   		$this->setError($dbKITform->getError()); return false;
   	}
   	if (count($fdata) < 1) {
-  		$this->setError(sprintf(form_error_form_name_invalid, $this->params[self::param_form])); return false;
+  		$this->setError(sprintf(form_error_form_name_invalid, $form_name)); return false;
   	}
   	$fdata = $fdata[0];
   	
+  	if ($fdata[dbKITform::field_action] == dbKITform::action_logout) {
+  		// Sonderfall: beim LOGOUT wird direkt der Bestaetigungsdialog angezeigt
+  		if ($kitContactInterface->isAuthenticated()) {
+  			// Abmelden und Verabschieden...
+  			return $this->Logout();
+  		}
+  		else {
+  			// Benutzer ist nicht angemeldet...
+  			$data = array(
+  				'message' => form_msg_not_authenticated
+  			);
+  			return $this->getTemplate('prompt.htt', $data);  				
+  		}
+  	}
+  	elseif ($fdata[dbKITform::field_action] == dbKITform::action_account) {
+  		// Das Benutzerkonto zum Bearbeiten anzeigen
+  		if ($kitContactInterface->isAuthenticated()) {
+  			// ok - User ist angemeldet
+  			if (!$kitContactInterface->getContact($_SESSION[kitContactInterface::session_kit_contact_id], $contact)) {
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  				return false;
+  			}
+  			foreach ($contact as $key => $value) {
+  				if (!isset($_REQUEST[$key])) $_REQUEST[$key] = $value;
+  			}
+  		}
+  		else {
+  			// Dialog kann nicht angezeigt werden, Benutzer ist nicht angemeldet!
+  			$data = array(
+  				'message' => form_msg_not_authenticated
+  			);
+  			return $this->getTemplate('prompt.htt', $data);
+  		}
+  	}
   	// CAPTCHA
  		ob_start();
 			call_captcha();
 			$call_captcha = ob_get_contents();
 		ob_end_clean();
+		
+		// Links auslesen
+		parse_str($fdata[dbKITform::field_links], $links);
+		$links['command'] = sprintf('%s%s%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&' ,self::request_link);
 		
 		// Formulardaten
   	$form_data = array(
@@ -232,7 +305,8 @@ class formFrontend {
   		'captcha'		=> array(	'active'	=> ($fdata[dbKITform::field_captcha] == dbKITform::captcha_on) ? 1 : 0,
   													'code'		=> $call_captcha),
   		'kit_action'=> array(	'name'		=> dbKITform::field_action,
-  													'value'		=> $fdata[dbKITform::field_action])
+  													'value'		=> $fdata[dbKITform::field_action]),
+  		'links'			=> $links
   	);
 		
   	// Felder auslesen und Array aufbauen
@@ -335,13 +409,13 @@ class formFrontend {
   					'hint'			=> constant('form_hint_'.$field_name),	
   				);
   				break;
-  			case kitContactInterface::kit_newsletter:
+  			case kitContactInterface::kit_newsletter: 
   				$kitContactInterface->getFormNewsletterArray($newsletter_array);
   				if (isset($_REQUEST[$field_name])) {
-  					$selected = $_REQUEST[$field_name];
+  					$select_array = $_REQUEST[$field_name];
   					$new_array = array();
   					foreach ($newsletter_array as $newsletter) {
-  						$newsletter['checked'] = ($newsletter['value'] == $selected) ? 1 : 0;
+  						$newsletter['checked'] = (in_array($newsletter['value'], $select_array)) ? 1 : 0;
   						$new_array[] = $newsletter;
   					}
   					$newsletter_array = $new_array;
@@ -492,10 +566,10 @@ class formFrontend {
 		global $dbKITform;
 		global $dbKITformFields;
 		global $kitContactInterface;
-		global $formTools;
+		global $kitLibrary;
 		global $dbKITformData;
 		global $dbContact;
-
+		
 		if (!isset($_REQUEST[dbKITform::field_id])) {
 			$this->setError(form_error_form_id_missing); return false;
 		}
@@ -514,7 +588,19 @@ class formFrontend {
 		// pruefen, ob eine Aktion ausgefuehrt werden soll
 		switch ($form[dbKITform::field_action]):
   	case dbKITform::action_login:
-  		return $this->checkLogin();
+  		return $this->checkLogin($form);
+  	case dbKITform::action_logout:
+  		return $this->Logout($form);
+  	case dbKITform::action_send_password:
+  		return $this->sendNewPassword($form);
+  	case dbKITform::action_newsletter:
+  		return $this->subscribeNewsletter($form);
+  	case dbKITform::action_register:
+  	case dbKITform::action_account:
+  		/*
+  		 * Diese speziellen Aktionen werden erst durchgefuehrt, 
+  		 * wenn die allgemeinen Daten bereits geprueft sind
+  		 */
   	default:
   		// nothing to do - go ahead...
 		endswitch;
@@ -544,7 +630,7 @@ class formFrontend {
   				$message .= sprintf(form_msg_must_field_missing, $kitContactInterface->field_array[$field_name]);
   				$checked = false;
   			}
-  			elseif (($field_name == kitContactInterface::kit_email) && !$formTools->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
+  			elseif (($field_name == kitContactInterface::kit_email) && !$kitLibrary->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
   				// E-Mail Adresse pruefen
   				$message .= sprintf(kit_msg_email_invalid, $_REQUEST[kitContactInterface::kit_email]);
   				$checked = false;
@@ -585,19 +671,93 @@ class formFrontend {
 		
 		if ($checked) { 
 			// Daten sind ok und koennen uebernommen werden 
+			$password_changed = false;
+			$password = '';
 			$contact_array = array();
-			foreach ($kitContactInterface->field_array as $key => $value) {
+			$field_array = $kitContactInterface->field_array;
+			$field_array[kitContactInterface::kit_intern] = ''; // Feld fuer internen Verteiler hinzufuegen 
+			foreach ($field_array as $key => $value) {
 				switch ($key):
 				case kitContactInterface::kit_zip_city:
 					// nothing to do...
 					break;
 				case kitContactInterface::kit_newsletter:
-					if (isset($_REQUEST[$key])) $contact_array[$key] = implode(',', $_REQUEST[$key]);
+					if (isset($_REQUEST[$key])) {
+						if (is_array($_REQUEST[$key])) {
+							$contact_array[$key] = implode(',', $_REQUEST[$key]);
+						}
+						else {
+							$contact_array[$key] = $_REQUEST[$key];
+						}
+					}
+					break;
+				case kitContactInterface::kit_password:
+					// kit_password wird ignoriert
+					break;
+				case kitContactInterface::kit_password_retype:
+					if ((isset($_REQUEST[$key]) && !empty($_REQUEST[$key])) &&
+							(isset($_REQUEST[kitContactInterface::kit_password]) && !empty($_REQUEST[kitContactInterface::kit_password]))) {
+						// nur pruefen, wenn beide Passwortfelder gesetzt sind
+						if (!$kitContactInterface->changePassword($_SESSION[kitContactInterface::session_kit_aid], 
+																											$_SESSION[kitContactInterface::session_kit_contact_id], 
+																											$_REQUEST[kitContactInterface::kit_password], 
+																											$_REQUEST[kitContactInterface::kit_password_retype])) {
+							// Fehler beim Aendern des Passwortes
+							unset($_REQUEST[kitContactInterface::kit_password]);
+							unset($_REQUEST[kitContactInterface::kit_password_retype]);
+							if ($kitContactInterface->isError()) {
+								$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+								return false;
+							}							
+							$message .= $kitContactInterface->getMessage();
+							break;
+						}
+						else {
+							// Passwort wurde geaendert
+							$password_changed = true;
+							$password = $_REQUEST[kitContactInterface::kit_password];
+							unset($_REQUEST[kitContactInterface::kit_password]);
+							unset($_REQUEST[kitContactInterface::kit_password_retype]);
+							$message .= $kitContactInterface->getMessage();
+							break;
+						}
+					}
 					break;
 				default:
 					if (isset($_REQUEST[$key])) $contact_array[$key] = $_REQUEST[$key];
 					break;
 				endswitch;
+			}
+			
+			if ($form[dbKITform::field_action] == dbKITform::action_register) {
+				// es handelt sich um einen Registrierdialog, die weitere Bearbeitung an 
+				// $this->registerAccount() uebergeben
+				return $this->registerAccount($form, $contact_array);	
+			}
+			elseif ($form[dbKITform::field_action] == dbKITform::action_account) {
+				// Es wird das Benutzerkonto bearbeitet
+				if (!$kitContactInterface->updateContact($_SESSION[kitContactInterface::session_kit_contact_id], $contact_array)) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+					return false;
+				}
+				if ($password_changed) {
+					// Passwort wurde geaendert, E-Mail Bestaetigung versenden 
+					$data = array(
+						'contact'		=> $contact_array,
+						'password'	=> $password
+					);
+					$client_mail = $this->getTemplate('mail.client.password.htt', $data);
+					$mail = new kitMail();
+					if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact_array[kitContactInterface::kit_email] => $contact_array[kitContactInterface::kit_email]), false)) {
+						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact_array[kitContactInterface::kit_email])));
+						return false;
+					}
+			
+				}
+				// Mitteilung, dass das Benutzerkonto aktualisiert wurde
+				if (empty($message)) $message = form_msg_account_updated;
+				$this->setMessage($message);
+				return $this->showForm();
 			}
 			
 			if ($kitContactInterface->isEMailRegistered($_REQUEST[kitContactInterface::kit_email], $contact_id, $status)) { 
@@ -644,10 +804,10 @@ class formFrontend {
 					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? date('Y-m-d H:i:s', strtotime($_REQUEST[$field[dbKITformFields::field_name]])) : '0000-00-00 00:00:00';
 					break;
 				case dbKITformFields::data_type_float:
-					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $formTools->str2float($_REQUEST[$field[dbKITformFields::field_name]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $kitLibrary->str2float($_REQUEST[$field[dbKITformFields::field_name]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
 					break;
 				case dbKITformFields::data_type_integer:
-					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $formTools->str2int($_REQUEST[$field[dbKITformFields::field_nam]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $kitLibrary->str2int($_REQUEST[$field[dbKITformFields::field_nam]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
 					break;
 				default:
 					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $_REQUEST[$field[dbKITformFields::field_name]] : '';
@@ -711,7 +871,7 @@ class formFrontend {
 				default:
 					$value = (is_array($values[$fid])) ? implode(', ', $values[$fid]) : $values[$fid];
 				endswitch;
-				$items[] = array(
+				$items[$field[dbKITformFields::field_name]] = array(
 					'label'		=> $field[dbKITformFields::field_title],
 					'value'		=> $value
 				);
@@ -734,7 +894,7 @@ class formFrontend {
 			}
 			
 			$provider_mail = $this->getTemplate('mail.provider.htt', $data);
-			$mail = new mail(); //new kitMail();
+			$mail = new kitMail();
 			if (!$mail->mail(form_mail_subject_provider, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
 				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
 				return false;
@@ -747,9 +907,285 @@ class formFrontend {
 		return $this->showForm();
   } // checkForm()
   
-  public function checkLogin() {
-  	return __METHOD__;
+  /**
+   * Prueft den LOGIN und schaltet den User ggf. frei
+   * 
+   * @return BOOL true on success BOOL false on program error STR dialog on invalid login
+   */
+  public function checkLogin($form_data=array()) {
+  	global $kitContactInterface;
+  	global $kitLibrary;
+  	
+  	if (!isset($_REQUEST[kitContactInterface::kit_email]) || !isset($_REQUEST[kitContactInterface::kit_password])) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_email_password_required)); return false;
+  	}
+  	if (!$kitLibrary->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
+  		$this->setMessage(sprintf(kit_msg_email_invalid, $_REQUEST[kitContactInterface::kit_email]));
+  		return $this->showForm();
+  	}
+  	if ($kitContactInterface->checkLogin($_REQUEST[kitContactInterface::kit_email], $_REQUEST[kitContactInterface::kit_password], $contact, $must_change_password)) {
+  		// Login erfolgreich
+  		$this->setContact($contact);
+  		return true;
+  	}
+  	elseif ($kitContactInterface->isError()) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  		return false;
+  	}
+  	else {
+  		$this->setMessage($kitContactInterface->getMessage());
+  		return $this->showForm();
+  	}
   } // checkLogin()
+  
+  /**
+   * Sendet dem User ein neues Passwort zu
+   * 
+   * @param ARRAY $form_data
+   * @return BOOL false on program error STR dialog/message on success
+   */
+  public function sendNewPassword($form_data=array()) {
+  	global $kitContactInterface;
+  	
+  	if (!isset($_REQUEST[kitContactInterface::kit_email])) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_field_required, kitContactInterface::kit_email)));
+  		return false;
+  	}
+  	if (!$kitContactInterface->isEMailRegistered($_REQUEST[kitContactInterface::kit_email], $contact_id, $status)) {
+  		// E-Mail Adresse ist nicht registriert
+  		$this->setMessage(sprintf(form_msg_email_not_registered, $_REQUEST[kitContactInterface::kit_email]));
+  		return $this->showForm();
+  	}
+  	if ($status != dbKITcontact::status_active) {
+  		// Der Kontakt ist NICHT AKTIV!
+  		$this->setMessage(sprintf(form_msg_contact_not_active, $_REQUEST[kitContactInterface::kit_email]));
+  		return $this->showForm();
+  	}
+  	// CAPTCHA pruefen?
+		if ($form_data[dbKITform::field_captcha] == dbKITform::captcha_on) {
+			unset($_SESSION['kf_captcha']);
+			if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
+				$this->setMessage(form_msg_captcha_invalid);
+				return $this->showForm();
+			}			
+		}
+		
+  	// neues Passwort anfordern
+  	if (!$kitContactInterface->generateNewPassword($_REQUEST[kitContactInterface::kit_email], $newPassword)) {
+  		if ($kitContactInterface->isError()) {
+  			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  			return false;
+  		}
+  		$this->setMessage($kitContactInterface->getMessage());
+  		return $this->showForm();
+  	}
+  	if (!$kitContactInterface->getContact($contact_id, $contact)) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  		return false;
+  	}
+  	
+  	$data = array(
+  		'contact'		=> $contact,
+  		'password'	=> $newPassword
+  	);
+  	
+  	$client_mail = $this->getTemplate('mail.client.password.htt', $data);
+			
+		$mail = new kitMail();
+		if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
+			return false;
+		}
+		
+		return $this->getTemplate('confirm.password.htt', $data);			
+  } // sendNewPassword()
+  
+  public function registerAccount($form_data=array(), $contact_data=array()) {
+  	global $kitContactInterface;
+  	
+  	if ($kitContactInterface->isEMailRegistered($contact_data[kitContactInterface::kit_email], $contact_id, $status)) {
+  		// diese E-Mail Adresse ist bereits registriert
+  		if ($status == dbKITcontact::status_active) {
+  			// Kontakt ist aktiv
+	  		$this->setMessage(sprintf(form_msg_contact_already_registered, $contact_data[kitContactInterface::kit_email]));
+	  		return $this->showForm();
+  		}
+  		else {
+  			// Kontakt ist gesperrt
+  			$this->setMessage(sprintf(form_msg_contact_locked, $contact_data[kitContactInterface::kit_email]));
+  			return $this->showForm();
+  		}
+  	}
+  	elseif ($kitContactInterface->isError()) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  		return false;
+  	}
+  	
+  	// alles ok - neuen Datensatz anlegen
+  	if (!$kitContactInterface->addContact($contact_data, $contact_id, $register_data)) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  		return false;
+  	}
+  	$form_data['datetime'] = date(form_cfg_datetime_str);
+		$form_data['activation_link'] = sprintf('%s%s%s=%s&%s=%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&', self::request_action, self::action_activation_key, self::request_key, $register_data[dbKITregister::field_register_key]);	
+		
+  	// Benachrichtigungen versenden
+  	$data = array(
+  		'contact'		=> $contact_data,
+  		'form'			=> $form_data
+  	);
+  	$client_mail = $this->getTemplate('mail.client.register.htt', $data);
+			
+		$mail = new kitMail();
+		if (!$mail->mail(form_mail_subject_client_register, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact_data[kitContactInterface::kit_email] => $contact_data[kitContactInterface::kit_email]), false)) {
+			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact_data[kitContactInterface::kit_email])));
+			return false;
+		}
+		
+		$provider_mail = $this->getTemplate('mail.provider.register.htt', $data);
+		$mail = new kitMail();
+		if (!$mail->mail(form_mail_subject_provider_register, $provider_mail, $contact_data[kitContactInterface::kit_email], $contact_data[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
+			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
+			return false;
+		}
+		
+		return $this->getTemplate('confirm.register.htt', $data); 
+  } // registerAccount()
+  
+  /**
+   * Aktivierungskey ueberpruefen, Datensatz freischalten und Benutzer einloggen...
+   * @return STR Dialog 
+   */
+  public function checkActivationKey() {
+  	global $kitContactInterface;
+  	
+  	if (!isset($_REQUEST[self::request_key])) {
+  		$this->setError(sprintf(form_error_field_required, self::request_key));
+  		return false;
+  	}
+  	
+  	if (!$kitContactInterface->checkActivationKey($_REQUEST[self::request_key], $register, $contact, $password)) {
+  		if ($this->isError()) {
+  			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  			return false;
+  		}
+  		$this->setMessage($kitContactInterface->getMessage());
+  		return $this->showForm();
+  	}
+  	
+  	// Benutzer anmelden
+  	$_SESSION[kitContactInterface::session_kit_aid] = $register[dbKITregister::field_id];
+		$_SESSION[kitContactInterface::session_kit_key] = $register[dbKITregister::field_register_key];
+		$_SESSION[kitContactInterface::session_kit_contact_id] = $register[dbKITregister::field_contact_id];
+			
+  	$data = array(
+  		'contact'		=> $contact,
+  		'password'	=> $password
+  	);
+  	
+  	$client_mail = $this->getTemplate('mail.client.activation.htt', $data);
+			
+		$mail = new kitMail();
+		if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
+			return false;
+		}
+		
+		return $this->getTemplate('confirm.activation.htt', $data);
+  } // checkActivationKey()
+  
+  /**
+   * Logout 
+   * @return STR Dialog
+   */
+  public function Logout() {
+  	global $kitContactInterface;
+  	
+  	if (!$kitContactInterface->getContact($_SESSION[kitContactInterface::session_kit_contact_id], $contact)) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  		return false;
+  	}
+  	$data = array(
+  		'contact'	=> $contact
+  	);
+  	$kitContactInterface->logout();
+  	return $this->getTemplate('confirm.logout.htt', $data);  	
+  } // Logout()
+  
+  public function subscribeNewsletter($form_data=array()) {
+  	global $kitContactInterface;
+  	
+  	$use_subscribe=false;
+  	$subscribe = false;
+  	// pruefen ob kit_newsletter_subscribe verwendet wird
+  	if (isset($_REQUEST[kitContactInterface::kit_newsletter_subscribe])) {
+  		$use_subscribe = true;
+  		if (is_bool($_REQUEST[kitContactInterface::kit_newsletter_subscribe])) {
+  			$subscribe = $_REQUEST[kitContactInterface::kit_newsletter_subscribe];
+  		}
+  		elseif (is_numeric($_REQUEST[kitContactInterface::kit_newsletter_subscribe])) {
+  			$subscribe = ($_REQUEST[kitContactInterface::kit_newsletter_subscribe] == 1) ? true : false;
+  		}
+  		else {
+  			$subscribe = (strtolower($_REQUEST[kitContactInterface::kit_newsletter_subscribe]) == 'true') ? true : false;
+  		}
+  	}
+  	
+  	$newsletter = '';
+  	if (isset($_REQUEST[kitContactInterface::kit_newsletter]) && is_array($_REQUEST[kitContactInterface::kit_newsletter])) {
+  		$newsletter = implode(',', $_REQUEST[kitContactInterface::kit_newsletter]);
+  	}
+  	elseif (isset($_REQUEST[kitContactInterface::kit_newsletter])) {
+  		$newsletter = $_REQUEST[kitContactInterface::kit_newsletter];
+  	}
+  	
+  	$email = $_REQUEST[kitContactInterface::kit_email];
+  	
+  	if (!$kitContactInterface->subscribeNewsletter($email, $newsletter, $subscribe, $use_subscribe, $register, $contact, $send_activation)) {
+  		if ($kitContactInterface->isError()) {
+  			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  			return false;
+  		}
+  		$this->setMessage($kitContactInterface->getMessage());
+  		return $this->showForm();
+  	}
+  	$message = $kitContactInterface->getMessage();
+  	if ($send_activation == false) {
+  		$message .= sprintf(form_msg_newsletter_abonnement_updated, $email);
+  		$this->setMessage($message);
+  		$data = array(
+  			'message'	=> $this->getMessage()
+  		);
+  		return $this->getTemplate('prompt.htt', $data);
+  	}
+  	else {
+  		// Aktivierungskey versenden
+  		$form = array();
+  		$form['activation_link'] = sprintf('%s%s%s=%s&%s=%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&', self::request_action, self::action_activation_key, self::request_key, $register[dbKITregister::field_register_key]);
+  		$form['datetime'] = date(form_cfg_datetime_str);
+  		$data = array(
+  			'form'		=> $form,
+  			'contact'	=> $contact
+  		);
+  		$client_mail = $this->getTemplate('mail.client.register.newsletter.htt', $data);
+			
+			$mail = new kitMail();
+			if (!$mail->mail(form_mail_subject_client_register, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
+				return false;
+			}
+			
+			$provider_mail = $this->getTemplate('mail.provider.register.newsletter.htt', $data);
+			$mail = new kitMail();
+			if (!$mail->mail(form_mail_subject_provider_register, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
+				return false;
+			}
+			
+			return $this->getTemplate('confirm.register.newsletter.htt', $data);
+  	}
+  	
+  } // subscribeNewsletter()
   
 } // class formFrontend
 

@@ -1,0 +1,15 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="kit_confirm">
+   <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
+   <p>vielen Dank für Ihre Anmeldung.</p>
+   <p>Wir haben Ihnen einen Aktivierungslink an Ihre E-Mail Adresse <b>{$contact.kit_email}</b> gesendet. Ihr Konto wird freigeschaltet, sobald Sie Ihre Anmeldung mit diesem Link bestätigt haben.</p>
+   <p><i>Bitte kontrollieren Sie Ihr Postfach.</i></p>
+ </div>

@@ -28,7 +28,7 @@ if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
 
 class formBackend {
 	
-	const request_action						= 'act';
+	const request_action						= 'act'; 
 	const request_add_free_field		= 'aff';
 	//const request_add_kit_action		= 'aka';
 	const request_add_kit_field			= 'akf';
@@ -70,7 +70,8 @@ class formBackend {
     * @param STR $error
     */
   public function setError($error) {
-    $caller = next(debug_backtrace());
+  	$debug = debug_backtrace();
+    $caller = next($debug);
   	$this->error = sprintf('[%s::%s - %s] %s', basename($caller['file']), $caller['function'], $caller['line'], $error);
   } // setError()
 
@@ -331,6 +332,14 @@ class formBackend {
   		endswitch;
   	}
   	
+  	// Action Links pruefen
+  	$links = array();
+  	foreach ($dbKITform->action_array as $key => $text) {
+  		if (isset($_REQUEST[$key])) $links[$key] = $_REQUEST[$key];
+  	}
+  	// ... und uebernehmen
+  	$form_data[dbKITform::field_links] = http_build_query($links);
+  	
   	// pruefen ob ein Feld entfernt werden soll oder ob Felder als Pflichtfelder gesetzt werden sollen
   	$fields = explode(',', $form_data[dbKITform::field_fields]);
   	$must_fields = explode(',', $form_data[dbKITform::field_must_fields]);
@@ -505,7 +514,7 @@ class formBackend {
   						if (!isset($_REQUEST['opt_active_'.$opt_name])) continue;
 							if (!empty($_REQUEST['opt_value_'.$opt_name])) $option['value'] = $_REQUEST['opt_value_'.$opt_name];
 							if (!empty($_REQUEST['opt_text_'.$opt_name])) $option['text'] = $_REQUEST['opt_text_'.$opt_name];
-							$option['checked'] = ($_REQUEST['opt_checked_'.$field_name] == $option['value']) ? 1 : 0;
+							$option['checked'] = (isset($_REQUEST['opt_checked_'.$field_name]) && ($_REQUEST['opt_checked_'.$field_name] == $option['value'])) ? 1 : 0;
 							$options[] = $option;
   					}
   					// neues Auswahlfeld dazunehmen
@@ -786,7 +795,7 @@ class formBackend {
   			$form[$field]['hint'] 	= constant('form_hint_'.$field);
   			// Value Feld nur setzen, wenn dies noch nicht geschehen ist
   			if (!isset($form[$field]['value'])) $form[$field]['value'] = $form_data[$field];
-  		case dbKITform::field_status:
+  		case dbKITform::field_status: 
   			// Status Array zusammenstellen
 		  	$form[$field]['items'] = array();
 		  	foreach ($dbKITform->status_array as $value => $text) {
@@ -1087,6 +1096,42 @@ class formBackend {
   			endswitch;
   		}
   	}
+  	
+  	// KIT LINKS hinzufuegen
+  	parse_str($form_data[dbKITform::field_links], $links);
+  	$form['kit_link'] = array();
+  	foreach ($dbKITform->action_array as $name => $text) {
+  		$SQL = sprintf(	"SELECT * FROM %s WHERE %s='%s' AND %s='%s'",
+  										$dbKITform->getTableName(),
+  										dbKITform::field_status,
+  										dbKITform::status_active,
+  										dbKITform::field_action,
+  										$name);
+  		$link_forms = array();
+  		if (!$dbKITform->sqlExec($SQL, $link_forms)) {
+  			$this->setError($dbKITform->getError()); return false;
+  		}
+  		$value = array();
+  		$value[] = array(
+  			'value'			=> dbKITform::action_none,
+  			'text'			=> form_text_no_link_assigned,
+  			'selected'	=> (isset($links[$name]) && ($links[$name] == dbKITform::action_none)) ? 1 : 0 
+  		);
+  		foreach ($link_forms as $link) {
+  			$value[] = array(
+  				'value'			=> $link[dbKITform::field_name],
+  				'text'			=> $link[dbKITform::field_name],
+  				'selected'	=> (isset($links[$name]) && ($links[$name] == $link[dbKITform::field_name])) ? 1 : 0
+  			);
+  		}
+  		$form['kit_link'][] = array(
+  			'label'			=> sprintf(form_label_kit_link, $text),
+  			'name'			=> $name,
+  			'hint'			=> sprintf(form_hint_kit_link_add, $text),
+  			'value'			=> $value
+  		);
+  	}
+  	
   	// neue KIT Aktion hinzufuegen
   	$form['kit_action']['label'] = form_label_kit_action_add;
   	$form['kit_action']['name'] = dbKITform::field_action; //self::request_add_kit_action;

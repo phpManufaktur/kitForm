@@ -14,7 +14,7 @@
     <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
     <h2>{$form.title}</h2>
     {if isset($form.response)}
-      {*entfernen Sie den Block $form.response nicht, er ermöglicht es dem Programm
+      {*entfernen Sie den Block $form.response nicht, er ermoeglicht es dem Programm
         Mitteilungen auszugeben! *}
       <div class="message">{$form.response}</div>
     {/if}
@@ -65,11 +65,22 @@
             </tr>
           {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
                    $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
-                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email') }
+                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile') }
             <tr>
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
               <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
               <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'kit_email'}
+            {* 
+              Es ist wichtig das E-Mail Feld auf DISABLED zu setzen, wenn das Formular das KONTO (ACCOUNT) des Kunden anzeigt!
+              Die E-Mail Adresse darf in diesem Fall nicht veraendert werden! Zur Uebermittlung der E-Mail Adresse wird
+              ein zusaetzliches HIDDEN Feld eingefuegt.
+            *}
+            <tr>
+              <td class="form_label">{$field.label}{if (($field.must == 1) && ($form.kit_action.value != 'act_account'))}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" {if $form.kit_action.value == 'act_account'}disabled="disabled" {/if}/></td>
+              <td class="form_hint">{$field.hint}{if $form.kit_action.value == 'act_account'}<input type="hidden" name="{$field.name}" value="{$field.value}" />{/if}</td>
             </tr>
           {elseif $field.type == 'kit_newsletter'}
             <tr>
@@ -137,12 +148,29 @@
           {/if}
         {/if}
       {/foreach}
-      {if $form.captcha.active == 1}
+      {if ($form.captcha.active == 1) && ($form.kit_action.value != 'act_login')}
         <tr>
           <td>&nbsp;</td>
           <td colspan="2">
             {$form.captcha.code}
           </td>
+        </tr>
+      {/if}
+      {if (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none') && ($form.links.act_register != 'act_none'))}
+        {* Es wird der LOGIN Dialog angezeigt und es sind Verweise auf PASSWORT VERGESSEN und REGISTRIEREN gesetzt... *}
+        <tr>
+          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a> oder Sie möchten sich als Anwender <a href="{$form.links.command}={$form.links.act_register}">registrieren lassen</a>?</td>
+        </tr>
+      {elseif (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none'))}
+        {* Es wird der LOGIN Dialog angezeigt und es ist ein Verweis auf PASSWORT VERGESSEN gesetzt *}
+        <tr>
+          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a>?</td>
+        </tr>
+      {/if}
+      {if ($form.links.act_logout != 'act_none')}
+        {* Link zum Abmelden anzeigen *}
+        <tr>
+          <td colspan="3"><a href="{$form.links.command}={$form.links.act_logout}">Abmelden ...</a></td>
         </tr>
       {/if}
       <tr>

@@ -1,0 +1,19 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+Der Kontakt:
+
+{$contact.kit_title}
+{$contact.kit_first_name} {$contact.kit_last_name}
+
+{$contact.kit_email}
+
+hat sich am {$form.datetime} Uhr für den NEWSLETTER VERSAND registrieren lassen. Es wurde ein Aktivierungslink versendet.
+
++++++ AUTOMATISCHE BENACHRICHTIGUNG DURCH kitForm +++++

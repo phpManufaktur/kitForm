@@ -24,6 +24,7 @@ class dbKITform extends dbConnectLE {
 	const field_fields								= 'form_fields';
 	const field_must_fields						= 'form_must_fields';
 	const field_action								= 'form_action';
+	const field_links									= 'form_links';
 	const field_captcha								= 'form_captcha';
 	const field_status								= 'form_status';
 	const field_timestamp							= 'form_timestamp';
@@ -43,21 +44,25 @@ class dbKITform extends dbConnectLE {
 	
 	public $captcha_array = array(
 		self::captcha_on				=> form_captcha_on,
-		self::captcha_off				=> form_captcha_off
+		self::captcha_off				=> form_captcha_off 
 	);
 	
-	const action_none									= 0;
-	const action_login								= 1;
-	const action_register							= 2;
-	const action_send_password				= 3;
-	const action_newsletter						= 4;
+	const action_none									= 'act_none'; 
+	const action_login								= 'act_login';
+	const action_logout								= 'act_logout';
+	const action_register							= 'act_register';
+	const action_send_password				= 'act_send_password';
+	const action_newsletter						= 'act_newsletter';
+	const action_account							= 'act_account';
 	
 	public $action_array = array(
 		//self::action_none						=> form_action_none,
 		self::action_login					=> form_action_login,
 		self::action_register				=> form_action_register,
 		self::action_send_password	=> form_action_send_password,
-		self::action_newsletter			=> form_action_newsletter
+		self::action_newsletter			=> form_action_newsletter,
+		self::action_account				=> form_action_account,
+		self::action_logout					=> form_action_logout
 	);
 	
 	private $createTables 		= false;
@@ -72,7 +77,8 @@ class dbKITform extends dbConnectLE {
   	$this->addFieldDefinition(self::field_description, "TEXT NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_fields, "TEXT NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_must_fields, "TEXT NOT NULL DEFAULT ''"); 
-  	$this->addFieldDefinition(self::field_action, "TINYINT NOT NULL DEFAULT '".self::action_none."'");
+  	$this->addFieldDefinition(self::field_action, "VARCHAR(30) NOT NULL DEFAULT '".self::action_none."'");
+  	$this->addFieldDefinition(self::field_links, "VARCHAR(255) NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_captcha, "TINYINT NOT NULL DEFAULT '".self::captcha_on."'");
   	$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
   	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");

@@ -9,7 +9,9 @@
  * @version $Id$
  */
 
+define('form_action_account',									'Benutzerkonto'); 
 define('form_action_login',										'Anmeldung');
+define('form_action_logout',									'Abmeldung/Logout');
 define('form_action_newsletter',							'Newsletter An-/Abmeldung');
 define('form_action_none',										'- keine Aktion -');
 define('form_action_register',								'Registrierung');
@@ -43,15 +45,17 @@ define('form_data_type_password',							'Passwort');
 define('form_data_type_text',									'Text');
 define('form_data_type_undefined',						'- nicht festgelegt -');
 
-define('form_error_preset_not_exists',				'<p>Das Presetverzeichnis <b>%s</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!</p>');
-define('form_error_template_error',						'<p>Fehler bei der Ausführung des Template <b>%s</b>:</p><p>%s</p>');
+define('form_error_data_type_invalid',				'<p>Der Datentyp <b>%s</b> wird nicht unterstützt!</p>');
+define('form_error_email_password_required',	'<p>Die Datenfelder für E-Mail Adresse und/oder Passwort sind nicht gesetzt!</p>');
+define('form_error_field_required',           '<p>Das Datenfeld <b>%s</b> ist nicht gesetzt!</p>');
 define('form_error_field_type_not_implemented','<p>Der Feldtyp <b>%s</b> ist nicht implementiert!</p>');
+define('form_error_form_id_missing',					'<p>Es wurde keine ID für das Formular übergeben!</p>');
 define('form_error_form_name_empty',					'<p>Es wurde kein Formular Bezeichner übergeben!</p>');
 define('form_error_form_name_invalid',				'<p>Das Formular mit dem Bezeichner <b>%s</b> wurde nicht gefunden!</p>');
-define('form_error_data_type_invalid',				'<p>Der Datentyp <b>%s</b> wird nicht unterstützt!</p>');
 define('form_error_kit_field_id_invalid',			'<p>Der <b>ID %03d</b> ist kein KeepInTouch Datenfeld zugeordnet!</p>');
-define('form_error_form_id_missing',					'<p>Es wurde keine ID für das Formular übergeben!</p>');
+define('form_error_preset_not_exists',				'<p>Das Presetverzeichnis <b>%s</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!</p>');
 define('form_error_sending_email',						'<p>Die E-Mail an <b>%s</b> konnte nicht versendet werden!</p>'); 
+define('form_error_template_error',						'<p>Fehler bei der Ausführung des Template <b>%s</b>:</p><p>%s</p>');
 
 define('form_header_edit_form',								'Formular bearbeiten');
 define('form_header_form_list',								'Übersicht über die verfügbaren Formulare');
@@ -84,7 +88,7 @@ define('form_hint_free_field_type_hidden',		'Versteckte Datenfelder');
 define('form_hint_free_field_type_html',			'HTML CODE');
 define('form_hint_free_field_type_radiobutton','RADIOBUTTONS definieren');
 define('form_hint_free_field_type_select',		'SELECT Auswahl definieren');
-define('form_hint_kit_action_add',						'Sie können Aktionen festlegen, die für KeepInTouch automatisch durchgeführt werden, z.B. das Formular als Anmelde- oder Registrierdialog zu verwenden.');
+define('form_hint_kit_action_add',						'Sie können Aktionen festlegen, die für KeepInTouch automatisch durchgeführt werden, z.B. das Formular als Anmelde- oder Registrierdialog zu verwenden. Freie Datenfelder werden in diesem Fall von kitForm mit Ausnahme von Zuweisungen über versteckte Datenfelder ignoriert.');
 define('form_hint_kit_address_type',					'Adresstyp (Privat, Dienstlich) zur Auswahl anzeigen');
 define('form_hint_kit_city',									'');
 define('form_hint_kit_company',								'');
@@ -95,6 +99,7 @@ define('form_hint_kit_fax',										'');
 define('form_hint_kit_field_add',							'KIT Datenfelder werden automatisch in KeepInTouch (KIT) übernommen. Bereits eingefügte KIT Datenfelder werden in der Auswahlliste nicht mehr angezeigt.');
 define('form_hint_kit_first_name',						'');
 define('form_hint_kit_last_name',							'');
+define('form_hint_kit_link_add',							'KIT AKTIONS-Formular: <b>%s</b>');
 define('form_hint_kit_newsletter',						'Anmeldung für die Newsletter ermöglichen');
 define('form_hint_kit_password',							'Passwortabfrage für die Anmeldung und Registrierung');
 define('form_hint_kit_password_retype',				'Passwortwiederholung (für die Registrierung)');
@@ -128,6 +133,7 @@ define('form_label_html_label',								'HTML Code');
 define('form_label_kit_action_add',						'<i>KIT</i> Aktion hinzufügen');
 define('form_label_kit_field_add',						'<i>KIT</i> Datenfeld hinzufügen');
 define('form_label_kit_label_marker',					'%s <i style="font-weight:normal;">(KIT)</i>');
+define('form_label_kit_link',									'<i>KIT LINK</i>: %s');
 define('form_label_value_label',							'Feld Wert');
 define('form_label_name_label',								'Feld Bezeichner');
 define('form_label_size_label',								'Größe');
@@ -135,10 +141,18 @@ define('form_label_title_label',							'Feld Titel');
 define('form_label_type_label',								'Feld Typ');
 
 define('form_mail_subject_client',						'Ihre Anfrage');
+define('form_mail_subject_client_access',			'Ihre Zugangsdaten');
+define('form_mail_subject_client_register',		'Ihre Registrierung'); 
 define('form_mail_subject_provider',					'Anfrage über die Website');
+define('form_mail_subject_provider_register',	'Registrierung über die Website');
 
+define('form_msg_account_updated',						'<p>Das Benutzerkonto wurde aktualisiert.</p>'); 
 define('form_msg_captcha_invalid',						'<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>');
+define('form_msg_contact_already_registered',	'<p>Die E-Mail Adresse <b>%s</b> ist bereits registriert, bitte melden Sie sich mit Ihren Benutzerdaten an.</p>');
+define('form_msg_contact_locked',							'<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist zur Zeit gesperrt. Bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>');
+define('form_msg_contact_not_active',					'<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist nicht aktiv, bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>'); 
 define('form_msg_date_invalid',								'<p><b>%s</b> ist kein gültiges Datum, bitte prüfen Sie Ihre Eingabe!</p>');
+define('form_msg_email_not_registered',				'<p>Die E-Mail Adresse <b>%s</b> ist nicht registriert.</p>');
 define('form_msg_form_deleted',								'<p>Das Formular mit der <b>ID %03d</b> wurde gelöscht!</p>');
 define('form_msg_form_inserted',							'<p>Das Formular mit der <b>ID %03d</b> wurde angelegt.</p>');
 define('form_msg_form_name_empty',						'<p>Der <b>Formular Bezeichner</b> darf nicht leer sein und muss mindestens 3 Zeichen enthalten!</p>');
@@ -155,6 +169,8 @@ define('form_msg_free_select_invalid',				'<p>Die Definition des neuen Eintrag f
 define('form_msg_kit_field_add_form_null',		'<p>Das KIT Datenfeld <b>%s</b> kann erst eingefügt werden, wenn der Datensatz für das Formular erfolgreich angelegt ist.</p>');
 define('form_msg_kit_field_add_success',			'<p>Das KIT Datenfeld <b>%s</b> wurde dem Formular hinzugefügt.</p>');
 define('form_msg_must_field_missing',					'<p>Das Feld <b>%s</b> ist ein <i>Pflichtfeld</i> und muss ausgefüllt werden.</p>');
+define('form_msg_newsletter_abonnement_updated','<p>Das Newsletter Abonnement für die E-Mail Adresse <b>%s</b> wurde aktualisiert.</p>');
+define('form_msg_not_authenticated',					'<p>Sie sind nicht angemeldet!</p>');
 define('form_msg_field_removed',							'<p>Das Datenfeld <b>%s</b> wurde aus dem Formular entfernt.</p>');
 
 define('form_protocol_form_send',							'[kitForm] Der Kontakt hat ein <a href="%s">Formular übermittelt</a>.'); 
@@ -170,6 +186,7 @@ define('form_tab_protocol',										'Protokoll');
 
 define('form_text_must_field',								'als Pflichtfeld');
 define('form_text_not_established',						'<i>- nicht festgelegt -</i>');
+define('form_text_no_link_assigned',					'- nicht zugeordnet -');
 define('form_text_select_free_field',					'- Datenfeld auswählen -');
 define('form_text_select_kit_action',					'- Aktion auswählen -');
 define('form_text_select_kit_field',					'- Datenfeld auswählen -');

@@ -1,0 +1,13 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+ <div class="kit_confirm">
+   <h2>Auf Wiedersehen {if count_characters($contact.kit_last_name) > 0}{$contact.kit_title} {$contact.kit_last_name}!{else}!{/if}</h2>
+   <p><i>Wir freuen uns schon auf Ihren nächsten Besuch!</i></p>
+ </div>
