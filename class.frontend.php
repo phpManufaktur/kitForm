@@ -33,10 +33,15 @@ class formFrontend {
 	const request_action						= 'act';
 	const request_link							= 'link';
 	const request_key								= 'key';
+	const request_activation_type		= 'at';
 	
 	const action_default						= 'def';
 	const action_check_form					= 'acf';
 	const action_activation_key			= 'key';
+	
+	const activation_type_newsletter	= 'nl';
+	const activation_type_account			= 'acc';
+	const activation_type_default			= 'def';
 	
 	private $page_link 					= '';
 	private $img_url						= '';
@@ -289,7 +294,6 @@ class formFrontend {
 		// Links auslesen
 		parse_str($fdata[dbKITform::field_links], $links);
 		$links['command'] = sprintf('%s%s%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&' ,self::request_link);
-		
 		// Formulardaten
   	$form_data = array(
   		'name'			=> 'kit_form',
@@ -1083,7 +1087,21 @@ class formFrontend {
   		'password'	=> $password
   	);
   	
-  	$client_mail = $this->getTemplate('mail.client.activation.htt', $data);
+  	$activation_type = (isset($_REQUEST[self::request_activation_type])) ? $_REQUEST[self::request_activation_type] : self::activation_type_account;
+  	
+  	switch($activation_type):
+  	case self::activation_type_newsletter:
+  		$mail_template	= 'mail.client.activation.newsletter.htt';
+  		$prompt_template = 'confirm.activation.newsletter.htt';
+  		break;
+  	case self::activation_type_account:
+  	default:
+  		$mail_template	= 'mail.client.activation.account.htt';
+  		$prompt_template = 'confirm.activation.account.htt';
+  		break;
+  	endswitch;
+  	
+  	$client_mail = $this->getTemplate($mail_template, $data);
 			
 		$mail = new kitMail();
 		if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
@@ -1091,7 +1109,7 @@ class formFrontend {
 			return false;
 		}
 		
-		return $this->getTemplate('confirm.activation.htt', $data);
+		return $this->getTemplate($prompt_template, $data);
   } // checkActivationKey()
   
   /**
@@ -1161,7 +1179,13 @@ class formFrontend {
   	else {
   		// Aktivierungskey versenden
   		$form = array();
-  		$form['activation_link'] = sprintf('%s%s%s=%s&%s=%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&', self::request_action, self::action_activation_key, self::request_key, $register[dbKITregister::field_register_key]);
+  		$form['activation_link'] = sprintf(	'%s%s%s=%s&%s=%s&%s=%s', 
+  																				$this->page_link, 
+  																				(strpos($this->page_link, '?') === false) ? '?' : '&', 
+  																				self::request_action, 
+  																				self::action_activation_key, 
+  																				self::request_key, 
+  																				$register[dbKITregister::field_register_key]);
   		$form['datetime'] = date(form_cfg_datetime_str);
   		$data = array(
   			'form'		=> $form,
