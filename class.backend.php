@@ -34,12 +34,16 @@ class formBackend {
 	const request_add_kit_field			= 'akf';
 	const request_fields						= 'fld';
 	const request_free_field_title	= 'fft';
+  const request_import_file       = 'impf';
+  const request_import_name       = 'impn';
 	const request_protocol_id				= 'pid';
+	const request_export						= 'exp';
 	
 	const action_about						= 'abt';
 	const action_default					= 'def';
 	const action_edit							= 'edt';
 	const action_edit_check				= 'edtc';
+  const action_import           = 'imp';
 	const action_list							= 'lst';
 	const action_protocol					= 'pro';
 	const action_protocol_id			= 'pid';
@@ -151,6 +155,7 @@ class formBackend {
   
   public function getTemplate($template, $template_data) {
   	global $parser;
+    $result = '';
   	try {
   		$result = $parser->get($this->template_path.$template, $template_data); 
   	} catch (Exception $e) {
@@ -416,6 +421,7 @@ class formBackend {
   					break;
   				case dbKITformFields::type_checkbox:
   					// CHECKBOX pruefen
+            $cboxes = array();
   					parse_str($data[dbKITformFields::field_type_add], $cboxes);
   					$checkboxes = array();
   					foreach ($cboxes as $checkbox) {
@@ -463,6 +469,7 @@ class formBackend {
   					break;
   				case dbKITformFields::type_radio:
   					// RADIOBUTTON pruefen
+            $rbuttons = array();
   					parse_str($data[dbKITformFields::field_type_add], $rbuttons);
   					$radios = array();
   					foreach ($rbuttons as $radio) {
@@ -507,6 +514,7 @@ class formBackend {
   					break;
   				case dbKITformFields::type_select:
   					// SELECT Auswahlliste pruefen
+            $sOptions = array();
   					parse_str($data[dbKITformFields::field_type_add], $sOptions);
   					$options = array();
   					foreach ($sOptions as $option) {
@@ -738,6 +746,15 @@ class formBackend {
   	global $dbKITformTableSort;
   	global $kitContactInterface;
   	
+  	// Soll der Dialog exportiert werden?
+  	if (isset($_REQUEST[self::request_export]) && $_REQUEST[self::request_export] > 0) {
+  		$message = $this->getMessage();
+  		$this->setMessage('');
+  		if (!$this->exportFormDlg()) return false;
+  		$message .= $this->getMessage();
+  		$this->setMessage($message); 
+  	}
+  	
   	$form_id = isset($_REQUEST[dbKITform::field_id]) ? (int) $_REQUEST[dbKITform::field_id] : -1;
   	
   	$form_data = array();
@@ -838,6 +855,12 @@ class formBackend {
   			break;
   		endswitch;
   	}
+  	// zusaetzliche Formularfelder setzen
+  	$form['export']['label'] = form_label_form_export;
+  	$form['export']['name'] = self::request_export;
+  	$form['export']['value'] = $form_id;
+  	$form['export']['hint']	= form_hint_form_export;
+  	
   	$form_fields = array();
   	foreach ($fields as $field_id) {
   		if ($field_id < 100) {
@@ -941,6 +964,7 @@ class formBackend {
   			case dbKITformFields::type_checkbox:
   				// CHECKBOX
   				// zusaetzliche Felder auslesen
+          $checkboxes = array();
   				parse_str($data[dbKITformFields::field_type_add], $checkboxes);
   				// Option: neues Feld hinzufuegen 
   				$checkboxes[] = array('name' => $field_id, 'value' => '', 'text' => '', 'checked' => 0);
@@ -975,6 +999,7 @@ class formBackend {
   			case dbKITformFields::type_radio:
   				// RADIOBUTTONS
   				// zusaetzliche Felder auslesen
+          $radios = array();
   				parse_str($data[dbKITformFields::field_type_add], $radios);
   				// Option: neues Feld hinzufuegen 
   				$radios[] = array('name' => $field_id, 'value' => '', 'text' => '', 'checked' => 0);
@@ -1009,6 +1034,7 @@ class formBackend {
   			case dbKITformFields::type_select:
   				// SELECT Auswahl
   				// zusaetzliche Felder auslesen
+          $options = array();
   				parse_str($data[dbKITformFields::field_type_add], $options);
   				// Option: neues Feld hinzufuegen 
   				$options[] = array('name' => $field_id, 'value' => '', 'text' => '', 'checked' => 0);
@@ -1098,6 +1124,7 @@ class formBackend {
   	}
   	
   	// KIT LINKS hinzufuegen
+    $links = array();
   	parse_str($form_data[dbKITform::field_links], $links);
   	$form['kit_link'] = array();
   	foreach ($dbKITform->action_array as $name => $text) {
@@ -1243,6 +1270,69 @@ class formBackend {
   	);
   	return $this->getTemplate('backend.form.edit.htt', $data);
   } // dlgFormEdit()
+
+  public function exportFormDlg() {
+  	global $dbKITform;
+  	global $dbKITformFields;
+  	global $kitContactInterface;
+  	
+  	if (!isset($_REQUEST[self::request_export]) || $_REQUEST[self::request_export] < 1) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_form_id_missing));
+  		return false;
+  	} 	
+  	
+  	$form_id = $_REQUEST[self::request_export];
+  	
+  	$SQL = sprintf( "SELECT * FROM %s WHERE %s='%s'",
+  									$dbKITform->getTableName(),
+  									dbKITform::field_id,
+  									$form_id);
+  	$form = array();
+  	if (!$dbKITform->sqlExec($SQL, $form)) {
+  		$this->setError(sprintf('%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError()));
+  		return false;
+  	}
+  	if (count($form) < 1) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $form_id)));
+  		return false;
+  	}
+  	$form = $form[0];
+  	
+  	$field_array = explode(',', $form[dbKITform::field_fields]);
+  	$get_fields = array();
+  	foreach ($field_array as $i) {
+  		// nur freie Formularfelder uebernehmen (id > 199) 
+  		if ($i > 199) $get_fields[] = $i;
+  	}
+  	
+  	$fields = array();
+  	if (count($get_fields) > 0) {
+	  	$SQL = sprintf( "SELECT * FROM %s WHERE %s IN (%s)",
+	  									$dbKITformFields->getTableName(),
+	  									dbKITformFields::field_id,
+	  									implode(',', $get_fields));
+	  	if (!$dbKITformFields->sqlExec($SQL, $fields)) {
+	  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+	  		return false;
+	  	}
+  	}
+  	
+  	$export = array(
+  		'version'		=> $this->getVersion(),
+  		'form'			=> $form,
+  		'fields'		=> $fields
+  	);
+
+  	$xfile = http_build_query($export);
+  	$file = $kitContactInterface->getTempDir().$form[dbKITform::field_name].'.kit_form';
+  	if (false === file_put_contents($file, $xfile)) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_writing_file, $file))); 
+  		return false;
+  	}
+  	$file_url = str_replace(WB_PATH, WB_URL, $file); 
+  	$this->setMessage(sprintf(form_msg_form_exported, $file_url, basename($file_url)));
+  	return true; 
+  } // exportFormDlg()
   
   public function dlgFormList() {
   	global $dbKITform;
@@ -1252,7 +1342,7 @@ class formBackend {
 										dbKITform::field_status,
 										dbKITform::status_deleted,
 										dbKITform::field_timestamp);
-		$orms = array();
+		$forms = array();
 		if (!$dbKITform->sqlExec($SQL, $forms)) {
 			$this->setError($dbKITform->getError()); return false;
 		}
@@ -1271,6 +1361,7 @@ class formBackend {
 				'timestamp'	=> date(form_cfg_datetime_str, strtotime($form[dbKITform::field_timestamp]))										
 			);
 		}
+    
 		$data = array(
 			'head'					=> form_header_form_list,
 			'is_message'		=> $this->isMessage() ? 1 : 0,
@@ -1280,7 +1371,16 @@ class formBackend {
 																'status'		=> form_th_status,
 																'title'			=> form_th_title,
 																'timestamp'	=> form_th_timestamp),
-			'forms'					=> $list
+			'forms'					=> $list,
+      'form_action'   => $this->page_link,
+      'action_name'   => self::request_action,
+      'action_value'  => self::action_import,
+      'import'        => array( 'file'    => self::request_import_file,
+                                'rename'  => form_label_import_form_rename,
+                                'name'    => self::request_import_name,
+                                'label'   => form_label_import_form
+                              ),
+      'btn_import'    => form_btn_import
 		);
   	return $this->getTemplate('backend.form.list.htt', $data);
   } // dlgFormList()
@@ -1308,6 +1408,7 @@ class formBackend {
 		}
 		$list = array();		
 		foreach ($items as $item) {
+      $contact = array();
 			if (!$kitContactInterface->getContact($item[dbKITformData::field_kit_id], $contact)) {
 				$this->setError($kitContactInterface->getError()); return false;
 			}
@@ -1369,7 +1470,8 @@ class formBackend {
 		
 		$protocol = $protocol[0];
 		$protocol['datetime'] = date(form_cfg_datetime_str, strtotime($protocol[dbKITformData::field_date]));
-		
+
+    $contact = array();
 		if (!$kitContactInterface->getContact($protocol[dbKITformData::field_kit_id], $contact)) {
 			$this->setError($kitContactInterface->getError()); return false;
 		}
@@ -1388,12 +1490,14 @@ class formBackend {
 		}
 		$form = $form[0];
 
+    $form_values = array();
 		parse_str($protocol[dbKITformData::field_values], $form_values);
 		$form_fields = explode(',', $protocol[dbKITformData::field_fields]);
 		$items = array();
 		foreach ($form_fields as $fid) {
 			$where = array(dbKITformFields::field_id => $fid);
 			$field = array();
+      $value = '';
 			if (!$dbKITformFields->sqlSelectRecord($where, $field)) {
 				$this->setError($dbKITformFields->getError()); return false;
 			}
