@@ -458,6 +458,12 @@
     </tr>
     <tr><td colspan="4">&nbsp;</td></tr>
     <tr>
+      <td>&nbsp;</td>
+      <td colspan="2"><input type="checkbox" name="{$form.export.name}" value="{$form.export.value}" /> {$form.export.label}</td>
+      <td class="hint_form_edit">{$form.export.hint}</td>
+    </tr>
+    <tr><td colspan="4">&nbsp;</td></tr>
+    <tr>
       <td></td>
       <td colspan="3">
         <input type="submit" value="{$btn_ok}" />&nbsp;

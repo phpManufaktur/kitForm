@@ -18,6 +18,7 @@ define('form_action_register',								'Registrierung');
 define('form_action_send_password',						'Passwort zusenden');
 
 define('form_btn_abort',											'Abbruch'); 
+define('form_btn_import',                     'Import starten ...');
 define('form_btn_ok',													'Übernehmen');
 
 define('form_captcha_on',											'Aktiviert');
@@ -54,8 +55,15 @@ define('form_error_form_name_empty',					'<p>Es wurde kein Formular Bezeichner �
 define('form_error_form_name_invalid',				'<p>Das Formular mit dem Bezeichner <b>%s</b> wurde nicht gefunden!</p>');
 define('form_error_kit_field_id_invalid',			'<p>Der <b>ID %03d</b> ist kein KeepInTouch Datenfeld zugeordnet!</p>');
 define('form_error_preset_not_exists',				'<p>Das Presetverzeichnis <b>%s</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!</p>');
+define('form_error_reading_file',             '<p>Die Datei <b>%s</b> konnte nicht eingelesen werden!</p>');
 define('form_error_sending_email',						'<p>Die E-Mail an <b>%s</b> konnte nicht versendet werden!</p>'); 
 define('form_error_template_error',						'<p>Fehler bei der Ausführung des Template <b>%s</b>:</p><p>%s</p>');
+define('form_error_upload_form_size',					'<p>Die hochgeladene Datei überschreitet die in dem HTML Formular mittels der Anweisung MAX_FILE_SIZE angegebene maximale Dateigröße.</p>');
+define('form_error_upload_ini_size',					'<p>Die hochgeladene Datei überschreitet die in der Anweisung upload_max_filesize in php.ini festgelegte Größe von %s</p>');
+define('form_error_upload_move_file',					'<p>Die Datei <b>%s</b> konnte nicht in das Zielverzeichnis verschoben werden!</p>');
+define('form_error_upload_partial',						'<p>Die Datei <b>%s</b> wurde nur teilweise hochgeladen.</p>');
+define('form_error_upload_undefined_error',		'<p>Während der Datenübertragung ist ein nicht näher beschriebener Fehler aufgetreteten.</p>');
+define('form_error_writing_file',							'<p>Fehler beim Schreiben der Datei <b>%s</b>.</p>');
 
 define('form_header_edit_form',								'Formular bearbeiten');
 define('form_header_form_list',								'Übersicht über die verfügbaren Formulare');
@@ -63,6 +71,7 @@ define('form_header_protocol_detail',					'Protokoll, Details');
 define('form_header_protocol_list',						'Protokoll');
 
 define('form_hint_form_id',										'');
+define('form_hint_form_export',								'Sie können diesen Dialog als Datei exportieren und ihn in anderen Installationen importieren.');
 define('form_hint_form_name',									'Legen Sie einen <b>Bezeichner</b> z.B. "kontakt" für diesen Dialog fest. Der Bezeichner darf keine Sonderzeichen, Leerzeichen, Umlaute o.ä. enthalten, er wird im Droplet <i>[[kit_form?form=<b>kontakt</b>]]</i> als Parameter für das Formular verwendet. Bezeichner werden automatisch bereinigt und in Kleinbuchstaben umgewandelt!');
 define('form_hint_form_title',								'Legen Sie zur einfachen Kennzeichnung des Formulares einen Titel für das Formular fest, z.B. "Kontaktformular, Allgemein".');
 define('form_hint_form_desc',									'Beschreiben Sie die Funktion des Formulares.');
@@ -119,26 +128,29 @@ define('form_intro_protocol_list',						'<p>Protokoll über die verwendeten Form
 
 define('form_label_data_type_label',					'Datentyp');
 define('form_label_default_label',						'Vorgabewert');
-define('form_label_form_id',									'Formular ID');
-define('form_label_form_name',								'Formular Bezeichner');
-define('form_label_form_title',								'Formular Titel');
 define('form_label_form_captcha',							'CAPTCHA Spamschutz');
 define('form_label_form_desc',								'Formular Beschreibung');
-define('form_label_form_status',							'Status');
+define('form_label_form_export',							'Formular exportieren');
 define('form_label_free_field_add',						'Freies Datenfeld hinzufügen');
 define('form_label_free_field_title',					'Titel eingeben...');
+define('form_label_form_id',									'Formular ID');
+define('form_label_form_name',								'Formular Bezeichner');
+define('form_label_form_status',							'Status');
+define('form_label_form_title',								'Formular Titel');
 define('form_label_free_label_marker',				'%s <i style="font-weight:normal;">(FREE)</i>');
 define('form_label_hint_label',								'Hilfe, Hinweis');
 define('form_label_html_label',								'HTML Code');
+define('form_label_import_form',              'Formular importieren:');
+define('form_label_import_form_rename',       'Neuer Formular Bezeichner:');
 define('form_label_kit_action_add',						'<i>KIT</i> Aktion hinzufügen');
 define('form_label_kit_field_add',						'<i>KIT</i> Datenfeld hinzufügen');
 define('form_label_kit_label_marker',					'%s <i style="font-weight:normal;">(KIT)</i>');
 define('form_label_kit_link',									'<i>KIT LINK</i>: %s');
-define('form_label_value_label',							'Feld Wert');
 define('form_label_name_label',								'Feld Bezeichner');
 define('form_label_size_label',								'Größe');
 define('form_label_title_label',							'Feld Titel');
 define('form_label_type_label',								'Feld Typ');
+define('form_label_value_label',							'Feld Wert');
 
 define('form_mail_subject_client',						'Ihre Anfrage');
 define('form_mail_subject_client_access',			'Ihre Zugangsdaten');
@@ -154,6 +166,7 @@ define('form_msg_contact_not_active',					'<p>Das Benutzerkonto für die E-Mail 
 define('form_msg_date_invalid',								'<p><b>%s</b> ist kein gültiges Datum, bitte prüfen Sie Ihre Eingabe!</p>');
 define('form_msg_email_not_registered',				'<p>Die E-Mail Adresse <b>%s</b> ist nicht registriert.</p>');
 define('form_msg_form_deleted',								'<p>Das Formular mit der <b>ID %03d</b> wurde gelöscht!</p>');
+define('form_msg_form_exported',							'<p>Das Formular wurde als <b><a href="%s">%s</a></b> erfolgreich exportiert (<i>Rechtsklick: <b>"Speichern unter ..."</b></i>).');
 define('form_msg_form_inserted',							'<p>Das Formular mit der <b>ID %03d</b> wurde angelegt.</p>');
 define('form_msg_form_name_empty',						'<p>Der <b>Formular Bezeichner</b> darf nicht leer sein und muss mindestens 3 Zeichen enthalten!</p>');
 define('form_msg_form_name_rename_rejected',	'<p>Der Formular Bezeicher kann nicht in in <b>%s</b> geändert werden, dieser wird bereits von dem Formular mit der <b>ID %03d</b> verwendet.</p>');
@@ -168,10 +181,15 @@ define('form_msg_free_radio_invalid',					'<p>Die Definition des neuen Radiobutt
 define('form_msg_free_select_invalid',				'<p>Die Definition des neuen Eintrag für die Auswahlliste ist nicht vollständig, bitte geben Sie einen <b>Wert</b> und einen <b>Text</b> für den Eintrag an!</p>');
 define('form_msg_kit_field_add_form_null',		'<p>Das KIT Datenfeld <b>%s</b> kann erst eingefügt werden, wenn der Datensatz für das Formular erfolgreich angelegt ist.</p>');
 define('form_msg_kit_field_add_success',			'<p>Das KIT Datenfeld <b>%s</b> wurde dem Formular hinzugefügt.</p>');
+define('form_msg_import_file_empty',          '<p>Die Datei <b>%s</b> enthält keine verwertbaren Formulardaten.</p>');
+define('form_msg_import_name_already_exists', '<p>Der Formular Bezeichner <b>%s</b> wird bereits verwendet, der Import von <b>%s</b> wurde abgebrochen.</p>');
+define('form_msg_import_file_version_invalid','<p>Die Datei <b>%s</b> enthält keine gültige Versionsinformation!</p>');
+define('form_msg_import_success',             '<p>Das Formular <b>%s</b> wurde erfolgreich importiert.</p>');
 define('form_msg_must_field_missing',					'<p>Das Feld <b>%s</b> ist ein <i>Pflichtfeld</i> und muss ausgefüllt werden.</p>');
 define('form_msg_newsletter_abonnement_updated','<p>Das Newsletter Abonnement für die E-Mail Adresse <b>%s</b> wurde aktualisiert.</p>');
 define('form_msg_not_authenticated',					'<p>Sie sind nicht angemeldet!</p>');
 define('form_msg_field_removed',							'<p>Das Datenfeld <b>%s</b> wurde aus dem Formular entfernt.</p>');
+define('form_msg_upload_no_file',             '<p>Es wurde keine Datei importiert!</p>');
 
 define('form_protocol_form_send',							'[kitForm] Der Kontakt hat ein <a href="%s">Formular übermittelt</a>.'); 
 

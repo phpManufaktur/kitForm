@@ -61,7 +61,6 @@ else {
 	if (!defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
 
-if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
 if (!class_exists('Dwoo')) 								require_once(WB_PATH.'/modules/dwoo/include.php');
 if (!class_exists('kitContactInterface')) require_once(WB_PATH.'/modules/kit/class.interface.php');	
 if (!class_exists('kitToolsLibrary'))   	require_once(WB_PATH.'/modules/kit_tools/class.tools.php');

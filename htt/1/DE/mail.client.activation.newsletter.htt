@@ -1,0 +1,18 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
+
+Ihre aktuellen Zugangsdaten lauten:
+
+Benutzer: {$contact.kit_email}
+Passwort: {$password}
+
+Mit freundlichen Grüßen
+Ihr Website Betreiber

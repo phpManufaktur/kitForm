@@ -22,6 +22,31 @@ else {
 	if (!defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
 
+require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
+
 global $admin;
+
+$error = '';
+
+if (!$dbKITform->sqlFieldExists(dbKITform::field_action)) {
+	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_action, "VARCHAR(30) NOT NULL DEFAULT '".dbKITform::action_none."'")) {
+		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+	}
+}
+
+// Formulare installieren
+$message = '';
+if (!$dbKITform->installStandardForms($message)) {
+	if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+}
+
+if (!empty($message)) {
+	echo '<script language="javascript">alert ("'.$message.'");</script>';
+}
+
+// Prompt Errors
+if (!empty($error)) {
+	$admin->print_error($error);
+}
 
 ?>

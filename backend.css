@@ -43,7 +43,6 @@ input[type=text].disabled {
   background-color: transparent;
   border: none;
 }
-
 select
 {
   width: 98%;
@@ -267,6 +266,16 @@ td.sub_value_free_field {
 input[name=fft] {
   color: #b3b3b3;
   background-color: transparent;
+}
+.form_import {
+  margin: 30px 0;
+  font-size: 7pt;
+}
+input[name=impf] {
+  width: 250px; 
+}
+input[name=impn] {
+  width: 150px;
 }
 th.form_list_timestamp,
 td.form_list_timestamp {

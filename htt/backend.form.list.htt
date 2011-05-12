@@ -7,32 +7,38 @@
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  *}
- <div class="form_list">
-   <h2>{$head}</h2>
-   <div class="{if $is_message == 1}message{else}intro{/if}">{$intro}</div>
-   <table width="100%">
-     <colgroup>
-       <col width="50" />
-       <col width="150" />
-       <col width="70" />
-       <col width="*" />
-       <col width="150" />
-     </colgroup>
-     <tr>
-       <th class="form_list_id">{$header.id}</th>
-       <th class="form_list_name">{$header.name}</th>
-       <th class="form_list_status">{$header.status}</th>
-       <th class="form_list_title">{$header.title}</th>
-       <th class="form_list_timestamp">{$header.timestamp}</th>
-     </tr>
-     {foreach $forms form}
-     <tr class="{cycle values=array('flip', 'flop')}">
-       <td class="form_list_id"><a href="{$form.link}">{string_format($form.id, '%04d')}</a></td>
-       <td class="form_list_name">{$form.name}</td>
-       <td class="form_list_status">{$form.status}</td>
-       <td class="form_list_title"><a href="{$form.link}">{$form.title}</a></td>
-       <td class="form_list_timestamp">{$form.timestamp}</td>
-     </tr>
-     {/foreach}
-   </table>
- </div>
+<div class="form_list">
+  <h2>{$head}</h2>
+  <div class="{if $is_message == 1}message{else}intro{/if}">{$intro}</div>
+  <table width="100%">
+   <colgroup>
+     <col width="50" />
+     <col width="150" />
+     <col width="70" />
+     <col width="*" />
+     <col width="150" />
+   </colgroup>
+   <tr>
+     <th class="form_list_id">{$header.id}</th>
+     <th class="form_list_name">{$header.name}</th>
+     <th class="form_list_status">{$header.status}</th>
+     <th class="form_list_title">{$header.title}</th>
+     <th class="form_list_timestamp">{$header.timestamp}</th>
+   </tr>
+   {foreach $forms form}
+   <tr class="{cycle values=array('flip', 'flop')}">
+     <td class="form_list_id"><a href="{$form.link}">{string_format($form.id, '%04d')}</a></td>
+     <td class="form_list_name">{$form.name}</td>
+     <td class="form_list_status">{$form.status}</td>
+     <td class="form_list_title"><a href="{$form.link}">{$form.title}</a></td>
+     <td class="form_list_timestamp">{$form.timestamp}</td>
+   </tr>
+   {/foreach}
+  </table>
+  <div class="form_import">
+    <form name="registry_upload" enctype="multipart/form-data" action="{$form_action}" method="post">
+    <input type="hidden" name="{$action_name}" value="{$action_value}" />
+    {$import.label} <input type="file" name="{$import.file}" />&nbsp;{$import.rename}&nbsp;<input type="text" name="{$import.name}" />&nbsp;<input type="submit" value="{$btn_import}" />
+    </form>
+  </div>
+</div>

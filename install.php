@@ -45,7 +45,7 @@ $dbKITformFields = new dbKITformFields();
 $SQL = sprintf("ALTER TABLE %s AUTO_INCREMENT = 200", $dbKITformFields->getTableName());
 $result = array();
 if (!$dbKITformFields->sqlExec($SQL, $result)) {
-  $error .= sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError());
+  $error .= sprintf('[INSTALLATION] %s', $dbKITformFields->getError());
 }
 
 // Install Droplets

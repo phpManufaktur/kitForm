@@ -21,7 +21,7 @@ $PRECHECK['WB_ADDONS'] = array(
 	'dbconnect_le'	=> array('VERSION' => '0.64', 'OPERATOR' => '>='),
 	'dwoo' => array('VERSION' => '0.10', 'OPERATOR' => '>='),
 	'droplets' => array('VERSION' => '1.0', 'OPERATOR' => '>='),
-	'kit' => array('VERSION' => '0.36', 'OPERATOR' => '>='),
+	'kit' => array('VERSION' => '0.37', 'OPERATOR' => '>='),
 	'kit_tools' => array('VERSION' => '0.10', 'OPERATOR' => '>=')
 );
 

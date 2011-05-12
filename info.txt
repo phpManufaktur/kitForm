@@ -8,6 +8,14 @@
  * @version $Id$
  */
 
+Release 0.12
+2011-05-11
+fixed - checkbox definition was not complete and causes an error
+extended - additional data fields in dbKITform
+new - added KIT Actions for creation of own KIT Standard dialogs (Register, Login, Logout, Newsletter, Account...)
+new - added KIT Response Links within forms
+new - added export and import of forms
+
 Release 0.11
 2011-04-13
 fixed - droplet code for kit_form was invalid

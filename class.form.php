@@ -13,6 +13,17 @@
 if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
+if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
+
+global $dbKITform;
+global $dbKITformFields;
+global $dbKITformTableSort;
+global $dbKITformData;
+
+if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
+if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
 
 
 class dbKITform extends dbConnectLE {
@@ -93,7 +104,143 @@ class dbKITform extends dbConnectLE {
   		}
   	}
   } // __construct()
+  
+  public function installStandardForms(&$message) {
+  	$dir_name = WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/forms/';
+		$folder = opendir($dir_name); 
+		$names = array();
+		while (false !== ($file = readdir($folder))) {
+			$ff = array();
+			$ff = explode('.', $file);
+			$ext = end($ff);
+			if ($ext	==	'kit_form') {
+				$names[] = $file; 
+			}			
+		}
+		closedir($folder);
+		$message = '';
+		foreach ($names as $file_name) {
+			$form_file = $dir_name.$file_name;
+			$form_id = -1;
+			$msg = '';
+			if (!$this->importFormFile($form_file, '', $form_id, $msg, true)) {
+				if ($this->isError()) return false;
+			}
+			$message .= $msg;
+		} 
+		return true;
+  } // installStandardForms()
 	
+  /**
+   * Importiert das Formular $form_file unter dem Bezeichner $form_rename und gibt
+   * bei Fehlern Mitteilungen bzw. Fehlermeldungen zurueck, bei Erfolg die ID des
+   * neu angelegten Datensatz
+   * 
+   * @param STR $form_file - vollstaendiger Pfad!
+   * @param STR $form_rename - leer oder neuer Bezeichner
+   * @param REFERENCE INT $form_id
+   * @return BOOL
+   */
+  public function importFormFile($form_file, $form_rename='', &$form_id=-1, &$message='', $ignore_existing=false) {
+  	global $dbKITformFields;
+    
+    if (false === ($import = file_get_contents($form_file))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_reading_file, basename($form_file))));
+      return false;
+    }
+    $form_data = array();
+    parse_str($import, $form_data);  
+    
+    if (empty($form_data)) {
+      $message = sprintf(form_msg_import_file_empty, basename($form_file));
+      return false;
+    }
+    
+    $version = (float) $form_data['version']; 
+    if (!is_float($version)) {
+      $message = sprintf(form_msg_import_file_version_invalid, basename($form_file));
+      return false;
+    }
+    // neues Formular anlegen...
+    $data = array(
+      dbKITform::field_status => dbKITform::status_locked
+    );
+    $form_id = -1;
+    if (!$this->sqlInsertRecord($data, $form_id)) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+      return false;
+    }
+    
+    $fields = isset($form_data['fields']) ? $form_data['fields'] : array();
+    $form = $form_data['form'];
+    $fields_array = explode(',',$form[dbKITform::field_fields]);
+    $new_fields = array();
+    foreach ($fields_array as $fid) {
+      if ($fid < 200) {
+        $new_fields[] = $fid;
+      }
+      else {
+        // freies Formularfeld anlegen
+        foreach($fields as $old_field) {
+          if ($old_field[dbKITformFields::field_id] == $fid) {
+            $data = $old_field;
+            unset($data[dbKITformFields::field_id]);
+            $data[dbKITformFields::field_form_id] = $form_id;
+            $data[dbKITformFields::field_status] = dbKITformFields::status_active;
+            $new_id = -1;
+            if (!$dbKITformFields->sqlInsertRecord($data, $new_id)) {
+              $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+              return false;
+            }
+            $new_fields[] = $new_id;
+          }
+        }  
+      }
+    }
+    
+    // Soll das Formular umbenannt werden?
+    $form_name = (!empty($form_rename)) ? $form_rename : $form[dbKITform::field_name];
+    $SQL = sprintf( "SELECT * FROM %s WHERE %s='%s' AND %s!='%s'",
+                    $this->getTableName(),
+                    dbKITform::field_name,
+                    $form_name,
+                    dbKITform::field_status,
+                    dbKITform::status_deleted);
+    $form_check = array();
+    if (!$this->sqlExec($SQL, $form_check)) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+      return false;
+    }
+    if (count($form_check) > 0) {
+      // Name wird bereits verwendet!
+      $where = array(
+        dbKITform::field_id => $form_id  
+      );
+      // Datensatz wieder loeschen
+      if (!$this->sqlDeleteRecord($where)) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+        return false;
+      }
+      if (!$ignore_existing) $message = sprintf(form_msg_import_name_already_exists, $form_name, basename($form_file));
+      return false;
+    }
+    
+    $data = $form;
+    unset($data[dbKITform::field_id]);
+    $data[dbKITform::field_status] = dbKITform::status_active;
+    $data[dbKITform::field_fields] = implode(',', $new_fields);
+    $data[dbKITform::field_name] = $form_name;
+    $where = array(
+      dbKITform::field_id => $form_id  
+    );
+    if (!$this->sqlUpdateRecord($data, $where)) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+      return false;
+    }
+    $message = sprintf(form_msg_import_success, basename($form_file));
+    return true;
+  } // importFormFile()
+  
 } // class dbKITform
 
 class dbKITformFields extends dbConnectLE {

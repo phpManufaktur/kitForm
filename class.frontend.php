@@ -1076,12 +1076,10 @@ class formFrontend {
   		$this->setMessage($kitContactInterface->getMessage());
   		return $this->showForm();
   	}
-  	
   	// Benutzer anmelden
   	$_SESSION[kitContactInterface::session_kit_aid] = $register[dbKITregister::field_id];
 		$_SESSION[kitContactInterface::session_kit_key] = $register[dbKITregister::field_register_key];
 		$_SESSION[kitContactInterface::session_kit_contact_id] = $register[dbKITregister::field_contact_id];
-			
   	$data = array(
   		'contact'		=> $contact,
   		'password'	=> $password

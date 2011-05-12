@@ -15,16 +15,6 @@ if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 require_once(WB_PATH.'/framework/functions.php');
 
-global $dbKITform;
-global $dbKITformFields;
-global $dbKITformTableSort;
-global $dbKITformData;
-
-if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
-if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
-if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
-if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
-
 
 class formBackend {
 	
@@ -62,7 +52,7 @@ class formBackend {
 	private $message						= '';
 	
 	public function __construct() {
-		$this->page_link = ADMIN_URL.'/admintools/tool.php?tool=kit_form';
+    $this->page_link = ADMIN_URL.'/admintools/tool.php?tool=kit_form';
 		$this->template_path = WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/htt/' ;
 		$this->img_url = WB_URL. '/modules/'.basename(dirname(__FILE__)).'/images/';
 		date_default_timezone_set(form_cfg_time_zone);
@@ -208,6 +198,9 @@ class formBackend {
   	case self::action_protocol_id:
   		$this->show(self::action_protocol, $this->dlgProtocolItem());
   		break;
+    case self::action_import:
+      $this->show(self::action_edit, $this->importForm());
+      break;
   	case self::action_list:
   	default:
   		$this->show(self::action_list, $this->dlgFormList());
@@ -248,6 +241,8 @@ class formBackend {
   	global $kitContactInterface;
   	global $dbKITformTableSort;
   	
+    
+    
   	$checked = true;
   	$message = '';
   	
@@ -750,7 +745,7 @@ class formBackend {
   	if (isset($_REQUEST[self::request_export]) && $_REQUEST[self::request_export] > 0) {
   		$message = $this->getMessage();
   		$this->setMessage('');
-  		if (!$this->exportFormDlg()) return false;
+  		if (!$this->exportForm()) return false;
   		$message .= $this->getMessage();
   		$this->setMessage($message); 
   	}
@@ -1271,69 +1266,6 @@ class formBackend {
   	return $this->getTemplate('backend.form.edit.htt', $data);
   } // dlgFormEdit()
 
-  public function exportFormDlg() {
-  	global $dbKITform;
-  	global $dbKITformFields;
-  	global $kitContactInterface;
-  	
-  	if (!isset($_REQUEST[self::request_export]) || $_REQUEST[self::request_export] < 1) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_form_id_missing));
-  		return false;
-  	} 	
-  	
-  	$form_id = $_REQUEST[self::request_export];
-  	
-  	$SQL = sprintf( "SELECT * FROM %s WHERE %s='%s'",
-  									$dbKITform->getTableName(),
-  									dbKITform::field_id,
-  									$form_id);
-  	$form = array();
-  	if (!$dbKITform->sqlExec($SQL, $form)) {
-  		$this->setError(sprintf('%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError()));
-  		return false;
-  	}
-  	if (count($form) < 1) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $form_id)));
-  		return false;
-  	}
-  	$form = $form[0];
-  	
-  	$field_array = explode(',', $form[dbKITform::field_fields]);
-  	$get_fields = array();
-  	foreach ($field_array as $i) {
-  		// nur freie Formularfelder uebernehmen (id > 199) 
-  		if ($i > 199) $get_fields[] = $i;
-  	}
-  	
-  	$fields = array();
-  	if (count($get_fields) > 0) {
-	  	$SQL = sprintf( "SELECT * FROM %s WHERE %s IN (%s)",
-	  									$dbKITformFields->getTableName(),
-	  									dbKITformFields::field_id,
-	  									implode(',', $get_fields));
-	  	if (!$dbKITformFields->sqlExec($SQL, $fields)) {
-	  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
-	  		return false;
-	  	}
-  	}
-  	
-  	$export = array(
-  		'version'		=> $this->getVersion(),
-  		'form'			=> $form,
-  		'fields'		=> $fields
-  	);
-
-  	$xfile = http_build_query($export);
-  	$file = $kitContactInterface->getTempDir().$form[dbKITform::field_name].'.kit_form';
-  	if (false === file_put_contents($file, $xfile)) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_writing_file, $file))); 
-  		return false;
-  	}
-  	$file_url = str_replace(WB_PATH, WB_URL, $file); 
-  	$this->setMessage(sprintf(form_msg_form_exported, $file_url, basename($file_url)));
-  	return true; 
-  } // exportFormDlg()
-  
   public function dlgFormList() {
   	global $dbKITform;
   	
@@ -1397,8 +1329,9 @@ class formBackend {
 	public function dlgProtocolList() {
 		global $dbKITform;
 		global $dbKITformData;
-		global $kitContactInterface;
-		
+		global $kitContactInterface; 
+    
+    
 		$SQL = sprintf( "SELECT * FROM %s ORDER BY %s DESC LIMIT 100",
 										$dbKITformData->getTableName(),
 										dbKITformData::field_date);
@@ -1534,6 +1467,151 @@ class formBackend {
 		return $this->getTemplate('backend.protocol.detail.htt', $data);
 	} // dlgProtocolItem()
 	
-} // class formBackend
+  /**
+   * Exportiert einen kit_form Dialog
+   * 
+   * @global OBJECT $dbKITform
+   * @global OBJECT $dbKITformFields
+   * @global OBJECT $kitContactInterface
+   * @return STR dlgFormEdit()
+   */
+  public function exportForm() {
+  	global $dbKITform;
+  	global $dbKITformFields;
+  	global $kitContactInterface;
+  	
+  	if (!isset($_REQUEST[self::request_export]) || $_REQUEST[self::request_export] < 1) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_form_id_missing));
+  		return false;
+  	} 	
+  	
+  	$form_id = $_REQUEST[self::request_export];
+  	
+  	$SQL = sprintf( "SELECT * FROM %s WHERE %s='%s'",
+  									$dbKITform->getTableName(),
+  									dbKITform::field_id,
+  									$form_id);
+  	$form = array();
+  	if (!$dbKITform->sqlExec($SQL, $form)) {
+  		$this->setError(sprintf('%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError()));
+  		return false;
+  	}
+  	if (count($form) < 1) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $form_id)));
+  		return false;
+  	}
+  	$form = $form[0];
+  	
+  	$field_array = explode(',', $form[dbKITform::field_fields]);
+  	$get_fields = array();
+  	foreach ($field_array as $i) {
+  		// nur freie Formularfelder uebernehmen (id > 199) 
+  		if ($i > 199) $get_fields[] = $i;
+  	}
+  	
+  	$fields = array();
+  	if (count($get_fields) > 0) {
+	  	$SQL = sprintf( "SELECT * FROM %s WHERE %s IN (%s)",
+	  									$dbKITformFields->getTableName(),
+	  									dbKITformFields::field_id,
+	  									implode(',', $get_fields));
+	  	if (!$dbKITformFields->sqlExec($SQL, $fields)) {
+	  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+	  		return false;
+	  	}
+  	}
+  	
+  	$export = array(
+  		'version'		=> $this->getVersion(),
+  		'form'			=> $form,
+  		'fields'		=> $fields
+  	);
+
+  	$xfile = http_build_query($export);
+  	$file = $kitContactInterface->getTempDir().$form[dbKITform::field_name].'.kit_form';
+  	if (false === file_put_contents($file, $xfile)) {
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_writing_file, $file))); 
+  		return false;
+  	}
+  	$file_url = str_replace(WB_PATH, WB_URL, $file); 
+  	$this->setMessage(sprintf(form_msg_form_exported, $file_url, basename($file_url)));
+  	return true; 
+  } // exportFormDlg()
+  
+  /**
+   * Importiert im kitForm Backend einen kit_form Dialog und zeigt den
+   * Dialog anschliessend im dlgFormEdit() Dialog an.
+   * 
+   * @global OBJECT $dbKITform
+   * @global OBJECT $dbKITformFields
+   * @global OBJECT $kitContactInterface
+   * @return BOOL 
+   */
+  public function importForm() {
+    global $dbKITform;
+    global $dbKITformFields;
+    global $kitContactInterface;
+    
+    $upl_file = '';
+    if (isset($_FILES[self::request_import_file]) && (is_uploaded_file($_FILES[self::request_import_file]['tmp_name']))) {
+			if ($_FILES[self::request_import_file]['error'] == UPLOAD_ERR_OK) {
+        $tmp_file = $_FILES[self::request_import_file]['tmp_name'];
+        $upl_file = $kitContactInterface->getTempDir().$_FILES[self::request_import_file]['name'];
+        if (!move_uploaded_file($tmp_file, $upl_file)) {
+					// error moving file
+					$this->setError(sprintf(form_error_upload_move_file, $upl_file)); 
+					return false;
+				}
+				// Upload erfolgreich
+        chmod($upl_file, 0755);
+      }
+      else {
+        $error = '';
+				switch ($_FILES[self::request_import_file]['error']):
+				case UPLOAD_ERR_INI_SIZE:
+					$error = sprintf(reg_error_upload_ini_size, ini_get('upload_max_filesize'));
+					break;
+				case UPLOAD_ERR_FORM_SIZE:
+					$error = reg_error_upload_form_size;
+					break;
+				case UPLOAD_ERR_PARTIAL:
+					$error = sprintf(reg_error_upload_partial, $_FILES[self::request_import_file]['name']);
+					break;
+				default:
+					$error = reg_error_upload_undefined_error;
+				endswitch;
+				$this->setError($error);
+				return false;
+			}
+    }
+    else {
+      // es wurde keine Datei uebertragen
+      $this->setMessage(form_msg_upload_no_file);
+      return $this->dlgFormEdit();
+    }
+    
+    /**
+     * Eigentlicher Import der Datei
+     */
+    $form_rename = (isset($_REQUEST[self::request_import_name])) ? $_REQUEST[self::request_import_name] : '';
+    $form_id = -1;
+    if (!$dbKITform->importFormFile($upl_file, $form_rename, $form_id, $message, false)) {
+    	// Import war nicht Fehlerfrei...
+    	if ($this->isError()) {
+    		return false;
+    	}
+    	else {
+    		$this->setMessage($message);
+    		return $this->dlgFormEdit();
+    	}
+    }
+    else {
+    	$this->setMessage($message);
+    	$_REQUEST[dbKITform::field_id] = $form_id;
+    	return $this->dlgFormEdit();
+    }
+  } // importForm()
+  
+ } // class formBackend
 
 ?>
