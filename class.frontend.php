@@ -333,8 +333,8 @@ class formFrontend {
   				} else {
   					$kitContactInterface->getFormPersonTitleAcademicArray($title_array);
   				}
-  				if (isset($_REQUEST[$field_name])) {
-  					$selected = $_REQUEST[$field_name];
+  				if (isset($_REQUEST[$field_name])) { 
+  					$selected = $_REQUEST[$field_name]; 
   					$new_array = array();
   					foreach ($title_array as $title) {
   						$title['checked'] = ($title['value'] == $selected) ? 1 : 0;
@@ -415,14 +415,15 @@ class formFrontend {
   				break;
   			case kitContactInterface::kit_newsletter: 
   				$kitContactInterface->getFormNewsletterArray($newsletter_array);
-  				if (isset($_REQUEST[$field_name])) {
-  					$select_array = $_REQUEST[$field_name];
+  				if (isset($_REQUEST[$field_name])) { 
+  					$select_array = (is_array($_REQUEST[$field_name])) ? $_REQUEST[$field_name] : explode(',', $_REQUEST[$field_name]);
+  					//$select_array = $_REQUEST[$field_name]; 
   					$new_array = array();
   					foreach ($newsletter_array as $newsletter) {
-  						$newsletter['checked'] = (in_array($newsletter['value'], $select_array)) ? 1 : 0;
+  						$newsletter['checked'] = (in_array($newsletter['value'], $select_array)) ? 1 : 0; 
   						$new_array[] = $newsletter;
   					}
-  					$newsletter_array = $new_array;
+  					$newsletter_array = $new_array; 
   				}
   				$form_fields[$field_name] = array(
   					'id'					=> $field_id,
@@ -907,6 +908,11 @@ class formFrontend {
 			return $this->getTemplate('confirm.htt', $data);
 		} // checked
 		
+		if ($checked  == false) {
+			if (isset($_REQUEST[kitContactInterface::kit_password])) unset($_REQUEST[kitContactInterface::kit_password]);
+			if (isset($_REQUEST[kitContactInterface::kit_password_retype])) unset($_REQUEST[kitContactInterface::kit_password_retype]);			
+		}
+		
 		$this->setMessage($message);
 		return $this->showForm();
   } // checkForm()
@@ -921,9 +927,11 @@ class formFrontend {
   	global $kitLibrary;
   	
   	if (!isset($_REQUEST[kitContactInterface::kit_email]) || !isset($_REQUEST[kitContactInterface::kit_password])) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_email_password_required)); return false;
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_email_password_required)); 
+  		return false;
   	}
   	if (!$kitLibrary->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
+  		unset($_REQUEST[kitContactInterface::kit_password]);
   		$this->setMessage(sprintf(kit_msg_email_invalid, $_REQUEST[kitContactInterface::kit_email]));
   		return $this->showForm();
   	}
@@ -937,6 +945,8 @@ class formFrontend {
   		return false;
   	}
   	else {
+  		// Fehler beim Login...
+  		unset($_REQUEST[kitContactInterface::kit_password]);
   		$this->setMessage($kitContactInterface->getMessage());
   		return $this->showForm();
   	}

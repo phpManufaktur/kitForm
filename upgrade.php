@@ -33,6 +33,11 @@ if (!$dbKITform->sqlFieldExists(dbKITform::field_action)) {
 		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
 	}
 }
+if (!$dbKITform->sqlFieldExists(dbKITform::field_links)) {
+	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_links, "VARCHAR(255) NOT NULL DEFAULT ''")) {
+		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+	}
+}
 
 // Formulare installieren
 $message = '';

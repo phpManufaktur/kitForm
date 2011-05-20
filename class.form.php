@@ -20,11 +20,6 @@ global $dbKITformFields;
 global $dbKITformTableSort;
 global $dbKITformData;
 
-if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
-if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
-if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
-if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
-
 
 class dbKITform extends dbConnectLE {
 	
@@ -172,8 +167,11 @@ class dbKITform extends dbConnectLE {
     }
     
     $fields = isset($form_data['fields']) ? $form_data['fields'] : array();
-    $form = $form_data['form'];
+    $form = isset($form_data['form']) ? $form_data['form'] : array();
+    // Felder auslesen
     $fields_array = explode(',',$form[dbKITform::field_fields]);
+    // Pflichtfelder auslesen
+    $must_array = explode(',', $form[dbKITform::field_must_fields]);
     $new_fields = array();
     foreach ($fields_array as $fid) {
       if ($fid < 200) {
@@ -193,6 +191,12 @@ class dbKITform extends dbConnectLE {
               return false;
             }
             $new_fields[] = $new_id;
+            // Pruefen, ob es sich um ein Pflichtfeld handelt...
+            if (in_array($fid, $must_array)) {
+            	$key = array_search($fid, $must_array);
+            	// Eintrag korrigieren
+            	$must_array[$key] = $new_id;
+            }
           }
         }  
       }
@@ -229,6 +233,7 @@ class dbKITform extends dbConnectLE {
     unset($data[dbKITform::field_id]);
     $data[dbKITform::field_status] = dbKITform::status_active;
     $data[dbKITform::field_fields] = implode(',', $new_fields);
+    $data[dbKITform::field_must_fields] = implode(',', $must_array); 
     $data[dbKITform::field_name] = $form_name;
     $where = array(
       dbKITform::field_id => $form_id  
@@ -399,5 +404,11 @@ class dbKITformData extends dbConnectLE {
 	} // __construct()	
 	
 } // class dbKITformData 
+
+if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
+if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
+
 
 ?>

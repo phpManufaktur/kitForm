@@ -272,7 +272,7 @@ class formBackend {
   											dbKITform::status_deleted);
   			$result = array();
   			if (!$dbKITform->sqlExec($SQL, $result)) {
-  				$this->setError($dbKITform->getError()); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   			}
   			if (count($result) > 0) {
   				if (($form_id > 0) && ($result[0][dbKITform::field_id] !== $form_id)) {
@@ -311,12 +311,12 @@ class formBackend {
   				// Formular loeschen
   				$where = array(dbKITform::field_id => $form_id);
   				if (!$dbKITform->sqlDeleteRecord($where)) {
-  					$this->setError($dbKITform->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   				}
   				// Formular Items loeschen
   				$where = array(dbKITformFields::field_form_id => $form_id);
   				if (!$dbKITformFields->sqlDeleteRecord($where)) {
-  					$this->setError($dbKITform->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   				}
   				// es gibt nichts mehr zu tun, zurueck zur Uebersichtsliste
   				$this->setMessage(sprintf(form_msg_form_deleted, $form_id));
@@ -361,10 +361,10 @@ class formBackend {
   			$where = array(dbKITformFields::field_id => $value);
   			$data = array();
   			if (!$dbKITformFields->sqlSelectRecord($where, $data)) {
-  				$this->setError($dbKITformFields->getError()); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   			}
   			if (count($data) < 1) {
-  				$this->setError(kit_error_invalid_id, $value); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, kit_error_invalid_id)); return false;
   			}
   			$data = $data[0];
   			$field_name = $data[dbKITformFields::field_name];
@@ -377,7 +377,7 @@ class formBackend {
   				// Tabelle aktualisieren
   				$where = array(dbKITformFields::field_id => $field_id);
   				if (!$dbKITformFields->sqlDeleteRecord($where)) {
-  					$this->setError($dbKITformFields->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   				}
   			}
   			if (isset($_REQUEST["must_$field_name"]) && !in_array($value, $must_fields)) {
@@ -397,7 +397,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_text_area:
@@ -411,7 +411,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_checkbox:
@@ -459,7 +459,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_radio:
@@ -504,7 +504,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_select:
@@ -549,7 +549,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_html:
@@ -562,7 +562,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				case dbKITformFields::type_hidden:
@@ -575,7 +575,7 @@ class formBackend {
   					);
   					$where = array(dbKITformFields::field_id => $field_id);
   					if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
-  						$this->setError($dbKITformFields->getError()); return false;
+  						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   					}
   					break;
   				default:
@@ -597,13 +597,13 @@ class formBackend {
   		}
   		else {
   			// allgemeine Felder
-  			$where = array(dbKITformFields::field_id => $value);
+  			$where = array(dbKITformFields::field_id => $value); 
   			$data = array();
   			if (!$dbKITformFields->sqlSelectRecord($where, $data)) {
-  				$this->setError($dbKITformFields->getError()); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   			}
   			if (count($data) < 1) {
-  				$this->setError(kit_error_invalid_id, $value); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, kit_error_invalid_id)); return false;
   			}
   			$field_name = $data[0][dbKITformFields::field_name];
   			if (!isset($_REQUEST["must_$field_name"])) {
@@ -625,7 +625,7 @@ class formBackend {
   		else {
   			// Datensatz einfuegen
   			if (!$dbKITform->sqlInsertRecord($form_data, $form_id)) {
-  				$this->setError($dbKITform->getError()); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   			}
   			$message .= sprintf(form_msg_form_inserted, $form_id);
   		}
@@ -650,7 +650,7 @@ class formBackend {
   			// nur die Felder aktualisieren
   			$data = array(dbKITform::field_fields => $form_data[dbKITform::field_fields]);
   			if (!$dbKITform->sqlUpdateRecord($data, $where)) {
-  				$this->setError($dbKITform->getError()); return false;
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   			}
   			$message .= sprintf(form_msg_kit_field_add_success, $kitContactInterface->field_array[$new_field]);
   		} 
@@ -671,12 +671,12 @@ class formBackend {
   					dbKITformFields::field_form_id 	=> $form_id);
   				$field_id = -1;
   				if (!$dbKITformFields->sqlInsertRecord($data, $field_id)) {
-  					$this->setError($dbKITformFields->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   				}
   				$data = array(dbKITformFields::field_name => "free_$field_id");
   				$where = array(dbKITformFields::field_id => $field_id);
   				if (!$dbKITformFields->sqlUpdateRecord($data, $where)) {
-  					$this->setError($dbKITformFields->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError())); return false;
   				}
   				$fields = explode(',', $form_data[dbKITform::field_fields]);
   				$fields[] = $field_id;
@@ -684,7 +684,7 @@ class formBackend {
   				$form_data[dbKITform::field_fields] = implode(',', $fields);
   				$data[dbKITform::field_fields] = $form_data[dbKITform::field_fields];
   				if (!$dbKITform->sqlUpdateRecord($data, $where)) {
-  					$this->setError($dbKITform->getError()); return false;
+  					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   				}
   				$message .= sprintf(form_msg_free_field_add_success, $_REQUEST[self::request_free_field_title]);
   			}
@@ -705,7 +705,7 @@ class formBackend {
   		dbKITformTableSort::field_table => 'mod_kit_form'); 
   	$sorter = array();
   	if (!$dbKITformTableSort->sqlSelectRecord($where, $sorter)) {
-  		$this->setError($dbKITformTableSort->getError()); return false;
+  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformTableSort->getError())); return false;
   	}
   	if (count($sorter) > 0) {
   		$form_fields = explode(',', $form_data[dbKITform::field_fields]);
@@ -727,10 +727,9 @@ class formBackend {
   		// nur die Sortierung aktualisieren
   		$data = array(dbKITform::field_fields => $form_data[dbKITform::field_fields]);
   		if (!$dbKITform->sqlUpdateRecord($data, $where)) {
-  			$this->setError($dbKITform->getError()); return false;
+  			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError())); return false;
   		}
   	}
-
   	$this->setMessage($message);
   	return $this->dlgFormEdit();
   } // checkFormEdit()

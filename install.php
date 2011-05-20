@@ -48,14 +48,22 @@ if (!$dbKITformFields->sqlExec($SQL, $result)) {
   $error .= sprintf('[INSTALLATION] %s', $dbKITformFields->getError());
 }
 
+// Standardformulare installieren
+$message = '';
+if (!$dbKITform->installStandardForms($message)) {
+	if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+}
+
+
 // Install Droplets
 $droplets = new checkDroplets();
 if ($droplets->insertDropletsIntoTable()) {
-  $message = 'The Droplets for kitForm where successfully installed! Please look at the Help for further informations.';
+  $message .= 'The Droplets for kitForm where successfully installed! Please look at the Help for further informations.';
 }
 else {
-  $message = 'The installation of the Droplets for kitForm failed. Error: '. $droplets->getError();
+  $message .= 'The installation of the Droplets for kitForm failed. Error: '. $droplets->getError();
 }
+
 if ($message != "") {
   echo '<script language="javascript">alert ("'.$message.'");</script>';
 }
