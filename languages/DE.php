@@ -190,6 +190,7 @@ define('form_msg_newsletter_abonnement_updated','<p>Das Newsletter Abonnement f√
 define('form_msg_not_authenticated',					'<p>Sie sind nicht angemeldet!</p>');
 define('form_msg_field_removed',							'<p>Das Datenfeld <b>%s</b> wurde aus dem Formular entfernt.</p>');
 define('form_msg_upload_no_file',             '<p>Es wurde keine Datei importiert!</p>');
+define('form_msg_welcome',										'<p>Herzlich willkommen!<br />Ihre Benutzerdaten haben Sie per E-Mail erhalten.</p>');
 
 define('form_protocol_form_send',							'[kitForm] Der Kontakt hat ein <a href="%s">Formular √ºbermittelt</a>.'); 
 

@@ -1083,13 +1083,19 @@ class formFrontend {
   			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
   			return false;
   		}
-  		$this->setMessage($kitContactInterface->getMessage());
+  		$this->setMessage($kitContactInterface->getMessage());  
   		return $this->showForm();
   	}
   	// Benutzer anmelden
   	$_SESSION[kitContactInterface::session_kit_aid] = $register[dbKITregister::field_id];
 		$_SESSION[kitContactInterface::session_kit_key] = $register[dbKITregister::field_register_key];
 		$_SESSION[kitContactInterface::session_kit_contact_id] = $register[dbKITregister::field_contact_id];
+		// Passwort pruefen
+		if ($password == -1) {
+			// Benutzer war bereits freigeschaltet und das Konto ist aktiv
+			$this->setMessage(form_msg_welcome);
+			return $this->showForm(); 
+		}
   	$data = array(
   		'contact'		=> $contact,
   		'password'	=> $password
