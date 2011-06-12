@@ -53,7 +53,7 @@ $message = '';
 if (!$dbKITform->installStandardForms($message)) {
 	if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
 }
-
+$message = strip_tags($message);
 
 // Install Droplets
 $droplets = new checkDroplets();

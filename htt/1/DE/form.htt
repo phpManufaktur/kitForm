@@ -167,7 +167,7 @@
           <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a>?</td>
         </tr>
       {/if}
-      {if ($form.links.act_logout != 'act_none')}
+      {if (isset($form.links.act_logout) && ($form.links.act_logout != 'act_none'))}
         {* Link zum Abmelden anzeigen *}
         <tr>
           <td colspan="3"><a href="{$form.links.command}={$form.links.act_logout}">Abmelden ...</a></td>
