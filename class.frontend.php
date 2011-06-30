@@ -575,11 +575,10 @@ class formFrontend {
 		global $dbKITformData;
 		global $dbContact;
 		
-		if (!isset($_REQUEST[dbKITform::field_id])) {
+		if (!isset($_REQUEST[dbKITform::field_id])) { 
 			$this->setError(form_error_form_id_missing); return false;
 		}
 		$form_id = $_REQUEST[dbKITform::field_id];
-		
 		$where = array(dbKITform::field_id => $form_id);
 		$form = array();
 		if (!$dbKITform->sqlSelectRecord($where, $form)) {
