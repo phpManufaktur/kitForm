@@ -39,15 +39,17 @@ foreach ($tables as $table) {
 		}
 	}
 }
-
+/*
 // AUTO_INCREMENT FUER dbKITformFields auf 200 setzen!!!
 $dbKITformFields = new dbKITformFields();
 $SQL = sprintf("ALTER TABLE %s AUTO_INCREMENT = 200", $dbKITformFields->getTableName());
 $result = array();
+$oe = error_reporting(0);
 if (!$dbKITformFields->sqlExec($SQL, $result)) {
   $error .= sprintf('[INSTALLATION] %s', $dbKITformFields->getError());
 }
-
+error_reporting($oe);
+*/
 // Standardformulare installieren
 $message = '';
 if (!$dbKITform->installStandardForms($message)) {

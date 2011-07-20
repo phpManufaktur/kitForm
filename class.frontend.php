@@ -192,18 +192,18 @@ class formFrontend {
   	} 
   	isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
   	switch ($action):
-  	case self::action_check_form:
+  	case self::action_check_form: 
   		$result = $this->checkForm();
   		break;
   	case self::action_activation_key:
   		$result = $this->checkActivationKey();
   		break;
   	case self::action_default:
-  	default:
+  	default: 
   		$result = $this->showForm();
   		break;
   	endswitch;
-  	
+
   	if ($this->isError()) $result = sprintf('<div class="error">%s</div>', $this->getError());
 		return $result;
   } // action
@@ -265,7 +265,7 @@ class formFrontend {
   			return $this->getTemplate('prompt.htt', $data);  				
   		}
   	}
-  	elseif ($fdata[dbKITform::field_action] == dbKITform::action_account) {
+  	elseif ($fdata[dbKITform::field_action] == dbKITform::action_account) { 
   		// Das Benutzerkonto zum Bearbeiten anzeigen
   		if ($kitContactInterface->isAuthenticated()) {
   			// ok - User ist angemeldet
@@ -738,7 +738,7 @@ class formFrontend {
 				// $this->registerAccount() uebergeben
 				return $this->registerAccount($form, $contact_array);	
 			}
-			elseif ($form[dbKITform::field_action] == dbKITform::action_account) {
+			elseif ($form[dbKITform::field_action] == dbKITform::action_account) { 
 				// Es wird das Benutzerkonto bearbeitet
 				if (!$kitContactInterface->updateContact($_SESSION[kitContactInterface::session_kit_contact_id], $contact_array)) {
 					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
@@ -811,7 +811,7 @@ class formFrontend {
 					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $kitLibrary->str2float($_REQUEST[$field[dbKITformFields::field_name]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
 					break;
 				case dbKITformFields::data_type_integer:
-					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $kitLibrary->str2int($_REQUEST[$field[dbKITformFields::field_nam]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
+					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $kitLibrary->str2int($_REQUEST[$field[dbKITformFields::field_name]], form_cfg_thousand_separator, form_cfg_decimal_separator) : 0;
 					break;
 				default:
 					$values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $_REQUEST[$field[dbKITformFields::field_name]] : '';

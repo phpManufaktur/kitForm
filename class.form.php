@@ -312,7 +312,7 @@ class dbKITformFields extends dbConnectLE {
   	$this->createTables = $createTables;
   	parent::__construct();
   	$this->setTableName('mod_kit_form_fields');
-  	$this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true); // WICHTIG: Zaehler 1-100 sind fuer KIT reserviert!!!
+  	$this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true); // WICHTIG: Zaehler 1-200 sind fuer KIT reserviert!!!
   	$this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
 		$this->addFieldDefinition(self::field_type, "VARCHAR(30) NOT NULL DEFAULT '".self::type_undefined."'");
 		$this->addFieldDefinition(self::field_type_add, "TEXT NOT NULL DEFAULT ''", false, false, true);
@@ -324,6 +324,8 @@ class dbKITformFields extends dbConnectLE {
 		$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
   	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
   	$this->setIndexFields(array(self::field_name, self::field_form_id));
+  	// AUTO_INCREMENT auf 200 setzen
+  	$this->setAutoIncrement(200);
   	$this->checkFieldDefinitions();
   	// Tabelle erstellen
   	if ($this->createTables) {

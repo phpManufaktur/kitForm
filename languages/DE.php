@@ -184,7 +184,7 @@ define('form_msg_kit_field_add_success',			'<p>Das KIT Datenfeld <b>%s</b> wurde
 define('form_msg_import_file_empty',          '<p>Die Datei <b>%s</b> enthält keine verwertbaren Formulardaten.</p>');
 define('form_msg_import_name_already_exists', '<p>Der Formular Bezeichner <b>%s</b> wird bereits verwendet, der Import von <b>%s</b> wurde abgebrochen.</p>');
 define('form_msg_import_file_version_invalid','<p>Die Datei <b>%s</b> enthält keine gültige Versionsinformation!</p>');
-define('form_msg_import_success',             '<p>Das Formular <b>%s</b> wurde erfolgreich importiert.</p>');
+define('form_msg_import_success',             "Das Formular %s wurde erfolgreich importiert.\n");
 define('form_msg_must_field_missing',					'<p>Das Feld <b>%s</b> ist ein <i>Pflichtfeld</i> und muss ausgefüllt werden.</p>');
 define('form_msg_newsletter_abonnement_updated','<p>Das Newsletter Abonnement für die E-Mail Adresse <b>%s</b> wurde aktualisiert.</p>');
 define('form_msg_not_authenticated',					'<p>Sie sind nicht angemeldet!</p>');
