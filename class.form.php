@@ -1,4 +1,5 @@
 <?php
+
 /**
  * kitForm
  * 
@@ -7,10 +8,27 @@
  * @copyright 2011
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// prevent this file from being accessed directly
-if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
+// try to include LEPTON class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {	
+	if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php');
+} elseif (file_exists($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php')) {
+	include($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php'); 
+} else {
+	$subs = explode('/', dirname($_SERVER['SCRIPT_NAME']));	$dir = $_SERVER['DOCUMENT_ROOT'];
+	$inc = false;
+	foreach ($subs as $sub) {
+		if (empty($sub)) continue; $dir .= '/'.$sub;
+		if (file_exists($dir.'/framework/class.secure.php')) { 
+			include($dir.'/framework/class.secure.php'); $inc = true;	break; 
+		} 
+	}
+	if (!$inc) trigger_error(sprintf("[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+}
+// end include LEPTON class.secure.php
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
@@ -32,6 +50,9 @@ class dbKITform extends dbConnectLE {
 	const field_action								= 'form_action';
 	const field_links									= 'form_links';
 	const field_captcha								= 'form_captcha';
+	const field_provider_id						= 'form_provider';
+	const field_email_cc							= 'form_email_cc';
+	const field_email_html						= 'form_email_html';
 	const field_status								= 'form_status';
 	const field_timestamp							= 'form_timestamp';
 	
@@ -51,6 +72,14 @@ class dbKITform extends dbConnectLE {
 	public $captcha_array = array(
 		self::captcha_on				=> form_captcha_on,
 		self::captcha_off				=> form_captcha_off 
+	);
+	
+	const html_on											= '1';
+	const html_off										= '0';
+	
+	public $html_array = array(
+		self::html_on						=> form_html_on,
+		self::html_off					=> form_html_off
 	);
 	
 	const action_none									= 'act_none'; 
@@ -86,6 +115,9 @@ class dbKITform extends dbConnectLE {
   	$this->addFieldDefinition(self::field_action, "VARCHAR(30) NOT NULL DEFAULT '".self::action_none."'");
   	$this->addFieldDefinition(self::field_links, "VARCHAR(255) NOT NULL DEFAULT ''");
   	$this->addFieldDefinition(self::field_captcha, "TINYINT NOT NULL DEFAULT '".self::captcha_on."'");
+  	$this->addFieldDefinition(self::field_provider_id, "INT(11) NOT NULL DEFAULT '-1'");
+  	$this->addFieldDefinition(self::field_email_cc, "TEXT NOT NULL DEFAULT ''");
+  	$this->addFieldDefinition(self::field_email_html, "TINYINT NOT NULL DEFAULT '".self::html_off."'");
   	$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
   	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
   	$this->setIndexFields(array(self::field_name));

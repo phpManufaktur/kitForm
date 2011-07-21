@@ -1,4 +1,5 @@
 <?php
+
 /**
  * kitForm
  * 
@@ -7,10 +8,27 @@
  * @copyright 2011
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// prevent this file from being accessed directly
-if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
+// try to include LEPTON class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {	
+	if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php');
+} elseif (file_exists($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php')) {
+	include($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php'); 
+} else {
+	$subs = explode('/', dirname($_SERVER['SCRIPT_NAME']));	$dir = $_SERVER['DOCUMENT_ROOT'];
+	$inc = false;
+	foreach ($subs as $sub) {
+		if (empty($sub)) continue; $dir .= '/'.$sub;
+		if (file_exists($dir.'/framework/class.secure.php')) { 
+			include($dir.'/framework/class.secure.php'); $inc = true;	break; 
+		} 
+	}
+	if (!$inc) trigger_error(sprintf("[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+}
+// end include LEPTON class.secure.php
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 require_once(WB_PATH.'/framework/functions.php');
@@ -240,7 +258,7 @@ class formBackend {
   	global $dbKITformFields;
   	global $kitContactInterface;
   	global $dbKITformTableSort;
-  	
+  	global $kitLibrary;
     
     
   	$checked = true;
@@ -322,6 +340,34 @@ class formBackend {
   				$this->setMessage(sprintf(form_msg_form_deleted, $form_id));
   				return $this->dlgFormList();
   			}
+  			break;
+  		case dbKITform::field_provider_id:
+  			$form_data[$field] = isset($_REQUEST[$field]) ? $_REQUEST[$field] : -1;
+  			if ($form_data[$field] == -1) {
+  				// kein Diensleister ausgewaehlt
+  				$message .= form_msg_provider_missing;
+  				$checked = false;
+  			}
+  			break;
+  		case dbKITform::field_email_cc:
+  			$cc = isset($_REQUEST[$field]) ? $_REQUEST[$field] : '';
+  			if (!empty($cc)) {
+  				// CC Adressen auslesen
+  				$cc_arr = explode(',', $cc);
+  				$new_arr = array();
+  				foreach ($cc_arr as $email) {
+  					if (!$kitLibrary->validateEMail(trim($email))) {
+  						$message .= sprintf(kit_msg_email_invalid, $email);
+  						$checked = false;
+  					}
+  					$new_arr[] = trim($email);
+  				}
+  				$cc = implode(',', $new_arr);
+  			}
+  			$form_data[$field] = $cc; 
+  			break;
+  		case dbKITform::field_email_html:
+  			$form_data[$field] = isset($_REQUEST[$field]) ? $_REQUEST[$field] : dbKITform::html_off;
   			break;
   		case dbKITform::field_captcha:
   			$form_data[$field] = isset($_REQUEST[$field]) ? $_REQUEST[$field] : dbKITform::captcha_on;
@@ -773,6 +819,9 @@ class formBackend {
   		$form_data[dbKITform::field_must_fields] = $kitContactInterface->index_array[kitContactInterface::kit_email];
   		$form_data[dbKITform::field_captcha] = dbKITform::captcha_on;
   		$form_data[dbKITform::field_action] = dbKITform::action_none;
+  		$form_data[dbKITform::field_email_cc] = '';
+  		$form_data[dbKITform::field_provider_id] = -1;
+  		$form_data[dbKITform::field_email_html] = dbKITform::html_off;
   	}
   	
   	// alle Felder
@@ -788,6 +837,18 @@ class formBackend {
   		$form_data[$field] = $_REQUEST[$field];
   	}
   	
+  	// Service Provider auslesen
+  	$service_provider = array();
+  	if (!$kitContactInterface->getServiceProviderList($service_provider)) {
+  		if ($kitContactInterface->isError()) {
+  			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+  			return false;
+  		}
+  		elseif ($kitContactInterface->isMessage()) {
+  			$this->setMessage($kitContactInterface->getMessage());
+  		}
+  	}
+  	
   	$form = array();
   	// in dieser Schleife werden allgemeine Formulardaten gesetzt
   	foreach ($form_data as $field => $value) {
@@ -800,12 +861,14 @@ class formBackend {
   		case dbKITform::field_name:
   		case dbKITform::field_title:
   		case dbKITform::field_description:
+  		case dbKITform::field_email_cc:
   			// sonstige Werte setzen
   			$form[$field]['label']  = constant('form_label_'.$field);
   			$form[$field]['name']		= $field;
   			$form[$field]['hint'] 	= constant('form_hint_'.$field);
   			// Value Feld nur setzen, wenn dies noch nicht geschehen ist
   			if (!isset($form[$field]['value'])) $form[$field]['value'] = $form_data[$field];
+  			break;
   		case dbKITform::field_status: 
   			// Status Array zusammenstellen
 		  	$form[$field]['items'] = array();
@@ -813,6 +876,37 @@ class formBackend {
 		  		if (($form_id < 1) && ($value == dbKITform::status_deleted)) continue; // bei neuen Datensaetzen kein "Loeschen"
 		  		$form[$field]['items'][] = array('value' => $value, 'text' => $text);
 		  	}		  	
+  			$form[$field]['label']  = constant('form_label_'.$field);
+  			$form[$field]['name']		= $field;
+  			$form[$field]['hint'] 	= constant('form_hint_'.$field);
+  			// Value Feld nur setzen, wenn dies noch nicht geschehen ist
+  			if (!isset($form[$field]['value'])) $form[$field]['value'] = $form_data[$field];
+  			break;
+  		case dbKITform::field_provider_id:
+  			// Service Provider Array zusammenstellen
+  			$form[$field]['items'] = array();
+  			$form[$field]['items'][] = array(
+  				'value'		=> -1,
+  				'text'		=> form_text_select_provider
+  			);
+  			foreach ($service_provider as $provider) {
+  				$form[$field]['items'][] = array(
+  					'value'	=> $provider['id'],
+  					'text'	=> sprintf('[%s] %s', $provider['name'], $provider['email'])
+  				);
+  			}
+  			$form[$field]['label']	= constant('form_label_'.$field);
+  			$form[$field]['name']		= $field;
+  			$form[$field]['hint'] 	= sprintf(constant('form_hint_'.$field), ADMIN_URL);
+  			// Value Feld nur setzen, wenn dies noch nicht geschehen ist
+  			if (!isset($form[$field]['value'])) $form[$field]['value'] = $form_data[$field];	
+  			break;
+  		case dbKITform::field_email_html:
+  			// E-Mail Versand mit HTML?
+  			$form[$field]['items'] = array();
+  			foreach ($dbKITform->html_array as $value => $text) {
+  				$form[$field]['items'][] = array('value' => $value, 'text' => $text);
+  			}
   			$form[$field]['label']  = constant('form_label_'.$field);
   			$form[$field]['name']		= $field;
   			$form[$field]['hint'] 	= constant('form_hint_'.$field);

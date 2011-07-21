@@ -44,6 +44,33 @@
       <td class="hint_form_edit">{$form.form_desc.hint}</td>
     </tr>
     <tr>
+      <td class="label_form_edit">{$form.form_provider.label}</td>
+      <td class="value_{$form.form_provider.name}">
+        <select name="{$form.form_provider.name}">
+          {foreach $form.form_provider.items provider}
+          <option value="{$provider.value}"{if $form.form_provider.value == $provider.value} selected="selected"{/if}>{$provider.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td class="hint_form_edit">{$form.form_provider.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_email_cc.label}</td>
+      <td class="value_{$form.form_email_cc.name}"><input type="text" name="{$form.form_email_cc.name}" value="{$form.form_email_cc.value}" /></td>
+      <td class="hint_form_edit">{$form.form_email_cc.hint}</td>
+    </tr>
+    <tr>
+      <td class="label_form_edit">{$form.form_email_html.label}</td>
+      <td class="value_{$form.form_email_html.name}">
+        <select name="{$form.form_email_html.name}">
+          {foreach $form.form_email_html.items html}
+          <option value="{$html.value}"{if $form.form_email_html.value == $html.value} selected="selected"{/if}>{$html.text}</option>
+          {/foreach}
+        </select>
+      </td>
+      <td class="hint_form_edit">{$form.form_email_html.hint}</td>
+    </tr>
+    <tr>
       <td class="label_form_edit">{$form.form_captcha.label}</td>
       <td class="value_{$form.form_captcha.name}">
         <select name="{$form.form_captcha.name}">

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * kitForm
  * 
@@ -7,10 +8,27 @@
  * @copyright 2011
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// prevent this file from being accessed directly
-if (!defined('WB_PATH')) die('invalid call of '.$_SERVER['SCRIPT_NAME']);
+// try to include LEPTON class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {	
+	if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php');
+} elseif (file_exists($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php')) {
+	include($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php'); 
+} else {
+	$subs = explode('/', dirname($_SERVER['SCRIPT_NAME']));	$dir = $_SERVER['DOCUMENT_ROOT'];
+	$inc = false;
+	foreach ($subs as $sub) {
+		if (empty($sub)) continue; $dir .= '/'.$sub;
+		if (file_exists($dir.'/framework/class.secure.php')) { 
+			include($dir.'/framework/class.secure.php'); $inc = true;	break; 
+		} 
+	}
+	if (!$inc) trigger_error(sprintf("[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+}
+// end include LEPTON class.secure.php
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.backend.php');
@@ -880,30 +898,61 @@ class formFrontend {
 					'value'		=> $value
 				);
 			}
-		
-			$form = $form_data;
-			$form['datetime'] = date(form_cfg_datetime_str, strtotime($form[dbKITformData::field_date]));
+
+			// E-Mail Versand vorbereiten
+			$provider_data = array();
+			if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data)) {
+				if ($kitContactInterface->isError()) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+				}
+				else {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+				}
+				return false;
+			}
+			$provider_email = $provider_data['email'];
+			$provider_name  = $provider_data['name'];
+			
+			$form_d = $form_data;
+			$form_d['datetime'] = date(form_cfg_datetime_str, strtotime($form_d[dbKITformData::field_date]));
 			
 			$data = array(
-				'form'		=> $form,
+				'form'		=> $form_d,
 				'contact'	=> $contact,
 				'items'		=> $items
 			);
 			$client_mail = $this->getTemplate('mail.client.htt', $data);
 			
-			$mail = new kitMail();
-			if (!$mail->mail(form_mail_subject_client, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
-				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
+			// E-Mail an den Absender des Formulars
+			$mail = new kitMail($form[dbKITform::field_provider_id]);
+			if (!$mail->mail(	form_mail_subject_client, 
+												$client_mail, $provider_data['email'], 
+												$provider_data['name'], 
+												array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), 
+												($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false)) {
+				$err = $mail->getMailError();
+				if (empty($err)) $err = sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email]);
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
 				return false;
 			}
-			
+			// E-Mail an den Betreiber der Website
 			$provider_mail = $this->getTemplate('mail.provider.htt', $data);
-			$mail = new kitMail();
-			if (!$mail->mail(form_mail_subject_provider, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
-				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
+			$cc_array = array();
+			$ccs = explode(',', $form[dbKITform::field_email_cc]);
+			foreach ($ccs as $cc) $cc_array[$cc] = $cc;
+			$mail = new kitMail($form[dbKITform::field_provider_id]);
+			if (!$mail->mail(	form_mail_subject_provider, 
+												$provider_mail, 
+												$contact[kitContactInterface::kit_email], 
+												$contact[kitContactInterface::kit_email], 
+												array($provider_data['email'] => $provider_data['name']), 
+												($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false,
+												$cc_array)) {
+				$err = $mail->getMailError();
+				if (empty($err)) $err = sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email]);
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
 				return false;
 			}
-			
 			return $this->getTemplate('confirm.htt', $data);
 		} // checked
 		

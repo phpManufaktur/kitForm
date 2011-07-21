@@ -8,6 +8,12 @@
  * @version $Id$
  */
 
+Release 0.15
+2011-07-21
+added - options in each form to select service provider, define cc emails and send emails in text or html
+fixed - some smaller problems and cleanup code
+added - grant compatibillity for LEPTON CMS
+
 Release 0.14
 2011-06-05
 fixed - some smaller problems and cleanup code
