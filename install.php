@@ -41,7 +41,7 @@ else {
 }
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
-require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.droplets.php');
+require_once(WB_PATH.'/modules/kit_tools/class.droplets.php');
 
 global $admin;
 
@@ -57,17 +57,7 @@ foreach ($tables as $table) {
 		}
 	}
 }
-/*
-// AUTO_INCREMENT FUER dbKITformFields auf 200 setzen!!!
-$dbKITformFields = new dbKITformFields();
-$SQL = sprintf("ALTER TABLE %s AUTO_INCREMENT = 200", $dbKITformFields->getTableName());
-$result = array();
-$oe = error_reporting(0);
-if (!$dbKITformFields->sqlExec($SQL, $result)) {
-  $error .= sprintf('[INSTALLATION] %s', $dbKITformFields->getError());
-}
-error_reporting($oe);
-*/
+
 // Standardformulare installieren
 $message = '';
 if (!$dbKITform->installStandardForms($message)) {
@@ -77,13 +67,13 @@ $message = strip_tags($message);
 
 // Install Droplets
 $droplets = new checkDroplets();
+$droplets->droplet_path = WB_PATH.'/modules/kit_form/droplets/';
 if ($droplets->insertDropletsIntoTable()) {
   $message .= form_msg_install_droplets_success;
 }
 else {
   $message .= sprintf(form_msg_install_droplets_failed, $droplets->getError());
 }
-
 if ($message != "") {
   echo '<script language="javascript">alert ("'.$message.'");</script>';
 }

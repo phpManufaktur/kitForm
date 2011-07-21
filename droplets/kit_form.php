@@ -15,6 +15,7 @@ if (file_exists(WB_PATH.'/modules/kit_form/class.frontend.php')) {
 	$params = $formular->getParams();
 	$params[formFrontend::param_form] = (isset($form)) ? strtolower(trim($form)) : '';
 	$params[formFrontend::param_preset] = (isset($preset)) ? (int) $preset : 1;
+	$params[formFrontend::param_css] = (isset($css) && (strtolower($css) == 'false')) ? false : true;
 	if (!$formular->setParams($params)) return $formular->getError();
 	return $formular->action();
 }

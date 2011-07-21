@@ -35,6 +35,7 @@ require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.backend.php
 require_once(WB_PATH.'/include/captcha/captcha.php');
 require_once(WB_PATH.'/framework/class.wb.php');
 require_once(WB_PATH.'/modules/kit/class.mail.php');
+require_once(WB_PATH.'/modules/droplets_extension/interface.php');
 
 global $dbKITform;
 global $dbKITformFields;
@@ -71,11 +72,13 @@ class formFrontend {
 	const param_preset					= 'fpreset';
 	const param_form						= 'form';
 	const param_return					= 'return';
+	const param_css							= 'css';
 	
 	private $params = array(
 		self::param_preset			=> 1, 
 		self::param_form				=> '',	
-		self::param_return			=> false
+		self::param_return			=> false,
+		self::param_css					=> true
 	);
 	
 	public function __construct() {
@@ -208,7 +211,19 @@ class formFrontend {
   			$_REQUEST[$key] = $this->xssPrevent($value);	  			
   		} 
   	} 
+  	
   	isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
+  	
+  	// CSS laden? 
+    if ($this->params[self::param_css]) { 
+			if (!is_registered_droplet_css('kit_form', PAGE_ID)) { 
+	  		register_droplet_css('kit_form', PAGE_ID, 'kit_form', 'kit_form.css');
+			}
+    }
+    elseif (is_registered_droplet_css('kit_form', PAGE_ID)) {
+		  unregister_droplet_css('kit_form', PAGE_ID);
+    }
+    
   	switch ($action):
   	case self::action_check_form: 
   		$result = $this->checkForm();
@@ -234,6 +249,7 @@ class formFrontend {
   	if (empty($this->params)) {
   		$this->setError(form_error_form_name_empty); return false;
   	}
+  	
   	$form_id = -1;
   	$form_name = 'none';
   	

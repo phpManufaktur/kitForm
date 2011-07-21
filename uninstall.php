@@ -57,6 +57,16 @@ foreach ($tables as $table) {
 	}
 }
 
+// remove Droplets
+$dbDroplets = new dbDroplets();
+$droplets = array('kit_form');
+foreach ($droplets as $droplet) {
+	$where = array(dbDroplets::field_name => $droplet);
+	if (!$dbDroplets->sqlDeleteRecord($where)) {
+		$message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
+	}	
+}
+
 // Prompt Errors
 if (!empty($error)) {
 	$admin->print_error($error);

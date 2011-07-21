@@ -85,6 +85,29 @@ if (!empty($message)) {
 	echo '<script language="javascript">alert ("'.$message.'");</script>';
 }
 
+// remove Droplets
+$dbDroplets = new dbDroplets();
+$droplets = array('kit_form');
+foreach ($droplets as $droplet) {
+	$where = array(dbDroplets::field_name => $droplet);
+	if (!$dbDroplets->sqlDeleteRecord($where)) {
+		$message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
+	}	
+}
+// Install Droplets
+$droplets = new checkDroplets();
+$droplets->droplet_path = WB_PATH.'/modules/kit_form/droplets/';
+if ($droplets->insertDropletsIntoTable()) {
+  $message .= form_msg_install_droplets_success;
+}
+else {
+  $message .= sprintf(form_msg_install_droplets_failed, $droplets->getError());
+}
+if ($message != "") {
+  echo '<script language="javascript">alert ("'.$message.'");</script>';
+}
+
+
 // Prompt Errors
 if (!empty($error)) {
 	$admin->print_error($error);
