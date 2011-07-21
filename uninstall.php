@@ -41,6 +41,7 @@ else {
 }
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
+require_once(WB_PATH.'/modules/kit_tools/class.droplets.php');
 
 global $admin;
 
