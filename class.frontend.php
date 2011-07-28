@@ -1257,14 +1257,14 @@ class formFrontend {
   	else {
   		// Aktivierungskey versenden
   		$form = array();
-  		$form['activation_link'] = sprintf(	'%s%s%s=%s&%s=%s&%s=%s', 
+  		$form['activation_link'] = sprintf(	'%s%s%s', 
   																				$this->page_link, 
   																				(strpos($this->page_link, '?') === false) ? '?' : '&', 
-  																				self::request_action, 
-  																				self::action_activation_key, 
-  																				self::request_key, 
-  																				$register[dbKITregister::field_register_key]);
-  		$form['datetime'] = date(form_cfg_datetime_str);
+  																				http_build_query(array(
+  																					self::request_action 	=> self::action_activation_key, 
+  																					self::request_key			=> $register[dbKITregister::field_register_key]
+  																				)));
+  		$form['datetime'] = date(form_cfg_datetime_str); 
   		$data = array(
   			'form'		=> $form,
   			'contact'	=> $contact
