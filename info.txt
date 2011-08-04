@@ -8,6 +8,10 @@
  * @version $Id$
  */
 
+Release 0.16
+2011-08-04
+fixed - missing parameter if sending activation link for KeepInTouch (KIT) 
+
 Release 0.15
 2011-07-21
 added - options in each form to select service provider, define cc emails and send emails in text or html
