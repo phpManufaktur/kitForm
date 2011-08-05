@@ -53,6 +53,7 @@ class formFrontend {
 	const request_link							= 'link';
 	const request_key								= 'key';
 	const request_activation_type		= 'at';
+	const request_provider_id				= 'pid';
 	
 	const action_default						= 'def';
 	const action_check_form					= 'acf';
@@ -784,9 +785,27 @@ class formFrontend {
 						'contact'		=> $contact_array,
 						'password'	=> $password
 					);
+					$provider_data = array();
+					if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data)) {
+						if ($kitContactInterface->isError()) {
+							$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+						}
+						else {
+							$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+						}
+						return false;
+					}
+					$provider_email = $provider_data['email'];
+					$provider_name  = $provider_data['name'];
+							
 					$client_mail = $this->getTemplate('mail.client.password.htt', $data);
-					$mail = new kitMail();
-					if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact_array[kitContactInterface::kit_email] => $contact_array[kitContactInterface::kit_email]), false)) {
+					$mail = new kitMail($form[dbKITform::field_provider_id]);
+					if (!$mail->mail(	form_mail_subject_client_access, 
+														$client_mail, 
+														$provider_email, 
+														$provider_name, 
+														array($contact_array[kitContactInterface::kit_email] => $contact_array[kitContactInterface::kit_email]), 
+														false)) {
 						$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact_array[kitContactInterface::kit_email])));
 						return false;
 					}
@@ -928,7 +947,7 @@ class formFrontend {
 			}
 			$provider_email = $provider_data['email'];
 			$provider_name  = $provider_data['name'];
-			
+
 			$form_d = $form_data;
 			$form_d['datetime'] = date(form_cfg_datetime_str, strtotime($form_d[dbKITformData::field_date]));
 			
@@ -942,8 +961,9 @@ class formFrontend {
 			// E-Mail an den Absender des Formulars
 			$mail = new kitMail($form[dbKITform::field_provider_id]);
 			if (!$mail->mail(	form_mail_subject_client, 
-												$client_mail, $provider_data['email'], 
-												$provider_data['name'], 
+												$client_mail, 
+												$provider_email, 
+												$provider_name, 
 												array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), 
 												($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false)) {
 				$err = $mail->getMailError();
@@ -961,7 +981,7 @@ class formFrontend {
 												$provider_mail, 
 												$contact[kitContactInterface::kit_email], 
 												$contact[kitContactInterface::kit_email], 
-												array($provider_data['email'] => $provider_data['name']), 
+												array($provider_email => $provider_name), 
 												($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false,
 												$cc_array)) {
 				$err = $mail->getMailError();
@@ -1067,10 +1087,28 @@ class formFrontend {
   		'password'	=> $newPassword
   	);
   	
+  	$provider_data = array();
+		if (!$kitContactInterface->getServiceProviderByID($form_data[dbKITform::field_provider_id], $provider_data)) {
+			if ($kitContactInterface->isError()) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+			}
+			else {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+			}
+			return false;
+		}
+		$provider_email = $provider_data['email'];
+		$provider_name  = $provider_data['name'];
+  	
   	$client_mail = $this->getTemplate('mail.client.password.htt', $data);
 			
-		$mail = new kitMail();
-		if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+		$mail = new kitMail($form_data[dbKITform::field_provider_id]);
+		if (!$mail->mail(	form_mail_subject_client_access, 
+											$client_mail, 
+											$provider_email, 
+											$provider_name, 
+											array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), 
+											false)) {
 			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
 			return false;
 		}
@@ -1105,24 +1143,52 @@ class formFrontend {
   		return false;
   	}
   	$form_data['datetime'] = date(form_cfg_datetime_str);
-		$form_data['activation_link'] = sprintf('%s%s%s=%s&%s=%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&', self::request_action, self::action_activation_key, self::request_key, $register_data[dbKITregister::field_register_key]);	
-		
+		$form_data['activation_link'] = sprintf('%s%s%s=%s&%s=%s', 
+																						$this->page_link, 
+																						(strpos($this->page_link, '?') === false) ? '?' : '&', 
+																						http_build_query(array(
+																							self::request_action 			=> self::action_activation_key, 
+																							self::request_key 				=> $register_data[dbKITregister::field_register_key],
+																							self::request_provider_id	=> $form_data[dbKITform::field_provider_id] ))
+																						);	
   	// Benachrichtigungen versenden
   	$data = array(
   		'contact'		=> $contact_data,
   		'form'			=> $form_data
   	);
   	$client_mail = $this->getTemplate('mail.client.register.htt', $data);
-			
-		$mail = new kitMail();
-		if (!$mail->mail(form_mail_subject_client_register, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact_data[kitContactInterface::kit_email] => $contact_data[kitContactInterface::kit_email]), false)) {
+
+  	$provider_data = array();
+		if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data)) {
+			if ($kitContactInterface->isError()) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+			}
+			else {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+			}
+			return false;
+		}
+		$provider_email = $provider_data['email'];
+		$provider_name  = $provider_data['name'];
+  	
+		$mail = new kitMail($form_data[dbKITform::field_provider_id]);
+		if (!$mail->mail(	form_mail_subject_client_register, 
+											$client_mail, 
+											$provider_mail, 
+											$provider_name, 
+											array($contact_data[kitContactInterface::kit_email] => $contact_data[kitContactInterface::kit_email]), 
+											false)) {
 			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact_data[kitContactInterface::kit_email])));
 			return false;
 		}
 		
 		$provider_mail = $this->getTemplate('mail.provider.register.htt', $data);
-		$mail = new kitMail();
-		if (!$mail->mail(form_mail_subject_provider_register, $provider_mail, $contact_data[kitContactInterface::kit_email], $contact_data[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
+		$mail = new kitMail($form_data[dbKITform::field_provider_id]);
+		if (!$mail->mail(	form_mail_subject_provider_register, 
+											$provider_mail, 
+											$contact_data[kitContactInterface::kit_email], 
+											$contact_data[kitContactInterface::kit_email], 
+											array($provider_email => $provider_name), false)) {
 			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
 			return false;
 		}
@@ -1136,6 +1202,7 @@ class formFrontend {
    */
   public function checkActivationKey() {
   	global $kitContactInterface;
+  	global $dbKITform;
   	
   	if (!isset($_REQUEST[self::request_key])) {
   		$this->setError(sprintf(form_error_field_required, self::request_key));
@@ -1180,13 +1247,32 @@ class formFrontend {
   	endswitch;
   	
   	$client_mail = $this->getTemplate($mail_template, $data);
-			
-		$mail = new kitMail();
-		if (!$mail->mail(form_mail_subject_client_access, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+		$provider_id = (isset($_REQUEST[self::request_provider_id])) ? $_REQUEST[self::request_provider_id] : -1;
+
+		$provider_data = array();
+		if (!$kitContactInterface->getServiceProviderByID($provider_id, $provider_data)) {
+			if ($kitContactInterface->isError()) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+			}
+			else {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+			}
+			return false;
+		}
+		$provider_email = $provider_data['email'];
+		$provider_name  = $provider_data['name'];
+		
+		// Standard E-Mail Routine verwenden
+		$mail = new kitMail($provider_id);
+		if (!$mail->mail(	form_mail_subject_client_access, 
+											$client_mail, 
+											$provider_email, 
+											$provider_name, 
+											array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), 
+											false)) {
 			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
 			return false;
 		}
-		
 		return $this->getTemplate($prompt_template, $data);
   } // checkActivationKey()
   
@@ -1261,29 +1347,52 @@ class formFrontend {
   																				$this->page_link, 
   																				(strpos($this->page_link, '?') === false) ? '?' : '&', 
   																				http_build_query(array(
-  																					self::request_action 	=> self::action_activation_key, 
-  																					self::request_key			=> $register[dbKITregister::field_register_key]
+  																					self::request_action 			=> self::action_activation_key, 
+  																					self::request_key					=> $register[dbKITregister::field_register_key],
+  																					self::request_provider_id	=> $form_data[dbKITform::field_provider_id]
   																				)));
   		$form['datetime'] = date(form_cfg_datetime_str); 
   		$data = array(
   			'form'		=> $form,
   			'contact'	=> $contact
   		);
+  		
+  		$provider_data = array();
+			if (!$kitContactInterface->getServiceProviderByID($form_data[dbKITform::field_provider_id], $provider_data)) {
+				if ($kitContactInterface->isError()) {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+				}
+				else {
+					$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+				}
+				return false;
+			}
+			$provider_email = $provider_data['email'];
+			$provider_name  = $provider_data['name'];
+  		
   		$client_mail = $this->getTemplate('mail.client.register.newsletter.htt', $data);
-			
-			$mail = new kitMail();
-			if (!$mail->mail(form_mail_subject_client_register, $client_mail, SERVER_EMAIL, SERVER_EMAIL, array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+			$mail = new kitMail($form_data[dbKITform::field_provider_id]);
+			if (!$mail->mail(	form_mail_subject_client_register, 
+												$client_mail, 
+												$provider_email, 
+												$provider_name, 
+												array($contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), 
+												false)) {
 				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, $contact[kitContactInterface::kit_email])));
 				return false;
 			}
 			
 			$provider_mail = $this->getTemplate('mail.provider.register.newsletter.htt', $data);
-			$mail = new kitMail();
-			if (!$mail->mail(form_mail_subject_provider_register, $provider_mail, $contact[kitContactInterface::kit_email], $contact[kitContactInterface::kit_email], array(SERVER_EMAIL => SERVER_EMAIL), false)) {
+			$mail = new kitMail($form_data[dbKITform::field_provider_id]);
+			if (!$mail->mail(	form_mail_subject_provider_register, 
+												$provider_mail, 
+												$contact[kitContactInterface::kit_email], 
+												$contact[kitContactInterface::kit_email], 
+												array($provider_email => $provider_name), false)) {
 				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(form_error_sending_email, SERVER_EMAIL)));
 				return false;
-			}
-			
+			}  
+	
 			return $this->getTemplate('confirm.register.newsletter.htt', $data);
   	}
   	
