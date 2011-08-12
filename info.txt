@@ -8,6 +8,13 @@
  * @version $Id$
  */
 
+Release 0.18
+2011-08-12
+fixed - data precheck and sending emails at subscribe/unsubscribe newsletters works not proper
+fixed - problem creating activation in registerAccount() function 
+changed - for the email subjects are now used templates mail.client.subject.htt and mail.provider.subject.htt, setting by default the form title as subject
+fixed - some smaller problems, code cleanup in class.frontend.php 
+
 Release 0.17
 2011-08-05
 added - service provider is now for all mails active and not only for the main form

@@ -9,7 +9,7 @@
  *}
 Der Kontakt:
 
-{$contact.kit_title}
+{if $contact.kit_title == 'titleMister'}Herr{else}Frau{/if} 
 {$contact.kit_first_name} {$contact.kit_last_name}
 
 {$contact.kit_email}

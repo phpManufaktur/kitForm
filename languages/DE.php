@@ -161,11 +161,11 @@ define('form_label_title_label',							'Feld Titel');
 define('form_label_type_label',								'Feld Typ');
 define('form_label_value_label',							'Feld Wert');
 
-define('form_mail_subject_client',						'Ihre Anfrage');
+//define('form_mail_subject_client',						'Ihre Anfrage');
 define('form_mail_subject_client_access',			'Ihre Zugangsdaten');
-define('form_mail_subject_client_register',		'Ihre Registrierung'); 
-define('form_mail_subject_provider',					'Anfrage über die Website');
-define('form_mail_subject_provider_register',	'Registrierung über die Website');
+//define('form_mail_subject_client_register',		'Ihre Registrierung'); 
+//define('form_mail_subject_provider',					'Anfrage über die Website');
+//define('form_mail_subject_provider_register',	'Registrierung über die Website');
 
 define('form_msg_account_updated',						'<p>Das Benutzerkonto wurde aktualisiert.</p>'); 
 define('form_msg_captcha_invalid',						'<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>');
