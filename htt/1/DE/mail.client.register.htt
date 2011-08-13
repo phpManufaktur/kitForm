@@ -7,13 +7,9 @@
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  *}
-{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
-
-Bitte bestätigen Sie Ihre Anmeldung in dem Sie den folgenden Link in Ihrem Browser öffnen:
-
---> {$form.activation_link}
-
-Sollten Sie sich nicht auf unserer Website angemeldet haben, ignorieren Sie diese E-Mail bitte.
-
-Mit freundlichen Grüßen
-Ihr Website Betreiber
+<p>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</p>
+<p><b>Bitte bestätigen Sie Ihre Anmeldung in dem Sie den folgenden Link in Ihrem Browser öffnen:</b></p>
+<p>--> {$form.activation_link}</p>
+<p>Sollten Sie sich nicht auf unserer Website angemeldet haben, ignorieren Sie diese E-Mail bitte.</p>
+<p>Mit freundlichen Grüßen<br />
+<i>Ihr Website Betreiber</i></p>

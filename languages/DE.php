@@ -75,7 +75,7 @@ define('form_hint_form_email_cc',							'Sie können <b>zusätzliche E-Mail Empf
 define('form_hint_form_email_html',						'Legen Sie fest ob die Benachrichtigungsmails im HTML Format oder als NUR TEXT versendet werden sollen.');
 define('form_hint_form_export',								'Sie können diesen Dialog als Datei exportieren und ihn in anderen Installationen importieren.');
 define('form_hint_form_name',									'Legen Sie einen <b>Bezeichner</b> z.B. "kontakt" für diesen Dialog fest. Der Bezeichner darf keine Sonderzeichen, Leerzeichen, Umlaute o.ä. enthalten, er wird im Droplet <i>[[kit_form?form=<b>kontakt</b>]]</i> als Parameter für das Formular verwendet. Bezeichner werden automatisch bereinigt und in Kleinbuchstaben umgewandelt!');
-define('form_hint_form_title',								'Legen Sie zur einfachen Kennzeichnung des Formulares einen Titel für das Formular fest, z.B. "Kontaktformular, Allgemein".');
+define('form_hint_form_title',								'Legen Sie zur einfachen Kennzeichnung des Formulares einen Titel für das Formular fest, z.B. "Newsletter Anmeldung". Der Formular Titel wird als <b>Betreff</b> bzw. <b>Subject</b> in den Benachrichtigungs E-Mails verwendet.');
 define('form_hint_form_desc',									'Beschreiben Sie die Funktion des Formulares.');
 define('form_hint_form_captcha',							'Schalten Sie den CAPTCHA Spamschutz ein oder aus.');
 define('form_hint_form_provider',							'Wählen Sie einen <b><a href="%s/admintools/tool.php?tool=kit&act=cfg&ctab=cftp">aktiven Dienstleister</a></b> für den E-Mail Versand dieses Formular aus. Der Dienstleister erhält automatisch eine Benachrichtigung bei neu eingegangenen Formularen');

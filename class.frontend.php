@@ -707,7 +707,8 @@ class formFrontend {
 					$provider_name = $provider_data ['name'];
 					
 					$client_mail = $this->getTemplate ( 'mail.client.password.htt', $data );
-					$client_subject = $this->getTemplate('mail.client.subject.htt', $data);
+					if ($form [dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+					$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
 					
 					$mail = new kitMail ( $form [dbKITform::field_provider_id] );
 					if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact_array [kitContactInterface::kit_email] => $contact_array [kitContactInterface::kit_email] ), false )) {
@@ -843,12 +844,14 @@ class formFrontend {
 			$form_d['subject'] = $form[dbKITform::field_title];
 			
 			$data = array ('form' => $form_d, 'contact' => $contact, 'items' => $items );
+			
 			$client_mail = $this->getTemplate ( 'mail.client.htt', $data );
-			$client_subject = $this->getTemplate('mail.client.subject.htt', $data);
+			if ($form[dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+			$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
 			
 			// E-Mail an den Absender des Formulars
 			$mail = new kitMail ( $form [dbKITform::field_provider_id] );
-			if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), ($form [dbKITform::field_email_html] == dbKITform::html_on) ? true : false )) {
+			if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false )) {
 				$err = $mail->getMailError ();
 				if (empty ( $err ))
 					$err = sprintf ( form_error_sending_email, $contact [kitContactInterface::kit_email] );
@@ -857,13 +860,16 @@ class formFrontend {
 			}
 			// E-Mail an den Betreiber der Website
 			$provider_mail = $this->getTemplate ( 'mail.provider.htt', $data );
-			$provider_subject = $this->getTemplate('mail.provider.subject.htt', $data);
+			if ($form[dbKITform::field_email_html] == dbKITform::html_off) $provider_mail = strip_tags($provider_mail);
+			$provider_subject = stripslashes($this->getTemplate('mail.provider.subject.htt', $data));
 			
 			$cc_array = array ();
 			$ccs = explode ( ',', $form [dbKITform::field_email_cc] );
-			foreach ( $ccs as $cc )
+			foreach ( $ccs as $cc ) {
 				if (!empty($cc)) $cc_array [$cc] = $cc;
-			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form [dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
+			}
+			$mail = new kitMail ( $form [dbKITform::field_provider_id] );
+			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 				$err = $mail->getMailError ();
 				if (empty ( $err ))
 					$err = sprintf ( form_error_sending_email, $contact [kitContactInterface::kit_email] );
@@ -923,7 +929,7 @@ class formFrontend {
 	/**
 	 * Sendet dem User ein neues Passwort zu
 	 * 
-	 * @param ARRAY $form_data
+	 * @param ARRAY $form_data - Formulardaten
 	 * @return BOOL false on program error STR dialog/message on success
 	 */
 	public function sendNewPassword($form_data = array()) {
@@ -983,10 +989,11 @@ class formFrontend {
 		$provider_name = $provider_data ['name'];
 		
 		$client_mail = $this->getTemplate ( 'mail.client.password.htt', $data );
-		$client_subject = $this->getTemplate('mail.client.subject.htt', $data);
+		if ($form_data [dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+		$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
 		
 		$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
-		if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), false )) {
+		if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), ($form_data [dbKITform::field_email_html] == dbKITform::html_on) ? true : false )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_sending_email, $contact [kitContactInterface::kit_email] ) ) );
 			return false;
 		}
@@ -995,6 +1002,12 @@ class formFrontend {
 	} // sendNewPassword()
 	
 
+	/**
+	 * Registriert ein Benutzerkonto und versendet einen Aktivierungslink
+	 * 
+	 * @param ARRAY $form_data - Formulardaten
+	 * @param ARRAY $contact_data - Kontaktdaten
+	 */
 	public function registerAccount($form_data = array(), $contact_data = array()) {
 		global $kitContactInterface;
 		
@@ -1023,11 +1036,9 @@ class formFrontend {
 		$form_data ['activation_link'] = sprintf ( '%s%s%s', 
 																								$this->page_link, 
 																								(strpos ( $this->page_link, '?' ) === false) ? '?' : '&', 
-																								http_build_query ( array (self::request_action => self::action_activation_key, self::request_key => $register_data [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id] ) ) );
+																								http_build_query ( array (self::request_action => self::action_activation_key, self::request_key => $register_data [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id], self::request_activation_type => self::activation_type_account ) ) );
 		$form_data['subject'] = $form_data[dbKITform::field_title];
 		// Benachrichtigungen versenden
-		$data = array ('contact' => $contact_data, 'form' => $form_data );
-		$client_mail = $this->getTemplate ( 'mail.client.register.htt', $data );
 		
 		$provider_data = array ();
 		if (! $kitContactInterface->getServiceProviderByID ( $form_data [dbKITform::field_provider_id], $provider_data )) {
@@ -1041,17 +1052,29 @@ class formFrontend {
 		$provider_email = $provider_data ['email'];
 		$provider_name = $provider_data ['name'];
 		
-		$client_subject = $this->getTemplate('mail.client.subject.htt', $data);
+		$data = array ('contact' => $contact_data, 'form' => $form_data );
+		
+		$client_mail = $this->getTemplate ( 'mail.client.register.htt', $data );
+		if ($form_data [dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+		$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
 		
 		$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
-		if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact_data [kitContactInterface::kit_email] => $contact_data [kitContactInterface::kit_email] ), false )) {
+		if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact_data [kitContactInterface::kit_email] => $contact_data [kitContactInterface::kit_email] ), ($form_data [dbKITform::field_email_html] == dbKITform::html_on) ? true : false  )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_sending_email, $contact_data [kitContactInterface::kit_email] ) ) );
 			return false;
 		}
 		
 		$provider_subject = $this->getTemplate('mail.provider.subject.htt', $data);
 		$provider_mail = $this->getTemplate ( 'mail.provider.register.htt', $data );
-		if (! $mail->mail ( $provider_subject, $provider_mail, $contact_data [kitContactInterface::kit_email], $contact_data [kitContactInterface::kit_email], array ($provider_email => $provider_name ), false )) {
+		if ($form_data [dbKITform::field_email_html] == dbKITform::html_off) $provider_mail = strip_tags($provider_mail);
+		
+		$cc_array = array ();
+		$ccs = explode ( ',', $form_data [dbKITform::field_email_cc] );
+		foreach ( $ccs as $cc )
+			if (!empty($cc)) $cc_array [$cc] = $cc;
+			
+		$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
+		if (! $mail->mail ( $provider_subject, $provider_mail, $contact_data [kitContactInterface::kit_email], $contact_data [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_sending_email, SERVER_EMAIL ) ) );
 			return false;
 		}
@@ -1063,6 +1086,7 @@ class formFrontend {
 	/**
 	 * Aktivierungskey ueberpruefen, Datensatz freischalten und Benutzer einloggen...
 	 * @return STR Dialog 
+	 * @intern Diese Routine nutzt ein statisches SUBJECT im Gegensatz zu allen anderen E-Mail Routinen
 	 */
 	public function checkActivationKey() {
 		global $kitContactInterface;
@@ -1108,7 +1132,7 @@ class formFrontend {
 		endswitch
 		;
 		
-		$client_mail = $this->getTemplate ( $mail_template, $data );
+		$client_mail = strip_tags($this->getTemplate ( $mail_template, $data ));
 		$provider_id = (isset ( $_REQUEST [self::request_provider_id] )) ? $_REQUEST [self::request_provider_id] : - 1;
 		
 		$provider_data = array ();
@@ -1193,7 +1217,7 @@ class formFrontend {
 		} else {
 			// Aktivierungskey versenden
 			$form = array (
-				'activation_link' => sprintf ( '%s%s%s', $this->page_link, (strpos ( $this->page_link, '?' ) === false) ? '?' : '&', http_build_query ( array (self::request_action => self::action_activation_key, self::request_key => $register [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id] ) ) ),
+				'activation_link' => sprintf ( '%s%s%s', $this->page_link, (strpos ( $this->page_link, '?' ) === false) ? '?' : '&', http_build_query ( array (self::request_action => self::action_activation_key, self::request_key => $register [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id], self::request_activation_type => self::activation_type_newsletter ) ) ),
 				'datetime' 				=> date ( form_cfg_datetime_str ),
 				'subject'					=> $form_data[dbKITform::field_title]						
 			);
@@ -1210,16 +1234,26 @@ class formFrontend {
 			$provider_email = $provider_data ['email'];
 			$provider_name = $provider_data ['name'];
 			$client_mail = $this->getTemplate ( 'mail.client.register.newsletter.htt', $data );
-			$client_subject = $this->getTemplate('mail.client.subject.htt', $data);
+			if ($form_data[dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+			$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
+			
 			$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
-			if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), false )) {
+			if (! $mail->mail ( $client_subject, $client_mail, $provider_email, $provider_name, array ($contact [kitContactInterface::kit_email] => $contact [kitContactInterface::kit_email] ), ($form_data [dbKITform::field_email_html] == dbKITform::html_on) ? true : false )) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_sending_email, $contact [kitContactInterface::kit_email] ) ) );
 				return false;
 			}
 			
 			$provider_mail = $this->getTemplate ( 'mail.provider.register.newsletter.htt', $data );
-			$provider_subject = $this->getTemplate('mail.provider.subject.htt', $data);
-			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), false )) {
+			if ($form_data[dbKITform::field_email_html] == dbKITform::html_off) $provider_mail = strip_tags($provider_mail);
+			$provider_subject = strip_tags($this->getTemplate('mail.provider.subject.htt', $data));
+			
+			$cc_array = array ();
+			$ccs = explode ( ',', $form_data [dbKITform::field_email_cc] );
+			foreach ( $ccs as $cc )
+				if (!empty($cc)) $cc_array [$cc] = $cc;
+			
+			$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
+			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_sending_email, SERVER_EMAIL ) ) );
 				return false;
 			}
