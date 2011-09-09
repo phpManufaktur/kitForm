@@ -165,6 +165,7 @@ class formBackend {
   	global $parser;
     $result = '';
   	try {
+  		$parser->output($this->template_path.$template, $template_data);
   		$result = $parser->get($this->template_path.$template, $template_data); 
   	} catch (Exception $e) {
   		$this->setError(sprintf(form_error_template_error, $template, $e->getMessage()));
