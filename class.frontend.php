@@ -84,8 +84,9 @@ class formFrontend {
 	const param_form = 'form';
 	const param_return = 'return';
 	const param_css = 'css';
+	const param_auto_login_wb = 'auto_login_wb';
 	
-	private $params = array (self::param_preset => 1, self::param_form => '', self::param_return => false, self::param_css => true );
+	private $params = array (self::param_preset => 1, self::param_form => '', self::param_return => false, self::param_css => true, self::param_auto_login_wb => false );
 	
 	public function __construct() {
 		global $kitLibrary;
@@ -444,7 +445,7 @@ class formFrontend {
 							$checked_boxes = array ();
 							foreach ( $checkboxes as $checkbox ) {
 								$checkbox ['checked'] = (in_array ( $checkbox ['value'], $checked_array )) ? 1 : 0;
-								$checked_boxes [] = $checkbox;
+								$checked_boxes [$checkbox['name']] = $checkbox;
 							}
 							$checkboxes = $checked_boxes;
 						}
@@ -1083,6 +1084,102 @@ class formFrontend {
 	} // registerAccount()
 	
 
+	public function authenticate_wb_user($username, $password) {
+		global $database;
+		global $wb;
+		$query = sprintf("SELECT * FROM %susers WHERE username='%s' AND password='%s' AND active = '1'", TABLE_PREFIX, $username, $password);
+		$results = $database->query($query);
+		if ($database->is_error()) {
+			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+			return false;
+		}
+		$results_array = $results->fetchRow();
+		$num_rows = $results->numRows();
+		if ($num_rows) {
+			$user_id = $results_array['user_id'];
+			$this->user_id = $user_id;
+			$_SESSION['USER_ID'] = $user_id;
+			$_SESSION['GROUP_ID'] = $results_array['group_id'];
+			$_SESSION['GROUPS_ID'] = $results_array['groups_id'];
+			$_SESSION['USERNAME'] = $results_array['username'];
+			$_SESSION['DISPLAY_NAME'] = $results_array['display_name'];
+			$_SESSION['EMAIL'] = $results_array['email'];
+			$_SESSION['HOME_FOLDER'] = $results_array['home_folder'];
+			/*
+			// Run remember function if needed
+			if($this->remember == true) {
+				$this->remember($this->user_id);
+			}
+			*/
+			// Set language
+			if($results_array['language'] != '') {
+				$_SESSION['LANGUAGE'] = $results_array['language'];
+			}
+			// Set timezone
+			if($results_array['timezone'] != '-72000') {
+				$_SESSION['TIMEZONE'] = $results_array['timezone'];
+			} else {
+				// Set a session var so apps can tell user is using default tz
+				$_SESSION['USE_DEFAULT_TIMEZONE'] = true;
+			}
+			// Set date format
+			if($results_array['date_format'] != '') {
+				$_SESSION['DATE_FORMAT'] = $results_array['date_format'];
+			} else {
+				// Set a session var so apps can tell user is using default date format
+				$_SESSION['USE_DEFAULT_DATE_FORMAT'] = true;
+			}
+			// Set time format
+			if($results_array['time_format'] != '') {
+				$_SESSION['TIME_FORMAT'] = $results_array['time_format'];
+			} else {
+				// Set a session var so apps can tell user is using default time format
+				$_SESSION['USE_DEFAULT_TIME_FORMAT'] = true;
+			}
+			$_SESSION['SYSTEM_PERMISSIONS'] = array();
+			$_SESSION['MODULE_PERMISSIONS'] = array();
+			$_SESSION['TEMPLATE_PERMISSIONS'] = array();
+			$_SESSION['GROUP_NAME'] = array();
+
+			$first_group = true;
+			foreach (explode(",", $wb->get_session('GROUPS_ID')) as $cur_group_id)
+            {
+				$query = sprintf("SELECT * FROM %sgroups WHERE group_id='%s'", TABLE_PREFIX, $cur_group_id);
+				$results = $database->query($query);
+				$results_array = $results->fetchRow();
+				$_SESSION['GROUP_NAME'][$cur_group_id] = $results_array['name'];
+				// Set system permissions
+				if($results_array['system_permissions'] != '') {
+					$_SESSION['SYSTEM_PERMISSIONS'] = array_merge($_SESSION['SYSTEM_PERMISSIONS'], explode(',', $results_array['system_permissions']));
+				}
+				// Set module permissions
+				if($results_array['module_permissions'] != '') {
+					if ($first_group) {
+          	$_SESSION['MODULE_PERMISSIONS'] = explode(',', $results_array['module_permissions']);
+          } else {
+          	$_SESSION['MODULE_PERMISSIONS'] = array_intersect($_SESSION['MODULE_PERMISSIONS'], explode(',', $results_array['module_permissions']));
+					}
+				}
+				// Set template permissions
+				if($results_array['template_permissions'] != '') {
+					if ($first_group) {
+          	$_SESSION['TEMPLATE_PERMISSIONS'] = explode(',', $results_array['template_permissions']);
+          } else {
+          	$_SESSION['TEMPLATE_PERMISSIONS'] = array_intersect($_SESSION['TEMPLATE_PERMISSIONS'], explode(',', $results_array['template_permissions']));
+					}
+				}
+				$first_group = false;
+			}	
+			// Update the users table with current ip and timestamp
+			$get_ts = time();
+			$get_ip = $_SERVER['REMOTE_ADDR'];
+			$query = sprintf("UPDATE %susers SET login_when= '%s', login_ip='%s' WHERE user_id='%s'", TABLE_PREFIX, $get_ts, $get_ip, $user_id);
+			$database->query($query);
+		}
+		// Return if the user exists or not
+		return $num_rows;
+	} // authenticate_wb_user
+	
 	/**
 	 * Aktivierungskey ueberpruefen, Datensatz freischalten und Benutzer einloggen...
 	 * @return STR Dialog 
@@ -1102,13 +1199,23 @@ class formFrontend {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 				return false;
 			}
-			$this->setMessage ( $kitContactInterface->getMessage () );
+			$this->setMessage ( $kitContactInterface->getMessage () ); 
 			return $this->showForm ();
 		}
 		// Benutzer anmelden
 		$_SESSION [kitContactInterface::session_kit_aid] = $register [dbKITregister::field_id];
 		$_SESSION [kitContactInterface::session_kit_key] = $register [dbKITregister::field_register_key];
 		$_SESSION [kitContactInterface::session_kit_contact_id] = $register [dbKITregister::field_contact_id];
+		
+		// if auto_login_wb
+		if ($this->params[self::param_auto_login_wb]) {
+			if (!$this->authenticate_wb_user($register[dbKITregister::field_email], $register[dbKITregister::field_password])) {
+				$error = $this->isError() ? $this->getError() : kit_error_undefined;
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $error));
+				return false;
+			}
+		}
+		
 		// Passwort pruefen
 		if ($password == - 1) {
 			// Benutzer war bereits freigeschaltet und das Konto ist aktiv
@@ -1129,8 +1236,7 @@ class formFrontend {
 				$mail_template = 'mail.client.activation.account.htt';
 				$prompt_template = 'confirm.activation.account.htt';
 				break;
-		endswitch
-		;
+		endswitch;
 		
 		$client_mail = strip_tags($this->getTemplate ( $mail_template, $data ));
 		$provider_id = (isset ( $_REQUEST [self::request_provider_id] )) ? $_REQUEST [self::request_provider_id] : - 1;
