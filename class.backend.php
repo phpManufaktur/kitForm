@@ -163,9 +163,8 @@ class formBackend {
   
   public function getTemplate($template, $template_data) {
   	global $parser;
-    $result = '';
+  	$result = '';
   	try {
-  		$parser->output($this->template_path.$template, $template_data);
   		$result = $parser->get($this->template_path.$template, $template_data); 
   	} catch (Exception $e) {
   		$this->setError(sprintf(form_error_template_error, $template, $e->getMessage()));
@@ -203,28 +202,30 @@ class formBackend {
     isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
   	switch ($action):
   	case self::action_about:
-  		$this->show(self::action_about, $this->dlgAbout());
+  		$result = $this->show(self::action_about, $this->dlgAbout());
   		break;
   	case self::action_edit:
-  		$this->show(self::action_edit, $this->dlgFormEdit());
+  		$result = $this->show(self::action_edit, $this->dlgFormEdit());
   		break;
   	case self::action_edit_check:
-  		$this->show(self::action_edit, $this->checkFormEdit());
+  		$result = $this->show(self::action_edit, $this->checkFormEdit());
   		break;
   	case self::action_protocol:
-  		$this->show(self::action_protocol, $this->dlgProtocolList());
+  		$result = $this->show(self::action_protocol, $this->dlgProtocolList());
   		break;
   	case self::action_protocol_id:
-  		$this->show(self::action_protocol, $this->dlgProtocolItem());
+  		$result = $this->show(self::action_protocol, $this->dlgProtocolItem());
   		break;
     case self::action_import:
-      $this->show(self::action_edit, $this->importForm());
+      $result = $this->show(self::action_edit, $this->importForm());
       break;
   	case self::action_list:
   	default:
-  		$this->show(self::action_list, $this->dlgFormList());
+  		$result = $this->show(self::action_list, $this->dlgFormList());
   		break;
   	endswitch;
+  	
+  	echo $result;
   } // action
 	
   	
@@ -251,7 +252,7 @@ class formBackend {
   		'error'				=> ($this->isError()) ? 1 : 0,
   		'content'			=> ($this->isError()) ? $this->getError() : $content
   	);
-  	echo $this->getTemplate('backend.body.htt', $data);
+  	return $this->getTemplate('backend.body.htt', $data);
   } // show()
 	
   public function checkFormEdit() {
