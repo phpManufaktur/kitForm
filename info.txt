@@ -8,21 +8,35 @@
  * @version $Id$
  */
 
+Release 0.20
+2011-10-05
+fixed - bug in subscribing routine in KIT & kitForm changed the password after
+  subscribing for a KIT category
+added - new switch "auto_login_wb=true" for the [[kit_form]] droplet forces 
+  kitForm to login the user automatically to his WB/LEPTON account when the
+  activation key for subscribing to a KIT category is checked successful
+  (needed by kitIdea and other KIT extensions)
+fixed - some smaller problems, code cleanup in different files
+
 Release 0.19
 2011-08-13
-fixed - confirm activation key for newsletter uses the template for accounts instead the template for newsletters
+fixed - confirm activation key for newsletter uses the template for accounts 
+  instead the template for newsletters
 fixed - no proper HTML/TEXT handling for the email routines  
 
 Release 0.18
 2011-08-12
-fixed - data precheck and sending emails at subscribe/unsubscribe newsletters works not proper
+fixed - data precheck and sending emails at subscribe/unsubscribe newsletters 
+  works not proper
 fixed - problem creating activation in registerAccount() function 
-changed - for the email subjects are now used templates mail.client.subject.htt and mail.provider.subject.htt, setting by default the form title as subject
+changed - for the email subjects are now used templates mail.client.subject.htt
+  and mail.provider.subject.htt, setting by default the form title as subject
 fixed - some smaller problems, code cleanup in class.frontend.php 
 
 Release 0.17
 2011-08-05
-added - service provider is now for all mails active and not only for the main form
+added - service provider is now for all mails active and not only for the main 
+  form
 added - activation link also contain used service provider
 
 Release 0.16
@@ -31,7 +45,8 @@ fixed - missing parameter if sending activation link for KeepInTouch (KIT)
 
 Release 0.15
 2011-07-21
-added - options in each form to select service provider, define cc emails and send emails in text or html
+added - options in each form to select service provider, define cc emails and 
+  send emails in text or html
 fixed - some smaller problems and cleanup code
 added - grant compatibillity for LEPTON CMS
 
@@ -42,20 +57,23 @@ fixed - some smaller problems and cleanup code
 Release 0.13
 2011-05-20
 fixed - import does not change the field id for must fields
-extended - added some smaller functions for interoperation with other KIT extensions
+extended - added some smaller functions for interoperation with other KIT 
+  extensions
 
 Release 0.12
 2011-05-11
 fixed - checkbox definition was not complete and causes an error
 extended - additional data fields in dbKITform
-new - added KIT Actions for creation of own KIT Standard dialogs (Register, Login, Logout, Newsletter, Account...)
+new - added KIT Actions for creation of own KIT Standard dialogs (Register, 
+  Login, Logout, Newsletter, Account...)
 new - added KIT Response Links within forms
 new - added export and import of forms
 
 Release 0.11
 2011-04-13
 fixed - droplet code for kit_form was invalid
-changed - prompt debugging informations only on demand (set KIT_DEBUG in initialize.php to TRUE)
+changed - prompt debugging informations only on demand (set KIT_DEBUG in 
+  initialize.php to TRUE)
  
 Release 0.10
 2011-04-01
