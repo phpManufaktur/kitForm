@@ -12,31 +12,34 @@
  * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// try to include LEPTON class.secure.php to protect this file and the whole CMS!
-if (defined('WB_PATH')) {	
-	if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php');
-} elseif (file_exists($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php')) {
-	include($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php'); 
+// include class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {    
+    if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php'); 
 } else {
-	$subs = explode('/', dirname($_SERVER['SCRIPT_NAME']));	$dir = $_SERVER['DOCUMENT_ROOT'];
-	$inc = false;
-	foreach ($subs as $sub) {
-		if (empty($sub)) continue; $dir .= '/'.$sub;
-		if (file_exists($dir.'/framework/class.secure.php')) { 
-			include($dir.'/framework/class.secure.php'); $inc = true;	break; 
-		} 
-	}
-	if (!$inc) trigger_error(sprintf("[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+    $oneback = "../";
+    $root = $oneback;
+    $level = 1;
+    while (($level < 10) && (!file_exists($root.'/framework/class.secure.php'))) {
+        $root .= $oneback;
+        $level += 1;
+    }
+    if (file_exists($root.'/framework/class.secure.php')) { 
+        include($root.'/framework/class.secure.php'); 
+    } else {
+        trigger_error(sprintf("[ <b>%s</b> ] Can't include class.secure.php!", 
+                $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+    }
 }
-// end include LEPTON class.secure.php
+// end include class.secure.php
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
-if (!class_exists('dbconnectle')) 				require_once(WB_PATH.'/modules/dbconnect_le/include.php');
+if (!class_exists('dbconnectle')) require_once(WB_PATH.'/modules/dbconnect_le/include.php');
 
 global $dbKITform;
 global $dbKITformFields;
 global $dbKITformTableSort;
 global $dbKITformData;
+global $dbKITformCommands;
 
 
 class dbKITform extends dbConnectLE {
@@ -130,6 +133,7 @@ class dbKITform extends dbConnectLE {
   			}
   		}
   	}
+  	date_default_timezone_set(form_cfg_time_zone);  	
   } // __construct()
   
   public function installStandardForms(&$message) {
@@ -163,10 +167,12 @@ class dbKITform extends dbConnectLE {
    * bei Fehlern Mitteilungen bzw. Fehlermeldungen zurueck, bei Erfolg die ID des
    * neu angelegten Datensatz
    * 
-   * @param STR $form_file - vollstaendiger Pfad!
-   * @param STR $form_rename - leer oder neuer Bezeichner
-   * @param REFERENCE INT $form_id
-   * @return BOOL
+   * @param string $form_file - vollstaendiger Pfad!
+   * @param string $form_rename - leer oder neuer Bezeichner
+   * @param integer reference &$form_id
+   * @param string reference &$message
+   * @param boolean $ignore_existing
+   * @return boolean true on success - set self::error on error
    */
   public function importFormFile($form_file, $form_rename='', &$form_id=-1, &$message='', $ignore_existing=false) {
   	global $dbKITformFields;
@@ -341,33 +347,34 @@ class dbKITformFields extends dbConnectLE {
 	private $createTables 		= false;
   
 	public function __construct($createTables = false) {
-  	$this->createTables = $createTables;
-  	parent::__construct();
-  	$this->setTableName('mod_kit_form_fields');
-  	$this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true); // WICHTIG: Zaehler 1-200 sind fuer KIT reserviert!!!
-  	$this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
-		$this->addFieldDefinition(self::field_type, "VARCHAR(30) NOT NULL DEFAULT '".self::type_undefined."'");
-		$this->addFieldDefinition(self::field_type_add, "TEXT NOT NULL DEFAULT ''", false, false, true);
-		$this->addFieldDefinition(self::field_name, "VARCHAR(40) NOT NULL DEFAULT ''");
-		$this->addFieldDefinition(self::field_title, "VARCHAR(80) NOT NULL DEFAULT ''");
-		$this->addFieldDefinition(self::field_value, "TEXT NOT NULL DEFAULT ''", false, false, true);
-		$this->addFieldDefinition(self::field_data_type, "VARCHAR(30) NOT NULL DEFAULT '".self::data_type_text."'");
-		$this->addFieldDefinition(self::field_hint, "TEXT NOT NULL DEFAULT ''");
-		$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
-  	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
-  	$this->setIndexFields(array(self::field_name, self::field_form_id));
-  	// AUTO_INCREMENT auf 200 setzen
-  	$this->setAutoIncrement(200);
-  	$this->checkFieldDefinitions();
-  	// Tabelle erstellen
-  	if ($this->createTables) {
-  		if (!$this->sqlTableExists()) {
-  			if (!$this->sqlCreateTable()) {
-  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
-  			}
-  		}
-  	}
-  } // __construct()
+      	$this->createTables = $createTables;
+      	parent::__construct();
+      	$this->setTableName('mod_kit_form_fields');
+      	$this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true); // WICHTIG: Zaehler 1-200 sind fuer KIT reserviert!!!
+      	$this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
+    		$this->addFieldDefinition(self::field_type, "VARCHAR(30) NOT NULL DEFAULT '".self::type_undefined."'");
+    		$this->addFieldDefinition(self::field_type_add, "TEXT NOT NULL DEFAULT ''", false, false, true);
+    		$this->addFieldDefinition(self::field_name, "VARCHAR(40) NOT NULL DEFAULT ''");
+    		$this->addFieldDefinition(self::field_title, "VARCHAR(80) NOT NULL DEFAULT ''");
+    		$this->addFieldDefinition(self::field_value, "TEXT NOT NULL DEFAULT ''", false, false, true);
+    		$this->addFieldDefinition(self::field_data_type, "VARCHAR(30) NOT NULL DEFAULT '".self::data_type_text."'");
+    		$this->addFieldDefinition(self::field_hint, "TEXT NOT NULL DEFAULT ''");
+    		$this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'"); 
+      	$this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
+      	$this->setIndexFields(array(self::field_name, self::field_form_id));
+      	// AUTO_INCREMENT auf 200 setzen
+      	$this->setAutoIncrement(200);
+      	$this->checkFieldDefinitions();
+      	// Tabelle erstellen
+      	if ($this->createTables) {
+      		if (!$this->sqlTableExists()) {
+      			if (!$this->sqlCreateTable()) {
+      				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+      			}
+      		}
+      	}
+      	date_default_timezone_set(form_cfg_time_zone);  	
+	} // __construct()
 } // class dbKITformFields
   
 class dbKITformTableSort extends dbConnectLE {
@@ -398,16 +405,17 @@ class dbKITformTableSort extends dbConnectLE {
 				}
 			}
 		}
+		date_default_timezone_set(form_cfg_time_zone);
 	} // __construct()	
 	
 } // class dbKITformTableSort
   
 class dbKITformData extends dbConnectLE {
 	
-	const field_id				= 'data_id';
+	const field_id			= 'data_id';
 	const field_form_id		= 'form_id';
 	const field_kit_id		= 'kit_id';
-	const field_date			=	'data_date';
+	const field_date		= 'data_date';
 	const field_fields		= 'data_fields';
 	const field_values		= 'data_values';
 	const field_timestamp	= 'data_timestamp';
@@ -435,14 +443,74 @@ class dbKITformData extends dbConnectLE {
 				}
 			}
 		}
+		date_default_timezone_set(form_cfg_time_zone);
 	} // __construct()	
 	
 } // class dbKITformData 
 
-if (!is_object($dbKITform)) 					$dbKITform = new dbKITform();
-if (!is_object($dbKITformFields))			$dbKITformFields = new dbKITformFields();
-if (!is_object($dbKITformTableSort))	$dbKITformTableSort = new dbKITformTableSort();
-if (!is_object($dbKITformData))				$dbKITformData = new dbKITformData();
+class dbKITformCommands extends dbConnectLE {
+    
+    const FIELD_ID = 'cmd_id';
+    const FIELD_COMMAND = 'cmd_command';
+    const FIELD_TYPE = 'cmd_type';
+    const FIELD_PARAMS = 'cmd_params';
+    const FIELD_STATUS = 'cmd_status';
+    const FIELD_TIMESTAMP = 'cmd_timestamp';
+    
+    const TYPE_UNDEFINED = 0;
+    const TYPE_FEEDBACK_PUBLISH = 2;
+    const TYPE_FEEDBACK_REFUSE = 4;
+    
+    const STATUS_UNDEFINED = 1;
+    const STATUS_WAITING = 2;
+    const STATUS_FINISHED = 4;
+    
+    private $createTable = false;
+    
+    public function __construct($create_table=false) {
+        $this->setCreateTable($create_table);
+        parent::__construct();
+        $this->setTableName('mod_kit_form_command');
+        $this->addFieldDefinition(self::FIELD_ID, "INT(11) NOT NULL AUTO_INCREMENT", true);
+        $this->addFieldDefinition(self::FIELD_COMMAND, "VARCHAR(80) NOT NULL DEFAULT ''");
+        $this->addFieldDefinition(self::FIELD_TYPE, "INT(11) NOT NULL DEFAULT '".self::TYPE_UNDEFINED."'");
+        $this->addFieldDefinition(self::FIELD_PARAMS, "MEDIUMTEXT NOT NULL DEFAULT ''");
+        $this->addFieldDefinition(self::FIELD_STATUS, "TINYINT NOT NULL DEFAULT '".self::STATUS_UNDEFINED."'");
+        $this->addFieldDefinition(self::FIELD_TIMESTAMP, "TIMESTAMP");
+        $this->checkFieldDefinitions();
+        if ($this->getCreateTable()) {
+            if (!$this->sqlTableExists()) {
+                if (!$this->sqlCreateTable()) {
+                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->getError()));
+                    return false;
+                }
+            }
+        }
+        date_default_timezone_set(form_cfg_time_zone);
+    } // __construct()
+    
+	/**
+     * @return the $createTable
+     */
+    protected function getCreateTable ()
+    {
+        return $this->createTable;
+    }
 
+	/**
+     * @param boolean $createTable
+     */
+    protected function setCreateTable ($createTable)
+    {
+        $this->createTable = $createTable;
+    }
+
+} // class dbKITformCommands
+
+if (!is_object($dbKITform)) $dbKITform = new dbKITform();
+if (!is_object($dbKITformFields)) $dbKITformFields = new dbKITformFields();
+if (!is_object($dbKITformTableSort)) $dbKITformTableSort = new dbKITformTableSort();
+if (!is_object($dbKITformData))	$dbKITformData = new dbKITformData();
+if (!is_object($dbKITformCommands)) $dbKITformCommands = new dbKITformCommands();
 
 ?>

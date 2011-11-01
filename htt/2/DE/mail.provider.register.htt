@@ -1,0 +1,15 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+<p>Der Kontakt:</p>
+<p>{if count_characters($contact.kit_last_name) > 0}{if $contact.kit_title == 'titleMister'} Herr{else} Frau{/if} {else}Firma{/if} {if count_characters($contact.kit_last_name) > 0}{$contact.kit_first_name} {$contact.kit_last_name} {/if}</p>
+{if count_characters($contact.kit_company) > 0}<p>{$contact.kit_company}</p>{/if}
+{if count_characters($contact.kit_email) > 0}<p>{$contact.kit_email}</p>{/if}
+<p>hat sich am {$form.datetime} Uhr als Anwender registrieren lassen. Es wurde ein Aktivierungslink versendet.</p>
+<small>(automatische Benachrichtigung durch Ihren Website-Betreiber)</small>

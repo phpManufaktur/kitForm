@@ -1,0 +1,30 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *
+ * If you insert additional fields to the feedback form you MUST insert them here
+ * explicit, they will not appear automatically!
+ *}
+Hallo {if count_characters($contact.kit_first_name) > 0}{$contact.kit_first_name}{else}{$feedback.field.feedback_nickname}{/if},
+
+vielen Dank für deine Mitteilung auf der Seite
+
+--> {$feedback.field.feedback_url}
+
+Dein Kommentar lautet:
+{if count_characters($feedback.field.feedback_subject) > 0}
+Betreff: {$feedback.field.feedback_subject}
+{/if}
+Mitteilung: {$feedback.field.feedback_text}

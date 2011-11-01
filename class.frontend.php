@@ -12,30 +12,25 @@
  * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// try to include LEPTON class.secure.php to protect this file and the whole CMS!
-if (defined ( 'WB_PATH' )) {
-	if (defined ( 'LEPTON_VERSION' ))
-		include (WB_PATH . '/framework/class.secure.php');
-} elseif (file_exists ( $_SERVER ['DOCUMENT_ROOT'] . '/framework/class.secure.php' )) {
-	include ($_SERVER ['DOCUMENT_ROOT'] . '/framework/class.secure.php');
+// include class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {    
+    if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php'); 
 } else {
-	$subs = explode ( '/', dirname ( $_SERVER ['SCRIPT_NAME'] ) );
-	$dir = $_SERVER ['DOCUMENT_ROOT'];
-	$inc = false;
-	foreach ( $subs as $sub ) {
-		if (empty ( $sub ))
-			continue;
-		$dir .= '/' . $sub;
-		if (file_exists ( $dir . '/framework/class.secure.php' )) {
-			include ($dir . '/framework/class.secure.php');
-			$inc = true;
-			break;
-		}
-	}
-	if (! $inc)
-		trigger_error ( sprintf ( "[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER ['SCRIPT_NAME'] ), E_USER_ERROR );
+    $oneback = "../";
+    $root = $oneback;
+    $level = 1;
+    while (($level < 10) && (!file_exists($root.'/framework/class.secure.php'))) {
+        $root .= $oneback;
+        $level += 1;
+    }
+    if (file_exists($root.'/framework/class.secure.php')) { 
+        include($root.'/framework/class.secure.php'); 
+    } else {
+        trigger_error(sprintf("[ <b>%s</b> ] Can't include class.secure.php!", 
+                $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+    }
 }
-// end include LEPTON class.secure.php
+// end include class.secure.php
 
 
 require_once (WB_PATH . '/modules/' . basename ( dirname ( __FILE__ ) ) . '/initialize.php');
@@ -49,13 +44,16 @@ global $dbKITform;
 global $dbKITformFields;
 global $dbKITformTableSort;
 global $dbKITformData;
+global $dbKITformCommands;
 
+/*
 if (! is_object ( $dbKITform ))
 	$dbKITform = new dbKITform ();
 if (! is_object ( $dbKITformFields ))
 	$dbKITformFields = new dbKITformFields ();
 if (! is_object ( $dbKITformData ))
 	$dbKITformData = new dbKITformData ();
+*/
 
 class formFrontend {
 	
@@ -64,10 +62,15 @@ class formFrontend {
 	const request_key = 'key';
 	const request_activation_type = 'at';
 	const request_provider_id = 'pid';
+	const request_command = 'kfc';
+	const request_form_id = 'fid';
 	
 	const action_default = 'def';
 	const action_check_form = 'acf';
+	const action_command = 'cmd';
 	const action_activation_key = 'key';
+	const action_feedback_unsubscribe = 'fun';
+	const action_feedback_unsubscribe_check = 'fnc';
 	
 	const activation_type_newsletter = 'nl';
 	const activation_type_account = 'acc';
@@ -86,7 +89,30 @@ class formFrontend {
 	const param_css = 'css';
 	const param_auto_login_wb = 'auto_login_wb';
 	
-	private $params = array (self::param_preset => 1, self::param_form => '', self::param_return => false, self::param_css => true, self::param_auto_login_wb => false );
+	const FIELD_FEEDBACK_TEXT = 'feedback_text';
+	const FIELD_FEEDBACK_URL = 'feedback_url';
+	const FIELD_FEEDBACK_PUBLISH = 'feedback_publish';
+	const FIELD_FEEDBACK_SUBSCRIPTION = 'feedback_subscription';
+	const FIELD_FEEDBACK_HOMEPAGE = 'feedback_homepage';
+	const FIELD_FEEDBACK_SUBJECT = 'feedback_subject';
+	const FIELD_FEEDBACK_NICKNAME = 'feedback_nickname';
+	
+	const PUBLISH_IMMEDIATE = 1;
+	const PUBLISH_ACTIVATION = 2;
+	const PUBLISH_FORBIDDEN = 4;
+	
+	const SUBSCRIPE_YES = 1;
+	const SUBSCRIPE_NO = 0;
+	
+	const FORM_ANCHOR = 'kf';
+	
+	private $params = array (
+	        self::param_preset => 1, 
+	        self::param_form => '', 
+	        self::param_return => false, 
+	        self::param_css => true, 
+	        self::param_auto_login_wb => false 
+	        );
 	
 	public function __construct() {
 		global $kitLibrary;
@@ -243,21 +269,29 @@ class formFrontend {
 		}
 		
 		switch ($action) :
-			case self::action_check_form :
-				$result = $this->checkForm ();
-				break;
-			case self::action_activation_key :
-				$result = $this->checkActivationKey ();
-				break;
-			case self::action_default :
-			default :
-				$result = $this->showForm ();
-				break;
-		endswitch
-		;
+	    case self::action_feedback_unsubscribe:
+		    $result = $this->showFeedbackUnsubscribe();
+		    break;
+	    case self::action_feedback_unsubscribe_check:
+	        $result = $this->checkFeedbackUnsubscribe();
+	        break;
+	    case self::action_command:
+	        $result = $this->checkCommand();
+	        break;
+		case self::action_check_form :
+			$result = $this->checkForm ();
+			break;
+		case self::action_activation_key :
+			$result = $this->checkActivationKey ();
+			break;
+		case self::action_default :
+		default :
+			$result = $this->showForm ();
+			break;
+		endswitch;
 		
 		if ($this->isError ())
-			$result = sprintf ( '<div class="error">%s</div>', $this->getError () );
+			$result = sprintf('<a name="%s"></a><div class="error">%s</div>', self::FORM_ANCHOR, $this->getError());
 		return $result;
 	} // action
 	
@@ -274,6 +308,9 @@ class formFrontend {
 		
 		$form_id = - 1;
 		$form_name = 'none';
+		
+		// special: feedback form
+		$is_feedback_form = false;
 		
 		if (isset ( $_REQUEST [self::request_link] )) {
 			$form_name = $_REQUEST [self::request_link];
@@ -297,6 +334,7 @@ class formFrontend {
 			return false;
 		}
 		$fdata = $fdata [0];
+		$form_id = $fdata[dbKITform::field_id];
 		
 		if ($fdata [dbKITform::field_action] == dbKITform::action_logout) {
 			// Sonderfall: beim LOGOUT wird direkt der Bestaetigungsdialog angezeigt
@@ -312,6 +350,7 @@ class formFrontend {
 			// Das Benutzerkonto zum Bearbeiten anzeigen
 			if ($kitContactInterface->isAuthenticated ()) {
 				// ok - User ist angemeldet
+				$contact = array();
 				if (! $kitContactInterface->getContact ( $_SESSION [kitContactInterface::session_kit_contact_id], $contact )) {
 					$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 					return false;
@@ -336,7 +375,35 @@ class formFrontend {
 		parse_str ( $fdata [dbKITform::field_links], $links );
 		$links ['command'] = sprintf ( '%s%s%s', $this->page_link, (strpos ( $this->page_link, '?' ) === false) ? '?' : '&', self::request_link );
 		// Formulardaten
-		$form_data = array ('name' => 'kit_form', 'action' => array ('link' => $this->page_link, 'name' => self::request_action, 'value' => self::action_check_form ), 'id' => array ('name' => dbKITform::field_id, 'value' => $fdata [dbKitform::field_id] ), 'response' => ($this->isMessage ()) ? $this->getMessage () : NULL, 'btn' => array ('ok' => form_btn_ok, 'abort' => form_btn_abort ), 'title' => $fdata [dbKITform::field_title], 'captcha' => array ('active' => ($fdata [dbKITform::field_captcha] == dbKITform::captcha_on) ? 1 : 0, 'code' => $call_captcha ), 'kit_action' => array ('name' => dbKITform::field_action, 'value' => $fdata [dbKITform::field_action] ), 'links' => $links );
+		$form_data = array (
+		        'name' => 'kit_form',
+		        'anchor' => self::FORM_ANCHOR, 
+		        'action' => array (
+		                'link' => $this->page_link, 
+		                'name' => self::request_action, 
+		                'value' => self::action_check_form 
+		                ), 
+		        'id' => array (
+		                'name' => dbKITform::field_id, 
+		                'value' => $fdata [dbKitform::field_id] 
+		                ), 
+		        'response' => ($this->isMessage ()) ? $this->getMessage () : NULL, 
+		        'btn' => array (
+		                'ok' => form_btn_ok, 
+		                'abort' => form_btn_abort 
+		                ), 
+		        'title' => $fdata [dbKITform::field_title], 
+		        'captcha' => array (
+		                'active' => (
+		                        $fdata [dbKITform::field_captcha] == dbKITform::captcha_on) ? 1 : 0, 
+		                'code' => $call_captcha 
+		                ), 
+		        'kit_action' => array (
+		                'name' => dbKITform::field_action, 
+		                'value' => $fdata [dbKITform::field_action] 
+		                ), 
+		        'links' => $links 
+		        );
 		
 		// Felder auslesen und Array aufbauen
 		$fields_array = explode ( ',', $fdata [dbKITform::field_fields] );
@@ -354,6 +421,7 @@ class formFrontend {
 					case kitContactInterface::kit_title :
 					case kitContactInterface::kit_title_academic :
 						// Anrede und akademische Titel
+						$title_array = array();
 						if ($field_name == kitContactInterface::kit_title) {
 							$kitContactInterface->getFormPersonTitleArray ( $title_array );
 						} else {
@@ -372,6 +440,7 @@ class formFrontend {
 						break;
 					case kitContactInterface::kit_address_type :
 						// Adresstyp auswaehlen
+						$address_type_array = array();
 						$kitContactInterface->getFormAddressTypeArray ( $address_type_array );
 						if (isset ( $_REQUEST [$field_name] )) {
 							$selected = $_REQUEST [$field_name];
@@ -404,6 +473,7 @@ class formFrontend {
 						$form_fields [$field_name] = array ('id' => $field_id, 'type' => $field_name, 'name_zip' => kitContactInterface::kit_zip, 'value_zip' => (isset ( $_REQUEST [kitContactInterface::kit_zip] )) ? $_REQUEST [kitContactInterface::kit_zip] : '', 'name_city' => kitContactInterface::kit_city, 'value_city' => (isset ( $_REQUEST [kitContactInterface::kit_city] )) ? $_REQUEST [kitContactInterface::kit_city] : '', 'must' => (in_array ( $field_id, $must_array )) ? 1 : 0, 'label' => $kitContactInterface->field_array [$field_name], 'hint' => constant ( 'form_hint_' . $field_name ) );
 						break;
 					case kitContactInterface::kit_newsletter :
+						$newsletter_array = array();
 						$kitContactInterface->getFormNewsletterArray ( $newsletter_array );
 						if (isset ( $_REQUEST [$field_name] )) {
 							$select_array = (is_array ( $_REQUEST [$field_name] )) ? $_REQUEST [$field_name] : explode ( ',', $_REQUEST [$field_name] );
@@ -419,7 +489,7 @@ class formFrontend {
 						break;
 					default :
 						// Datentyp nicht definiert - Fehler ausgeben
-						$this->setError ( sprintf ( form_error_data_type_invalid, $field_key ) );
+						$this->setError ( sprintf ( form_error_data_type_invalid, $field_name ) );
 						return false;
 				endswitch
 				;
@@ -436,6 +506,10 @@ class formFrontend {
 					return false;
 				}
 				$field = $field [0];
+				if ($field[dbKITformFields::field_name] == self::FIELD_FEEDBACK_TEXT) {
+				    // special: this is a feedback form!
+				    $is_feedback_form = true;
+				}
 				switch ($field [dbKITformFields::field_type]) :
 					case dbKITformFields::type_checkbox :
 						// CHECKBOX
@@ -444,7 +518,7 @@ class formFrontend {
 							$checked_array = $_REQUEST [$field [dbKITformFields::field_name]];
 							$checked_boxes = array ();
 							foreach ( $checkboxes as $checkbox ) {
-								$checkbox ['checked'] = (in_array ( $checkbox ['value'], $checked_array )) ? 1 : 0;
+							    $checkbox ['checked'] = (in_array ( $checkbox ['value'], $checked_array )) ? 1 : 0;
 								$checked_boxes [$checkbox['name']] = $checkbox;
 							}
 							$checkboxes = $checked_boxes;
@@ -496,8 +570,13 @@ class formFrontend {
 			}
 		}
 		
-		$data = array ('form' => $form_data, 'fields' => $form_fields );
-		return $this->getTemplate ( 'form.htt', $data );
+		if ($is_feedback_form) {
+		    return $this->showFeedbackForm($form_id, $form_data, $form_fields);
+		}
+		else {
+		    $data = array ('form' => $form_data, 'fields' => $form_fields );
+		    return $this->getTemplate ( 'form.htt', $data );
+		}
 	} // showForm()
 	
 
@@ -549,7 +628,6 @@ class formFrontend {
   		 * wenn die allgemeinen Daten bereits geprueft sind
   		 */
 			default :
-		
 		// nothing to do - go ahead...
 		endswitch
 		;
@@ -724,7 +802,8 @@ class formFrontend {
 				$this->setMessage ( $message );
 				return $this->showForm ();
 			}
-			
+			$contact_id = -1;
+			$status = '';
 			if ($kitContactInterface->isEMailRegistered ( $_REQUEST [kitContactInterface::kit_email], $contact_id, $status )) {
 				// E-Mail Adresse existiert bereits, Datensatz ggf. aktualisieren
 				if (! $kitContactInterface->updateContact ( $contact_id, $contact_array )) {
@@ -780,13 +859,39 @@ class formFrontend {
 				;
 			}
 			$form_data = array (dbKITformData::field_form_id => $form_id, dbKITformData::field_kit_id => $contact_id, dbKITformData::field_date => date ( 'Y-m-d H:i:s' ), dbKITformData::field_fields => implode ( ',', $fields ), dbKITformData::field_values => http_build_query ( $values ) );
+			$data_id = -1;
 			if (! $dbKITformData->sqlInsertRecord ( $form_data, $data_id )) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $dbKITformData->getError () ) );
 				return false;
 			}
-			// ok - Daten sind gesichert, vorab LOG schreiben
-			$dbContact->addSystemNotice ( $contact_id, sprintf ( form_protocol_form_send, sprintf ( '%s&%s=%s&%s=%s', ADMIN_URL . '/admintools/tool.php?tool=kit_form', formBackend::request_action, formBackend::action_protocol_id, formBackend::request_protocol_id, $data_id ) ) );
 			
+			/*
+			 * check for special actions by field names, i.e. Feedback Form...
+			*/
+			$is_feedback_form = false;
+			$SQL = sprintf("SELECT %s FROM %s WHERE %s='%s' AND %s='%s'",
+			        dbKITformFields::field_id,
+			        $dbKITformFields->getTableName(),
+			        dbKITformFields::field_form_id,
+			        $form_id,
+			        dbKITformFields::field_name,
+			        self::FIELD_FEEDBACK_TEXT);
+			$result = array();
+			if (!$dbKITformFields->sqlExec($SQL, $result)) {
+			    $this->setError($dbKITformFields->getError());
+			    return false;
+			}
+			if (count($result) == 1) {
+			    // exec special action: Feedback for the Website
+			    $is_feedback_form = true;
+			}
+			// end: special actions
+			
+			// ok - Daten sind gesichert, vorab LOG schreiben
+			$protocol = $is_feedback_form ? form_protocol_feedback_submitted : form_protocol_form_send;
+			$dbContact->addSystemNotice ( $contact_id, sprintf ( $protocol, sprintf ( '%s&%s=%s&%s=%s', ADMIN_URL . '/admintools/tool.php?tool=kit_form', formBackend::request_action, formBackend::action_protocol_id, formBackend::request_protocol_id, $data_id ) ) );
+			
+			$contact = array();
 			if (! $kitContactInterface->getContact ( $contact_id, $contact )) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 				return false;
@@ -797,6 +902,9 @@ class formFrontend {
 				$result = array ('contact' => $contact, 'result' => true );
 				return $result;
 			}
+			
+			// Feedback Form? Leave here...
+			if ($is_feedback_form) return $this->checkFeedbackForm($form_data, $contact, $data_id);
 			
 			$items = array ();
 			foreach ( $fields as $fid ) {
@@ -822,8 +930,7 @@ class formFrontend {
 					case dbKITformFields::data_type_text :
 					default :
 						$value = (is_array ( $values [$fid] )) ? implode ( ', ', $values [$fid] ) : $values [$fid];
-				endswitch
-				;
+				endswitch;
 				$items [$field [dbKITformFields::field_name]] = array ('label' => $field [dbKITformFields::field_title], 'value' => $value );
 			}
 			
@@ -911,6 +1018,8 @@ class formFrontend {
 			$this->setMessage ( sprintf ( kit_msg_email_invalid, $_REQUEST [kitContactInterface::kit_email] ) );
 			return $this->showForm ();
 		}
+		$contact = array();
+		$must_change_password = false;
 		if ($kitContactInterface->checkLogin ( $_REQUEST [kitContactInterface::kit_email], $_REQUEST [kitContactInterface::kit_password], $contact, $must_change_password )) {
 			// Login erfolgreich
 			$this->setContact ( $contact );
@@ -926,7 +1035,737 @@ class formFrontend {
 		}
 	} // checkLogin()
 	
+	/**
+	 * Special form: Feedback Form
+	 * Shows a thread with all comments to the desired page and a dialog
+	 * for the feedback itself.
+	 * All "normal" data for displaying the form are already collected and
+	 * present, this function adds only the special features for displaying
+	 * the feedback thread.
+	 * 
+	 * @param integer $form_id - ID of the used form
+	 * @param array $form_data - form data, ready for parser
+	 * @param array $form_fields - field data, ready for parser
+	 * @return Ambigous <boolean, string, mixed>
+	 */
+	protected function showFeedbackForm($form_id, $form_data, $form_fields) {
+	    global $dbKITform;
+	    global $dbKITformData;
+	    global $dbKITformFields;
+	    global $kitLibrary;
+	    
+	    // get all previous data of the feedback form
+	    $SQL = sprintf("SELECT * FROM %s WHERE %s='%s' ORDER BY %s ASC",
+	            $dbKITformData->getTableName(),
+	            dbKITformData::field_form_id,
+	            $form_id,
+	            dbKITformData::field_date);
+	    $feedbacks = array();
+	    if (!$dbKITformData->sqlExec($SQL, $feedbacks)) {
+	        $this->setError($dbKITformData->getError());
+	        return false;
+	    }
+	    
+	    // get the fields of this form
+	    $where = array(dbKITformFields::field_form_id => $form_id);
+	    $ffields = array();
+	    if (!$dbKITformFields->sqlSelectRecord($where, $ffields)) {
+	        $this->setError($dbKITformFields->getError());
+	        return false;
+	    }
+	    foreach ($ffields as $ff) {
+	        switch ($ff[dbKITformFields::field_name]):
+	        case self::FIELD_FEEDBACK_HOMEPAGE:
+	            $fb_homepage = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_NICKNAME:
+	            $fb_nickname = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_PUBLISH:
+	            $fb_publish = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_SUBJECT:
+	            $fb_subject = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_SUBSCRIPTION:
+	            $fb_subscription = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_TEXT:
+	            $fb_text = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_URL:
+	            $fb_url = $ff[dbKITformFields::field_id]; break;    
+	        endswitch;
+	    }
+	    
+	    $url = '';
+	    if (!$kitLibrary->getUrlByPageID(PAGE_ID, $url)) {
+	        $this->setError(form_error_get_page_url);
+	        return false;
+	    }
+	    if (!isset($form_fields[self::FIELD_FEEDBACK_URL])) {
+	        $this->setError(form_error_fb_missing_field_url);
+	        return false;
+	    }
+	    $form_fields[self::FIELD_FEEDBACK_URL]['value'] = $url; 
+	    
+	    $feedback_array = array();
+	    foreach ($feedbacks as $feedback) {
+	        parse_str($feedback[dbKITformData::field_values], $fields);
+	        $publish = true;
+	        if (isset($fields[$fb_publish]) && ($fields[$fb_publish] != self::PUBLISH_IMMEDIATE)) $publish = false;
+	        if (!isset($fields[$fb_url])) continue;
+	        if ($publish && ($fields[$fb_url] == $url)) {
+	            $feedback_array[] = array(
+	                    'url' => $url,
+	                    'subject' => isset($fields[$fb_subject]) ? $fields[$fb_subject] : '',
+	                    'text' => isset($fields[$fb_text]) ? $fields[$fb_text] : '',
+	                    'homepage' => isset($fields[$fb_homepage]) ? $fields[$fb_homepage] : '',
+	                    'nickname' => isset($fields[$fb_nickname]) ? $fields[$fb_nickname] : '',
+	                    'date' => array(
+	                            'timestamp' => $feedback[dbKITformData::field_date],
+	                            'formatted' => date(form_cfg_datetime_str, strtotime($feedback[dbKITformData::field_date]))
+	                            ),
+	                    );
+	        }
+	    }	    
+	    $data = array(
+	            'feedback' => array(
+	                    'items' => $feedback_array,
+	                    'count' => count($feedback_array)
+	                    ),
+	            'form' => $form_data,
+	            'fields' => $form_fields
+	            );
+	    return $this->getTemplate ( 'feedback.htt', $data );
+	} // showFeedbackForm()
+	
+	protected function checkFeedbackForm($form_data = array(), $contact_data = array(), $data_id) {
+	    global $dbKITform;
+	    global $dbKITformFields;
+	    global $kitContactInterface;
+	    global $kitLibrary;
+	    global $dbKITformData;
+	    global $dbKITformCommands;
+	    
+	    // set FORM_ID
+	    $form_id = $form_data['form_id'];
+	    // set message
+	    $message = '';
+	    
+	    // get the form itself
+	    $where = array(dbKITform::field_id => $form_id);
+	    $form = array();
+	    if (!$dbKITform->sqlSelectRecord($where, $form)) {
+	        $this->setError($dbKITform->getError());
+	        return false;
+	    }
+	    $form = $form[0];
 
+	    // get the form fields
+	    $where = array(dbKITformFields::field_form_id => $form_id);
+	    $form_fields = array();
+	    if (!$dbKITformFields->sqlSelectRecord($where, $form_fields)) {
+	        $this->setError($dbKITformFields->getError());
+	        return false;
+	    }
+	    
+	    foreach ($form_fields as $ff) {
+	        switch ($ff[dbKITformFields::field_name]):
+	        case self::FIELD_FEEDBACK_HOMEPAGE:
+	            $fb_homepage = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_NICKNAME:
+	            $fb_nickname = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_PUBLISH:
+	            $fb_publish = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_SUBJECT:
+	            $fb_subject = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_SUBSCRIPTION:
+	            $fb_subscription = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_TEXT:
+	            $fb_text = $ff[dbKITformFields::field_id]; break;
+	        case self::FIELD_FEEDBACK_URL:
+	            $fb_url = $ff[dbKITformFields::field_id]; break;
+	            endswitch;
+	    }
+	    
+	    // get the submitted data
+	    $where = array(dbKITformData::field_id => $data_id);
+	    $f_data = array();
+	    if (!$dbKITformData->sqlSelectRecord($where, $f_data)) {
+	        $this->setError($dbKITformData->getError());
+	        return false;
+	    }
+	    $f_data = $f_data[0];
+	    parse_str($f_data[dbKITformData::field_values], $values);
+	    $feedback_array = array(
+	            self::FIELD_FEEDBACK_HOMEPAGE => isset($fb_homepage) ? $values[$fb_homepage] : '',
+	            self::FIELD_FEEDBACK_NICKNAME => isset($fb_nickname) ? $values[$fb_nickname] : '',
+	            self::FIELD_FEEDBACK_PUBLISH => isset($fb_publish) ? $values[$fb_publish] : self::PUBLISH_IMMEDIATE,
+	            self::FIELD_FEEDBACK_SUBJECT => isset($fb_subject) ? $values[$fb_subject] : '',
+	            self::FIELD_FEEDBACK_SUBSCRIPTION => isset($fb_subscription) ? $values[$fb_subscription] : self::SUBSCRIPE_NO,
+	            self::FIELD_FEEDBACK_TEXT => isset($fb_text) ? $values[$fb_text] : '',
+	            self::FIELD_FEEDBACK_URL => isset($fb_url) ? $values[$fb_url] : ''
+	            );
+	  	    
+		// prepare sending emails
+		$provider_data = array ();
+		if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data )) {
+			if ($kitContactInterface->isError()) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+			} 
+			else {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+			}
+			return false;
+		}
+		$provider_email = $provider_data['email'];
+		$provider_name = $provider_data['name'];
+		
+		// create and save commands
+		$cmd_publish = $kitLibrary->createGUID();
+		$cmd_refuse = $kitLibrary->createGUID();
+		
+		$data = array(
+		        dbKITformCommands::FIELD_COMMAND => $cmd_publish,
+		        dbKITformCommands::FIELD_PARAMS => http_build_query(array(
+		                'form' => $form, 
+		                'contact' => $contact_data,
+		                'data_id' => $data_id)),
+		        dbKITformCommands::FIELD_TYPE => dbKITformCommands::TYPE_FEEDBACK_PUBLISH,
+		        dbKITformCommands::FIELD_STATUS => dbKITformCommands::STATUS_WAITING
+		        );
+		if (!$dbKITformCommands->sqlInsertRecord($data)) {
+		    $this->setError($dbKITformCommands->getError());
+		    return false;
+		}
+		
+		$data = array(
+		        dbKITformCommands::FIELD_COMMAND => $cmd_refuse,
+		        dbKITformCommands::FIELD_PARAMS => http_build_query(array(
+		                'form' => $form,
+		                'contact' => $contact_data,
+		                'data_id' => $data_id)),
+		        dbKITformCommands::FIELD_TYPE => dbKITformCommands::TYPE_FEEDBACK_REFUSE,
+		        dbKITformCommands::FIELD_STATUS => dbKITformCommands::STATUS_WAITING
+		);
+		if (!$dbKITformCommands->sqlInsertRecord($data)) {
+		    $this->setError($dbKITformCommands->getError());
+		    return false;
+		}
+		
+		// send E-Mail to the feedback author
+		$data = array(
+		        'feedback' => array(
+		                'field' => $feedback_array,
+		                'unsubscribe_link' => sprintf('%s?%s#%s',
+		                        $this->page_link,
+		                        http_build_query(array(
+		                                self::request_action => self::action_feedback_unsubscribe,
+		                                self::request_form_id => $form_id)),
+		                        self::FORM_ANCHOR)
+		                ),
+		        'contact' => $contact_data,
+		        'command' => array(
+		                'publish_feedback' => sprintf('%s?%s#%s',
+		                        $this->page_link,
+		                        http_build_query(array(
+		                                self::request_action => self::action_command,
+		                                self::request_command => $cmd_publish
+		                                )),
+		                        self::FORM_ANCHOR
+		                        ),
+		                'refuse_feedback' => sprintf('%s?%s#%s',
+		                        $this->page_link,
+		                        http_build_query(array(
+		                                self::request_action => self::action_command,
+		                                self::request_command => $cmd_refuse
+		                                )),
+		                        self::FORM_ANCHOR
+		                        ),
+		                ),
+		        );
+
+		$client_mail = $this->getTemplate('mail.feedback.author.submit.htt', $data );
+		if ($form[dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
+		$client_subject = strip_tags($this->getTemplate('mail.feedback.subject.htt', array('subject' => $form[dbKITform::field_title])));
+		
+		// email to the feedback author
+		$mail = new kitMail($form[dbKITform::field_provider_id]);
+		if (!$mail->mail(
+		        $client_subject, 
+		        $client_mail, 
+		        $provider_email, 
+		        $provider_name, 
+		        array($contact_data[kitContactInterface::kit_email] => $contact_data[kitContactInterface::kit_email]), 
+		        ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false)
+		        ) {
+		    $err = $mail->getMailError ();
+		    if (empty ( $err ))
+		        $err = sprintf(form_error_sending_email, $contact_data[kitContactInterface::kit_email]);
+		    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
+		    return false;
+		}
+		// Mitteilung auf der Seite
+		if ($feedback_array[self::FIELD_FEEDBACK_PUBLISH] == self::PUBLISH_IMMEDIATE) {
+		    $message .= sprintf(form_msg_feedback_confirm_author_publish_immediate, $contact_data[kitContactInterface::kit_email]);
+		}
+		else {
+		    $message .= sprintf(form_msg_feedback_confirm_author_publish_proof, $contact_data[kitContactInterface::kit_email]);
+		}
+		
+		// send email to webmaster
+		$provider_mail = $this->getTemplate('mail.feedback.provider.submit.htt', $data );
+		if ($form[dbKITform::field_email_html] == dbKITform::html_off) $provider_mail = strip_tags($provider_mail);
+		$provider_subject = stripslashes($this->getTemplate('mail.feedback.subject.htt', array('subject' => $form[dbKITform::field_title])));
+		
+		$cc_array = array();
+		$ccs = explode(',', $form[dbKITform::field_email_cc]);
+		foreach( $ccs as $cc ) {
+		    if (!empty($cc)) $cc_array[$cc] = $cc;
+		}
+		$mail = new kitMail($form[dbKITform::field_provider_id]);
+		if (!$mail->mail(
+		        $provider_subject, 
+		        $provider_mail, 
+		        $contact_data[kitContactInterface::kit_email], 
+		        $contact_data[kitContactInterface::kit_email], 
+		        array($provider_email => $provider_name ), 
+		        ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array 
+		        )) {
+		    $err = $mail->getMailError ();
+		    if (empty ( $err ))
+		        $err = sprintf(form_error_sending_email, $contact_data[kitContactInterface::kit_email]);
+		    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
+		    return false;
+		}
+		
+		$subscriber_emails = array();
+		if (isset($fb_subscription) && ($feedback_array[self::FIELD_FEEDBACK_PUBLISH] == self::PUBLISH_IMMEDIATE)) {		
+    		// get subsribers ...
+    		$where = array(dbKITformData::field_form_id => $form_id);
+    		$sub_data = array();
+    		if (!$dbKITformData->sqlSelectRecord($where, $sub_data)) {
+    		    $this->setError($dbKITformData->getError());
+    		    return false;
+    		}
+    		foreach ($sub_data as $sub) {
+    		    parse_str($sub[dbKITformData::field_values], $values);
+    		    if (isset($values[$fb_subscription][0]) && ($values[$fb_subscription][0] == self::SUBSCRIPE_YES)) {
+    		        $cont = array();
+    		        if (!$kitContactInterface->getContact($sub[dbKITformData::field_kit_id], $cont)) {
+    		            $this->setError(sprintf(tool_error_id_invalid, $sub[dbKITformData::field_kit_id]));
+    		            return false;
+    		        }
+    		        if (!in_array($cont[kitContactInterface::kit_email], $subscriber_emails) && 
+    		                ($cont[kitContactInterface::kit_email] != $contact_data[kitContactInterface::kit_email])) {
+    		            $subscriber_emails[] = $cont[kitContactInterface::kit_email];
+    		        }
+    		    }
+    		}
+		}
+		
+		if (count($subscriber_emails) > 0) {
+		    $subscriber_mail = $this->getTemplate('mail.feedback.subscriber.submit.htt', $data );
+		    if ($form[dbKITform::field_email_html] == dbKITform::html_off) $subscriber_mail = strip_tags($subscriber_mail);
+		    $subscriber_subject = stripslashes($this->getTemplate('mail.feedback.subject.htt', array('subject' => $form[dbKITform::field_title])));
+		    
+		    $bcc_array = array();
+		    foreach( $subscriber_emails as $cc ) {
+		        if (!empty($cc)) $bcc_array[$cc] = $cc;
+		    }
+		    $mail = new kitMail($form[dbKITform::field_provider_id]);
+		    if (!$mail->mail(
+		            $subscriber_subject,
+		            $subscriber_mail,
+		            $provider_email,
+		            $provider_name,
+		            array($provider_email => $provider_name ),
+		            ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false,
+		            array(), 
+		            $bcc_array
+		    )) {
+		        $err = $mail->getMailError ();
+		        if (empty ( $err ))
+		            $err = sprintf(form_error_sending_email, $contact_data[kitContactInterface::kit_email]);
+		        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
+		        return false;
+		    }
+		    
+		}
+		
+	    // unset all $_REQUESTs for data fields to show an empty form
+	    foreach ($form_fields as $ffield) unset($_REQUEST[$ffield[dbKITformFields::field_name]]);
+	    // unset all contact fields
+	    foreach($contact_data as $key => $value) unset($_REQUEST[$key]);
+	    // set messages for the feedback author
+	    $this->setMessage($message);
+	    // show the feedback form again
+	    return $this->showForm();
+	} // checkFeedback()
+
+	/**
+	 * Show dialog to unsubscribe from feedback messages for a page
+	 * 
+	 * @return string dialog
+	 */
+	protected function showFeedbackUnsubscribe() {
+	    global $kitContactInterface;
+	    
+	    $form_id = isset($_REQUEST[self::request_form_id]) ? $_REQUEST[self::request_form_id] : -1;
+	    
+	    if ($form_id < 1) {
+	        $this->setError(form_error_fb_unsubscribe_invalid);
+	        return false;
+	    }
+	    
+	    // CAPTCHA
+	    ob_start ();
+	    call_captcha ();
+	    $call_captcha = ob_get_contents ();
+	    ob_end_clean ();
+	    
+	    $data = array(
+	            'form' => array(
+	                    'title' => form_header_feedback_unsubscribe,
+	                    'response' => ($this->isMessage ()) ? $this->getMessage () : form_intro_feedback_unsubscribe,
+	                    'name' => 'feedback_unsubscribe',
+	                    'action' => array(
+	                            'link' => $this->page_link,
+	                            'name' => self::request_action,
+	                            'value' => self::action_feedback_unsubscribe_check
+	                    ),
+	                    'anchor' => self::FORM_ANCHOR,
+	                    'id' => array(
+	                            'name' => self::request_form_id,
+	                            'value' => $form_id
+	                            ),
+	                    kitContactInterface::kit_email => array(
+	                            'label' => $kitContactInterface->field_array[kitContactInterface::kit_email],
+	                            'name' => kitContactInterface::kit_email,
+	                            'value' => '',
+	                            'hint' => ''
+	                            ),
+	                    'btn' => array (
+	                            'ok' => form_btn_ok, 
+	                            'abort' => form_btn_abort 
+	                            ), 
+	                    'captcha' => array(
+	                            'code' => $call_captcha)
+	            ));
+	    return $this->getTemplate('feedback.unsubscribe.htt', $data);
+	} // showFeedbackUnsubscribe()
+	
+	protected function checkFeedbackUnsubscribe() {
+	    global $kitLibrary;
+	    global $kitContactInterface;
+	    global $dbKITformData;
+	    global $dbKITformFields;
+	    
+	    $email = isset($_REQUEST[kitContactInterface::kit_email]) ? $_REQUEST[kitContactInterface::kit_email] : '';
+	    if (!$kitLibrary->validateEMail($email)) {
+	       $this->setMessage(sprintf(form_msg_email_invalid, $email));
+	       return $this->showFeedbackUnsubscribe(); 
+	    }
+	    
+	    // check CAPTCHA
+	    unset($_SESSION['kf_captcha']);
+	    if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
+	        $this->setMessage(form_msg_captcha_invalid);
+	        return $this->showFeedbackUnsubscribe();
+	    }
+	    
+	    $form_id = isset($_REQUEST[self::request_form_id]) ? $_REQUEST[self::request_form_id] : -1;
+	    
+	    $status = dbKITcontact::status_active;
+	    $contact_id = -1;
+	    if (!$kitContactInterface->isEMailRegistered($email, $contact_id, $status)) {
+	        if ($kitContactInterface->isError()) {
+	            $this->setError($kitContactInterface->getError());
+	            return false;
+	        }            
+            $this->setMessage(sprintf(form_msg_email_not_registered, $email));
+            return $this->showFeedbackUnsubscribe();
+	    }
+	    
+	    // search for form datas for this user
+	    $where = array(
+	            dbKITformData::field_kit_id => $contact_id,
+	            dbKITformData::field_form_id => $form_id
+	            );
+	    $form_data = array();
+	    if (!$dbKITformData->sqlSelectRecord($where, $form_data)) {
+	        $this->setError($dbKITformData->getError());
+	        return false;
+	    }
+	    // get field id for feedback_subscription
+	    $where = array(
+	            dbKITformFields::field_form_id => $form_id,
+	            dbKITformFields::field_name => self::FIELD_FEEDBACK_SUBSCRIPTION
+	            );
+	    $fields = array();
+	    if (!$dbKITformFields->sqlSelectRecord($where, $fields)) {
+	        $this->setError($dbKITformFields->getError());
+	        return false;
+	    }
+	    if (count($fields) < 1) {
+	        $this->setError(form_error_fb_unsubscribe_invalid);
+	        return false;
+	    }
+	    $fb_subscription = $fields[0][dbKITformFields::field_id];
+	    // get field id for feedback_url
+	    $where = array(
+	            dbKITformFields::field_form_id => $form_id,
+	            dbKITformFields::field_name => self::FIELD_FEEDBACK_URL
+	    );
+	    $fields = array();
+	    if (!$dbKITformFields->sqlSelectRecord($where, $fields)) {
+	        $this->setError($dbKITformFields->getError());
+	        return false;
+	    }
+	    if (count($fields) < 1) {
+	        $this->setError(form_error_fb_unsubscribe_invalid);
+	        return false;
+	    }
+	    $fb_url = $fields[0][dbKITformFields::field_id];
+	    
+	    
+	    $url = '';
+	    $kitLibrary->getUrlByPageID(PAGE_ID, $url);
+	    
+	    $unsubscribed = false;
+	    foreach ($form_data as $data) {
+	        parse_str($data[dbKITformData::field_values], $values);
+	        if (isset($values[$fb_subscription][0]) && isset($values[$fb_url])) {
+	            if (($values[$fb_subscription][0] == self::SUBSCRIPE_YES) && ($values[$fb_url] == $url)) {
+	                // update record
+	                $values[$fb_subscription][0] = self::SUBSCRIPE_NO;
+	                $where = array(
+	                        dbKITformData::field_id => $data[dbKITformData::field_id]
+	                        );
+	                $upd = array(
+	                        dbKITformData::field_values => http_build_query($values),
+	                        dbKITformData::field_timestamp => date('Y-m-d H:i:s')
+	                        );
+	                if (!$dbKITformData->sqlUpdateRecord($upd, $where)) {
+	                    $this->setError($dbKITformData->getError());
+	                    return false;
+	                }
+	                $unsubscribed = true;
+	            }
+	        }
+	    }
+	    if ($unsubscribed) {
+	        $this->setMessage(sprintf(form_msg_feedback_unsubscribe_success, $email));
+	    }
+	    else {
+	        $this->setMessage(sprintf(form_msg_feedback_unsubscribe_fail, $email));
+	    }
+	    return $this->showForm();
+	} // checkFeedbackUnsubscribe()
+	
+	protected function checkCommand() {
+	    global $dbKITformCommands;
+	    global $dbKITformData;
+	    global $dbKITformFields;
+	    global $kitContactInterface;
+	    global $dbKITform;
+	    
+	    if (!isset($_REQUEST[self::request_command])) {
+	        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_command_invalid));
+	        return false;
+	    }
+	    $where = array(dbKITformCommands::FIELD_COMMAND => $_REQUEST[self::request_command]);
+	    $command = array();
+	    if (!$dbKITformCommands->sqlSelectRecord($where, $command)) {
+	        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformCommands->getError()));
+	        return false;
+	    }
+	    if (count($command) == 1) {
+	        $command = $command[0];
+	        if (($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_PUBLISH) ||
+	                ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_REFUSE)) {
+	            // Feedback zurueckweisen
+	            parse_str($command[dbKITformCommands::FIELD_PARAMS], $params);
+	            if (isset($params['data_id'])) {
+	                $form_data = array();
+	                $where = array(dbKITformData::field_id => $params['data_id']);
+	                if (!$dbKITformData->sqlSelectRecord($where, $form_data)) {
+	                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformData->getError()));
+	                    return false;
+	                }
+	                if (count($form_data) == 1) {
+	                    $form_data = $form_data[0];
+	                    // get the form fields
+	                    $where = array(dbKITformFields::field_form_id => $form_data[dbKITformData::field_form_id]);
+	                    $form_fields = array();
+	                    if (!$dbKITformFields->sqlSelectRecord($where, $form_fields)) {
+	                        $this->setError($dbKITformFields->getError());
+	                        return false;
+	                    }
+	                    foreach ($form_fields as $ff) {
+	                        switch ($ff[dbKITformFields::field_name]):
+	                        case self::FIELD_FEEDBACK_HOMEPAGE:
+	                            $fb_homepage = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_NICKNAME:
+	                            $fb_nickname = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_PUBLISH:
+	                            $fb_publish = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_SUBJECT:
+	                            $fb_subject = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_SUBSCRIPTION:
+	                            $fb_subscription = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_TEXT:
+	                            $fb_text = $ff[dbKITformFields::field_id]; break;
+	                        case self::FIELD_FEEDBACK_URL:
+	                            $fb_url = $ff[dbKITformFields::field_id]; break;
+	                        endswitch;
+	                    }
+	                    if (isset($fb_publish)) {
+	                        parse_str($form_data[dbKITformData::field_values], $values);
+	                        if (isset($values[$fb_publish])) {
+	                            if ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_REFUSE) {
+	                                $values[$fb_publish] = self::PUBLISH_FORBIDDEN;
+	                            }
+	                            else {
+	                                $values[$fb_publish] = self::PUBLISH_IMMEDIATE;
+	                            }
+	                            $where = array(
+	                                    dbKITformData::field_id => $params['data_id']
+	                                    );
+	                            $data = array(
+	                                    dbKITformData::field_values => http_build_query($values),
+	                                    dbKITformData::field_timestamp => date('Y-m-d H:i:s')
+	                                    );
+	                            if (!$dbKITformData->sqlUpdateRecord($data, $where)) {
+	                                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformData->getError()));
+	                                return false;
+	                            }
+	                            // delete command
+	                            $where = array(dbKITformCommands::FIELD_ID => $command[dbKITformCommands::FIELD_ID]);
+	                            if (!$dbKITformCommands->sqlDeleteRecord($where)) {
+	                                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformCommands->getError()));
+	                                return false;
+	                            } 
+	                            if ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_REFUSE) {
+	                                // feedback is successfully refused!
+	                                $this->setMessage(form_msg_cmd_fb_refuse_success);
+	                            }
+	                            else {
+	                                // feedback is now published - check for subscriber!
+	                                $subscriber_emails = array();
+	                                $where = array(dbKITformData::field_form_id => $form_data[dbKITformData::field_form_id]);
+	                                $sub_data = array();
+	                                if (!$dbKITformData->sqlSelectRecord($where, $sub_data)) {
+	                                    $this->setError($dbKITformData->getError());
+	                                    return false;
+	                                }
+	                                foreach ($sub_data as $sub) {
+	                                    parse_str($sub[dbKITformData::field_values], $values);
+	                                    if (isset($values[$fb_subscription][0]) && ($values[$fb_subscription][0] == self::SUBSCRIPE_YES)) {
+	                                        $cont = array();
+	                                        if (!$kitContactInterface->getContact($sub[dbKITformData::field_kit_id], $cont)) {
+	                                            $this->setError(sprintf(tool_error_id_invalid, $sub[dbKITformData::field_kit_id]));
+	                                            return false;
+	                                        }
+	                                        if (!in_array($cont[kitContactInterface::kit_email], $subscriber_emails) &&
+	                                                ($cont[kitContactInterface::kit_email] != $params['contact'][kitContactInterface::kit_email])) {
+	                                            $subscriber_emails[] = $cont[kitContactInterface::kit_email];
+	                                        }
+	                                    }
+	                                }
+	                                if (count($subscriber_emails) > 0) {
+	                                    // prepare emails and send out...
+	                                    $form = array();
+	                                    $where = array(
+	                                            dbKITform::field_id => $form_data[dbKITformData::field_form_id]
+	                                            );
+	                                    if (!$dbKITform->sqlSelectRecord($where, $form)) {
+	                                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITform->getError()));
+	                                        return false;
+	                                    }
+	                                    $form = $form[0];
+	                                    // prepare sending emails
+	                                    $provider_data = array ();
+	                                    if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data )) {
+	                                        if ($kitContactInterface->isError()) {
+	                                            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+	                                        }
+	                                        else {
+	                                            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+	                                        }
+	                                        return false;
+	                                    }
+	                                    $provider_email = $provider_data['email'];
+	                                    $provider_name = $provider_data['name'];
+	                                    
+	                                    $feedback_array = array(
+	                                            self::FIELD_FEEDBACK_HOMEPAGE => isset($fb_homepage) ? $values[$fb_homepage] : '',
+	                                            self::FIELD_FEEDBACK_NICKNAME => isset($fb_nickname) ? $values[$fb_nickname] : '',
+	                                            self::FIELD_FEEDBACK_PUBLISH => isset($fb_publish) ? $values[$fb_publish] : self::PUBLISH_IMMEDIATE,
+	                                            self::FIELD_FEEDBACK_SUBJECT => isset($fb_subject) ? $values[$fb_subject] : '',
+	                                            self::FIELD_FEEDBACK_SUBSCRIPTION => isset($fb_subscription) ? $values[$fb_subscription] : self::SUBSCRIPE_NO,
+	                                            self::FIELD_FEEDBACK_TEXT => isset($fb_text) ? $values[$fb_text] : '',
+	                                            self::FIELD_FEEDBACK_URL => isset($fb_url) ? $values[$fb_url] : ''
+	                                    );
+	                                    
+	                                    $body_data = array(
+	                                            'feedback' => array(
+	                                                    'field' => $feedback_array,
+	                                                    'unsubscribe_link' => sprintf('%s?%s#%s',
+	                                                            $this->page_link,
+	                                                            http_build_query(array(
+	                                                                    self::request_action => self::action_feedback_unsubscribe,
+	                                                                    self::request_form_id => $form_data[dbKITformData::field_form_id])),
+	                                                            self::FORM_ANCHOR)
+	                                            ));
+	                                    
+	                                    
+	                                    $subscriber_mail = $this->getTemplate('mail.feedback.subscriber.submit.htt', $body_data );
+	                                    if ($form[dbKITform::field_email_html] == dbKITform::html_off) $subscriber_mail = strip_tags($subscriber_mail);
+	                                    $subscriber_subject = stripslashes($this->getTemplate('mail.feedback.subject.htt', array('subject' => $form[dbKITform::field_title])));
+	                                    
+	                                    $bcc_array = array();
+	                                    foreach( $subscriber_emails as $cc ) {
+	                                        if (!empty($cc)) $bcc_array[$cc] = $cc;
+	                                    }
+	                                    $mail = new kitMail($form[dbKITform::field_provider_id]);
+	                                    if (!$mail->mail(
+	                                            $subscriber_subject,
+	                                            $subscriber_mail,
+	                                            $provider_email,
+	                                            $provider_name,
+	                                            array($provider_email => $provider_name ),
+	                                            ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false,
+	                                            array(),
+	                                            $bcc_array
+	                                    )) {
+	                                        $err = $mail->getMailError ();
+	                                        if (empty ( $err ))
+	                                            $err = sprintf(form_error_sending_email, $provider_email);
+	                                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $err));
+	                                        return false;
+	                                    }
+	                                }
+	                                
+	                                $this->setMessage(form_msg_cmd_fb_publish_success);
+	                            }
+	                            return $this->showForm();    
+	                        }
+	                    }
+	                }
+                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(tool_error_id_invalid, $params['data_id'])));
+                    return false;
+	            }
+	            else {
+	                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_command_missing_params));
+	                return false;
+	            }
+	        }
+	        else {
+	            // unknown command
+	            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_command_invalid));
+	            return false;
+	        }
+	    }
+	    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, form_error_command_invalid));
+	    return false;
+	} // checkCommand()
+	
 	/**
 	 * Sendet dem User ein neues Passwort zu
 	 * 
@@ -940,6 +1779,8 @@ class formFrontend {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, sprintf ( form_error_field_required, kitContactInterface::kit_email ) ) );
 			return false;
 		}
+		$contact_id = -1;
+		$status = dbKITcontact::status_active;
 		if (! $kitContactInterface->isEMailRegistered ( $_REQUEST [kitContactInterface::kit_email], $contact_id, $status )) {
 			// E-Mail Adresse ist nicht registriert
 			$this->setMessage ( sprintf ( form_msg_email_not_registered, $_REQUEST [kitContactInterface::kit_email] ) );
@@ -960,6 +1801,7 @@ class formFrontend {
 		}
 		
 		// neues Passwort anfordern
+		$newPassword = '';
 		if (! $kitContactInterface->generateNewPassword ( $_REQUEST [kitContactInterface::kit_email], $newPassword )) {
 			if ($kitContactInterface->isError ()) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
@@ -968,6 +1810,7 @@ class formFrontend {
 			$this->setMessage ( $kitContactInterface->getMessage () );
 			return $this->showForm ();
 		}
+		$contact = array();
 		if (! $kitContactInterface->getContact ( $contact_id, $contact )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 			return false;
@@ -1012,6 +1855,8 @@ class formFrontend {
 	public function registerAccount($form_data = array(), $contact_data = array()) {
 		global $kitContactInterface;
 		
+		$contact_id = -1;
+		$status = dbKITcontact::status_active;
 		if ($kitContactInterface->isEMailRegistered ( $contact_data [kitContactInterface::kit_email], $contact_id, $status )) {
 			// diese E-Mail Adresse ist bereits registriert
 			if ($status == dbKITcontact::status_active) {
@@ -1029,15 +1874,16 @@ class formFrontend {
 		}
 		
 		// alles ok - neuen Datensatz anlegen
-		if (! $kitContactInterface->addContact ( $contact_data, $contact_id, $register_data )) {
+		$register_data = array();
+		if (! $kitContactInterface->addContact($contact_data, $contact_id, $register_data)) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 			return false;
 		}
 		$form_data ['datetime'] = date ( form_cfg_datetime_str );
-		$form_data ['activation_link'] = sprintf ( '%s%s%s', 
-																								$this->page_link, 
-																								(strpos ( $this->page_link, '?' ) === false) ? '?' : '&', 
-																								http_build_query ( array (self::request_action => self::action_activation_key, self::request_key => $register_data [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id], self::request_activation_type => self::activation_type_account ) ) );
+		$form_data ['activation_link'] = sprintf('%s%s%s', 
+												 $this->page_link, 
+												 (strpos($this->page_link, '?') === false) ? '?' : '&', 
+												 http_build_query(array(self::request_action => self::action_activation_key, self::request_key => $register_data [dbKITregister::field_register_key], self::request_provider_id => $form_data [dbKITform::field_provider_id], self::request_activation_type => self::activation_type_account ) ) );
 		$form_data['subject'] = $form_data[dbKITform::field_title];
 		// Benachrichtigungen versenden
 		
@@ -1194,7 +2040,10 @@ class formFrontend {
 			return false;
 		}
 		
-		if (! $kitContactInterface->checkActivationKey ( $_REQUEST [self::request_key], $register, $contact, $password )) {
+		$register = array();
+		$contact = array();
+		$password = '';
+		if (! $kitContactInterface->checkActivationKey($_REQUEST[self::request_key], $register, $contact, $password )) {
 			if ($this->isError ()) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 				return false;
@@ -1270,6 +2119,7 @@ class formFrontend {
 	public function Logout() {
 		global $kitContactInterface;
 		
+		$contact = array();
 		if (! $kitContactInterface->getContact ( $_SESSION [kitContactInterface::session_kit_contact_id], $contact )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 			return false;
@@ -1306,7 +2156,10 @@ class formFrontend {
 		
 		$email = $_REQUEST [kitContactInterface::kit_email];
 		
-		if (! $kitContactInterface->subscribeNewsletter ( $email, $newsletter, $subscribe, $use_subscribe, $register, $contact, $send_activation )) {
+		$register = array();
+		$contact = array();
+		$send_activation = false;
+		if (! $kitContactInterface->subscribeNewsletter($email, $newsletter, $subscribe, $use_subscribe, $register, $contact, $send_activation )) {
 			if ($kitContactInterface->isError ()) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError () ) );
 				return false;

@@ -34,7 +34,9 @@
   padding: 10px;
   font-size: 8pt;
 }
-
+.kit_form {
+  font-size: 11pt;
+}
 td {
   font-size: 8pt;
   vertical-align: top;
@@ -75,4 +77,26 @@ input[name=kit_zip] {
 }
 input[name=kit_city] {
   width: auto;
+}
+#feedback_body {
+  margin: 20px 0 10px 0;
+}
+
+#feedback_container {
+  margin: 0;
+  padding: 0;
+}
+.feedback_item {
+  font-size: 8pt;
+  margin: 10px 0 20px 0;
+}
+.feedback_date {
+  text-align: right;
+  font-size: 7pt;
+}
+.feedback_subject {
+  font-weight: bold;
+}
+.feedback_text {
+  font-style: italic;
 }

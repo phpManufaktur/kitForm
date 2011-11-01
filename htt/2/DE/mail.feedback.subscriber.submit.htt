@@ -1,0 +1,35 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *
+ * If you insert additional fields to the feedback form you MUST insert them here
+ * explicit, they will not appear automatically!
+ *}
+ 
+Auf der Seite
+
+--> {$feedback.field.feedback_url}
+
+wurde von {$feedback.field.feedback_nickname} ein neues Feedback übermittelt.
+
+Der Kommentar lautet:
+
+Betreff: {$feedback.field.feedback_subject}
+Mitteilung: {$feedback.field.feedback_text}
+
+-- 
+Wenn sie keine weiteren Benachrichtigungen über neue Feedbacks erhalten
+möchten, verwenden Sie bitte diesen Link:
+--> {$feedback.unsubscribe_link}

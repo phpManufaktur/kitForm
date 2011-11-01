@@ -12,23 +12,25 @@
  * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
-// try to include LEPTON class.secure.php to protect this file and the whole CMS!
-if (defined('WB_PATH')) {	
-	if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php');
-} elseif (file_exists($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php')) {
-	include($_SERVER['DOCUMENT_ROOT'].'/framework/class.secure.php'); 
+// include class.secure.php to protect this file and the whole CMS!
+if (defined('WB_PATH')) {    
+    if (defined('LEPTON_VERSION')) include(WB_PATH.'/framework/class.secure.php'); 
 } else {
-	$subs = explode('/', dirname($_SERVER['SCRIPT_NAME']));	$dir = $_SERVER['DOCUMENT_ROOT'];
-	$inc = false;
-	foreach ($subs as $sub) {
-		if (empty($sub)) continue; $dir .= '/'.$sub;
-		if (file_exists($dir.'/framework/class.secure.php')) { 
-			include($dir.'/framework/class.secure.php'); $inc = true;	break; 
-		} 
-	}
-	if (!$inc) trigger_error(sprintf("[ <b>%s</b> ] Can't include LEPTON class.secure.php!", $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+    $oneback = "../";
+    $root = $oneback;
+    $level = 1;
+    while (($level < 10) && (!file_exists($root.'/framework/class.secure.php'))) {
+        $root .= $oneback;
+        $level += 1;
+    }
+    if (file_exists($root.'/framework/class.secure.php')) { 
+        include($root.'/framework/class.secure.php'); 
+    } else {
+        trigger_error(sprintf("[ <b>%s</b> ] Can't include class.secure.php!", 
+                $_SERVER['SCRIPT_NAME']), E_USER_ERROR);
+    }
 }
-// end include LEPTON class.secure.php
+// end include class.secure.php
  
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {
@@ -46,6 +48,9 @@ require_once(WB_PATH.'/modules/kit_tools/class.droplets.php');
 global $admin;
 
 $error = '';
+
+global $dbKITform;
+if (!is_object($dbKITform)) $dbKITform = new dbKITform();
 
 if (!$dbKITform->sqlFieldExists(dbKITform::field_action)) {
 	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_action, "VARCHAR(30) NOT NULL DEFAULT '".dbKITform::action_none."'")) {
@@ -75,6 +80,15 @@ if (!$dbKITform->sqlFieldExists(dbKITform::field_email_html)) {
 	}
 }
 
+// Release 0.21
+global $dbKITformCommands;
+if (!is_object($dbKITformCommands)) new dbKITformCommands();
+
+if (!$dbKITformCommands->sqlTableExists()) {
+    if (!$dbKITformCommands->sqlCreateTable()) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITformCommands->getError());
+    }
+}
 
 // Formulare installieren
 $message = '';

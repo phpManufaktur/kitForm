@@ -1,0 +1,56 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *
+ * To keep the FEEDBACK FORM small and simple all not needed fields are removed
+ * and this template is realized in a static way.
+ * If you insert additional fields to this form you MUST insert them here
+ * explicit, they will not appear automatically!
+ *}
+ <div id="feedback_body"><a name="{$form.anchor}"></a> 
+  <h2>{$form.title}</h2>
+  {if isset($form.response)}
+    {* DON'T REMOVE THE RESPONSE BLOCK !!! *}
+    <div class="message">{$form.response}</div>
+  {/if}
+  <form name="{$form.name}" action="{$form.action.link}#{$form.anchor}" method="post">
+    <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
+    <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
+    <table width="100%">
+      <colgroup>
+        <col width="20%" />
+        <col width="*" />
+        <col width="30%" />
+      </colgroup>
+      <tr>
+        <td class="form_label">{$form.kit_email.label}<span class="form_must_indicator">*</span></td>
+        <td class="form_value"><input type="text" name="{$form.kit_email.name}" value="{$form.kit_email.value}" /></td>
+        <td class="form_hint">&nbsp;</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td colspan="2">
+          {$form.captcha.code}
+        </td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td colspan="2">
+          <input type="submit" value="{$form.btn.ok}" />
+        </td>
+      </tr>
+    </table>
+  </form>   
+ </div>

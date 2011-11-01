@@ -46,18 +46,24 @@ define('form_data_type_password',							'Passwort');
 define('form_data_type_text',									'Text');
 define('form_data_type_undefined',						'- nicht festgelegt -');
 
+define('form_error_command_invalid', '<p>Der übermittelte Befehl kann nicht ausgeführt werden.</p><p>Der Befehl existiert nicht oder wurde bereits ausgeführt.</p>');
+define('form_error_command_missing_params', '<p>Die Parameter sind nicht vollständig.</p>');
 define('form_error_data_type_invalid',				'<p>Der Datentyp <b>%s</b> wird nicht unterstützt!</p>');
 define('form_error_email_password_required',	'<p>Die Datenfelder für E-Mail Adresse und/oder Passwort sind nicht gesetzt!</p>');
+define('form_error_fb_missing_field_url', '<p>Das Feedback Formular ist nicht vollständig, das Feld <b>feedback_url</b> fehlt!</p>');
+define('form_error_fb_unsubscribe_invalid', '<p>Ungültiger oder unvollständiger Funktionsaufruf.</p>');
 define('form_error_field_required',           '<p>Das Datenfeld <b>%s</b> ist nicht gesetzt!</p>');
 define('form_error_field_type_not_implemented','<p>Der Feldtyp <b>%s</b> ist nicht implementiert!</p>');
 define('form_error_form_id_missing',					'<p>Es wurde keine ID für das Formular übergeben!</p>');
 define('form_error_form_name_empty',					'<p>Es wurde kein Formular Bezeichner übergeben!</p>');
 define('form_error_form_name_invalid',				'<p>Das Formular mit dem Bezeichner <b>%s</b> wurde nicht gefunden!</p>');
+define('form_error_get_page_url', '<p>kitForm konnte die URL der aufrufenden Seite nicht ermitteln!</p>');
 define('form_error_kit_field_id_invalid',			'<p>Der <b>ID %03d</b> ist kein KeepInTouch Datenfeld zugeordnet!</p>');
 define('form_error_preset_not_exists',				'<p>Das Presetverzeichnis <b>%s</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!</p>');
 define('form_error_reading_file',             '<p>Die Datei <b>%s</b> konnte nicht eingelesen werden!</p>');
 define('form_error_sending_email',						'<p>Die E-Mail an <b>%s</b> konnte nicht versendet werden!</p>'); 
 define('form_error_template_error',						'<p>Fehler bei der Ausführung des Template <b>%s</b>:</p><p>%s</p>');
+define('form_error_unserialize', '<p>Fehler beim Zurücklesen von Daten.</p>');
 define('form_error_upload_form_size',					'<p>Die hochgeladene Datei überschreitet die in dem HTML Formular mittels der Anweisung MAX_FILE_SIZE angegebene maximale Dateigröße.</p>');
 define('form_error_upload_ini_size',					'<p>Die hochgeladene Datei überschreitet die in der Anweisung upload_max_filesize in php.ini festgelegte Größe von %s</p>');
 define('form_error_upload_move_file',					'<p>Die Datei <b>%s</b> konnte nicht in das Zielverzeichnis verschoben werden!</p>');
@@ -69,6 +75,7 @@ define('form_header_edit_form',								'Formular bearbeiten');
 define('form_header_form_list',								'Übersicht über die verfügbaren Formulare');
 define('form_header_protocol_detail',					'Protokoll, Details');
 define('form_header_protocol_list',						'Protokoll');
+define('form_header_feedback_unsubscribe', 'Benachrichtigungen ausschalten');
 
 define('form_hint_form_id',										'');
 define('form_hint_form_email_cc',							'Sie können <b>zusätzliche E-Mail Empfänger</b> festlegen, diese erhalten ebenfalls eine Information über neu empfangene Formulare. Trennen Sie die E-Mail Adressen mit einem Komma voneinander.');
@@ -127,6 +134,7 @@ define('form_html_off',												'NUR TEXT Format');
 define('form_html_on',												'HTML Format');
 
 define('form_intro_edit_form',								'<p>Mit diesem Dialog erstellen und bearbeiten Sie Formulare für KeepInTouch (KIT)</p>');
+define('form_intro_feedback_unsubscribe', '<p>Bitte tragen Sie Ihre E-Mail Adresse ein, um sich von den automatischen Benachrichtigungen bei neuen Kommentaren zu dieser Seite abzumelden.</p>');
 define('form_intro_form_list',								'<p>Wählen Sie das gewünschte Formular zum Bearbeiten aus.</p><p>Um ein neues Formular zu erstellen wählen Sie direkt den Reiter "Bearbeiten".</p>');
 define('form_intro_kit_fields',								'<p>Wählen Sie die Kontaktfelder aus KeepInTouch (KIT) aus, die im Formular verwendet werden sollen.</p>');
 define('form_intro_protocol_detail',					'<p>Details zu dem abgesendeten Formular</p>');
@@ -171,9 +179,17 @@ define('form_msg_account_updated',						'<p>Das Benutzerkonto wurde aktualisiert
 define('form_msg_captcha_invalid',						'<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>');
 define('form_msg_contact_already_registered',	'<p>Die E-Mail Adresse <b>%s</b> ist bereits registriert, bitte melden Sie sich mit Ihren Benutzerdaten an.</p>');
 define('form_msg_contact_locked',							'<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist zur Zeit gesperrt. Bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>');
-define('form_msg_contact_not_active',					'<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist nicht aktiv, bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>'); 
+define('form_msg_contact_not_active',					'<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist nicht aktiv, bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>');
+define('form_msg_cmd_fb_publish_success', '<p>Das Feedback wurde veröffentlicht.</p>');
+define('form_msg_cmd_fb_refuse_success', '<p>Das Feedback wurde zurückgewiesen.</p>'); 
 define('form_msg_date_invalid',								'<p><b>%s</b> ist kein gültiges Datum, bitte prüfen Sie Ihre Eingabe!</p>');
+define('form_msg_email_invalid', '<p>Die E-Mail Adresse <b>%s</b> ist nicht gültig, bitte prüfen Sie Ihre Eingabe.</p>');
 define('form_msg_email_not_registered',				'<p>Die E-Mail Adresse <b>%s</b> ist nicht registriert.</p>');
+define('form_msg_feedback_confirm_author_publish_immediate', '<p>Vielen Dank für Ihr Beitrag!</p><p>Ihr Feedback wurde sofort freigeschaltet und veröffentlich, eine Kopie haben wir Ihnen an Ihre E-Mail Adresse <b>%s</b> gesendet.</p>');
+define('form_msg_feedback_confirm_author_publish_proof', '<p>Vielen Dank für Ihren Beitrag!</p><p>Ihr Feedback wird vor der Veröffentlichung durch unser Team geprüft, wir bemühen uns um eine rasche Freigabe. Eine Kopie Ihres Beitrag haben wir an Ihre E-Mail Adresse <b>%s</b> gesendet.</p>');
+define('form_msg_feedback_confirm_author', '<p>Eine Kopie Ihres Feedback wurde an Ihre E-Mail Adresse <b>%s</b> gesendet.</p>');
+define('form_msg_feedback_unsubscribe_fail', '<p>Auf dieser Seite sind keine Benachrichtigungen für die E-Mail Adresse <b>%s</b> aktiv, es wurde nichts geändert.</p>');
+define('form_msg_feedback_unsubscribe_success', '<p>Die E-Mail Adresse <b>%s</b> erhält keine Benachrichtigungen mehr, wenn Kommentare auf dieser Seite hinzugefügt werden.</p><p>Benachrichtigungen von andern Seiten sind hiervon nicht betroffen.</p>');
 define('form_msg_form_deleted',								'<p>Das Formular mit der <b>ID %03d</b> wurde gelöscht!</p>');
 define('form_msg_form_exported',							'<p>Das Formular wurde als <b><a href="%s">%s</a></b> erfolgreich exportiert (<i>Rechtsklick: <b>"Speichern unter ..."</b></i>).');
 define('form_msg_form_inserted',							'<p>Das Formular mit der <b>ID %03d</b> wurde angelegt.</p>');
@@ -205,7 +221,7 @@ define('form_msg_upload_no_file',             '<p>Es wurde keine Datei importier
 define('form_msg_welcome',										'<p>Herzlich willkommen!<br />Ihre Benutzerdaten haben Sie per E-Mail erhalten.</p>');
 
 define('form_protocol_form_send',							'[kitForm] Der Kontakt hat ein <a href="%s">Formular übermittelt</a>.'); 
-
+define('form_protocol_feedback_submitted', '[kitForm] Der Kontakt hat ein <a href="%s">Feedback übermittelt</a>.');
 define('form_status_active',									'Aktiv');
 define('form_status_deleted',									'Gelöscht');
 define('form_status_locked',									'Gesperrt');

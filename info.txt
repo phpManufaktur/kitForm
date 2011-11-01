@@ -8,6 +8,9 @@
  * @version $Id$
  */
 
+Release 0.21
+2011-11-01
+
 Release 0.20
 2011-10-05
 fixed - bug in subscribing routine in KIT & kitForm changed the password after

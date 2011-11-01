@@ -1,0 +1,51 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *
+ * If you insert additional fields to the feedback form you MUST insert them here
+ * explicit, they will not appear automatically!
+ *}
+ 
+Es wurde ein Feedback für die Seite
+
+--> {$feedback.field.feedback_url}
+
+übermittelt.
+
+{$feedback.field.feedback_nickname}
+{$contact.kit_first_name} {$contact.kit_last_name}
+{$contact.kit_email}
+
+{$feedback.field.feedback_homepage}
+
+Der Kommentar lautet:
+
+Betreff: {$feedback.field.feedback_subject}
+Mitteilung: {$feedback.field.feedback_text}
+
+{if $feedback.field.feedback_publish > 1}
+Der Kommentar ist NOCH NICHT FREIGEGEBEN.
+
+Kommentar freigeben: {$command.publish_feedback}
+
+Kommentar zurückweisen: {$command.refuse_feedback}
+{else}
+Der Kommentar IST BEREITS VERÖFFENTLICHT.
+
+Kommentar zurückweisen: {$command.refuse_feedback}
+{/if}
+
+BITTE BEACHTEN SIE DASS ALLE BEFEHLE EINWEG-LINKS SIND, 
+SIE KÖNNEN NUR EIN EINZIGES MAL AUSGEFÜHRT WERDEN.
