@@ -10,6 +10,11 @@
 
 Release 0.21
 2011-11-01
+added - with the new standard form kit_feedback you can realize a comfortable 
+  feedback function for your website - visit http://phpmanufaktur.de for more 
+  informations and hints
+added - additional template directory /htt/2/DE with a variation of the
+  standard form and email templates - many thanks to "Projekt EM"
 
 Release 0.20
 2011-10-05
