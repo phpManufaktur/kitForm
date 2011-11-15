@@ -458,8 +458,9 @@ class dbKITformCommands extends dbConnectLE {
     const FIELD_TIMESTAMP = 'cmd_timestamp';
     
     const TYPE_UNDEFINED = 0;
-    const TYPE_FEEDBACK_PUBLISH = 2;
-    const TYPE_FEEDBACK_REFUSE = 4;
+    const TYPE_FEEDBACK_PUBLISH = 2; // kitForm: Feedback
+    const TYPE_FEEDBACK_REFUSE = 4; // kitForm: Feedback
+    const TYPE_IDEA_EMAIL_INFO = 8; // kitIdea: change E-Mail info
     
     const STATUS_UNDEFINED = 1;
     const STATUS_WAITING = 2;

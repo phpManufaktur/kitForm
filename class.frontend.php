@@ -930,8 +930,13 @@ class formFrontend {
 					case dbKITformFields::data_type_text :
 					default :
 						$value = (is_array ( $values [$fid] )) ? implode ( ', ', $values [$fid] ) : $values [$fid];
+						//$items = (is_array($values[$fid])) ? $values[$fid] : array();
 				endswitch;
-				$items [$field [dbKITformFields::field_name]] = array ('label' => $field [dbKITformFields::field_title], 'value' => $value );
+				$items [$field [dbKITformFields::field_name]] = array(
+				        'label' => $field[dbKITformFields::field_title], 
+				        'value' => $value,
+				        //'items' => isset($items) ? $items : array() 
+				        );
 			}
 			
 			// E-Mail Versand vorbereiten
