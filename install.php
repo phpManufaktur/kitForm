@@ -32,6 +32,7 @@ if (defined('WB_PATH')) {
 }
 // end include class.secure.php
 
+/*
 // include language file
 if(!file_exists(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php')) {
 	require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.php'); // Vorgabe: DE verwenden 
@@ -41,6 +42,15 @@ else {
 	require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.php');
 	if (!defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE); // die Konstante gibt an in welcher Sprache KIT Form aktuell arbeitet
 }
+*/
+// use LEPTON 2.x I18n for access to language files
+if (! class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (! file_exists(WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.php')) {
+    if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', 'DE'); // important: language flag is used by template selection
+} else {
+    if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE);
+}
+$lang = new LEPTON_Helper_I18n();
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
 require_once(WB_PATH.'/modules/kit_tools/class.droplets.php');
@@ -74,10 +84,11 @@ $message = strip_tags($message);
 $droplets = new checkDroplets();
 $droplets->droplet_path = WB_PATH.'/modules/kit_form/droplets/';
 if ($droplets->insertDropletsIntoTable()) {
-  $message .= form_msg_install_droplets_success;
+  $message .= $lang->translate('The droplets for kitForm were successfully installed.\n');
 }
 else {
-  $message .= sprintf(form_msg_install_droplets_failed, $droplets->getError());
+  $message .= $lang->translate('Error installing the Droplets for kitForm:\n{{ error }}\n',
+          array('error' => $droplets->getError()));
 }
 if ($message != "") {
   echo '<script language="javascript">alert ("'.$message.'");</script>';

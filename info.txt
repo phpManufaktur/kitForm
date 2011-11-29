@@ -8,6 +8,16 @@
  * @version $Id$
  */
 
+Releasse 0.23
+2011-11-29
+changed - kitForm uses now the I18n translation function of LEPTON 2.x for its 
+  language files
+added - english translation EN.php is around 80% complete and available
+changed - configuration depending on locales is now separated from the language 
+  files
+changed - error prompting method  
+added - kitForm is now testing if a provider is defined for all forms 
+
 Release 0.22
 2011-11-14
 added - new command TYPE_IDEA_EMAIL_INFO enables users to change the email
