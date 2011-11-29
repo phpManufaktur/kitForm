@@ -33,13 +33,27 @@ if (defined('WB_PATH')) {
 // end include class.secure.php
  
 // use LEPTON 2.x I18n for access to language files
-if (! class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+
+global $I18n;
+if (!is_object($I18n)) {
+    $I18n = new LEPTON_Helper_I18n();
+}
+else {
+    $I18n->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
+}
+
 if (! file_exists(WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.php')) {
     if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', 'DE'); // important: language flag is used by template selection
 } else {
     if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE);
 }
-$lang = new LEPTON_Helper_I18n();
+// load language depending onfiguration
+if (!file_exists(WB_PATH.'/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.cfg.php')) {
+    require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.cfg.php');
+} else {
+    require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.cfg.php');
+}
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.form.php');
 require_once(WB_PATH.'/modules/kit_tools/class.droplets.php');

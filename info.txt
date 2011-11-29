@@ -8,6 +8,10 @@
  * @version $Id$
  */
 
+Release 0.24
+2011-11-30
+fixed - incomplete I18n initialisation in install.php
+
 Releasse 0.23
 2011-11-29
 changed - kitForm uses now the I18n translation function of LEPTON 2.x for its 
