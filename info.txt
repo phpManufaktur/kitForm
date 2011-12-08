@@ -8,6 +8,12 @@
  * @version $Id$
  */
 
+Release 0.25
+2011-12-08
+added - upload field for standard upload and upload field for a upload dialog
+  with progress bar - needs kitUploader
+added - KIT framework for kitDirList access
+
 Release 0.24
 2011-11-30
 fixed - incomplete I18n initialisation in install.php

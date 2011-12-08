@@ -15,12 +15,26 @@
        <col width="150" />
        <col width="*" />
      </colgroup>
-     {foreach $items item}
+   {foreach $items item}
+   {if $item.type != 'file'} 
      <tr>
        <td>{$item.label}</td>
        <td>{$item.value}</td>
      </tr>
+   {/if}
    {/foreach}
+   {if $files.count > 0}
+   {foreach $files.items file}
+   <tr>
+     <td>Datei</td>
+     <td>{$file.name}</td>
+   </tr>
+   <tr>
+     <td>Größe (Bytes)</td>
+     <td>{$file.size}</td>
+   </tr>
+   {/foreach}
+   {/if}
    </table>
    <p>Wir haben Ihnen zusätzlich eine Bestätigung an Ihre E-Mail Adresse <b>{$contact.kit_email}</b> gesendet.</p>
    <p>Wir werden uns in Kürze mit Ihnen in Verbindung setzen!</p>

@@ -59,16 +59,45 @@ if (!file_exists(WB_PATH.'/modules/' . basename(dirname(__FILE__)) . '/languages
     require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.cfg.php');
 }
 
-if (! class_exists('Dwoo')) require_once (WB_PATH . '/modules/dwoo/include.php');
 if (! class_exists('kitContactInterface')) require_once (WB_PATH . '/modules/kit/class.interface.php');
 if (! class_exists('kitToolsLibrary')) require_once (WB_PATH . '/modules/kit_tools/class.tools.php');
 
 require_once (WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/class.form.php');
 
+// initialize Dwoo
 global $parser;
-global $kitLibrary;
 
-if (! is_object($parser)) $parser = new Dwoo();
+if (!class_exists('Dwoo')) {
+    require_once WB_PATH.'/modules/dwoo/include.php';
+}
+
+$cache_path = WB_PATH.'/temp/cache';
+if (!file_exists($cache_path)) mkdir($cache_path, 0755, true);
+$compiled_path = WB_PATH.'/temp/compiled';
+if (!file_exists($compiled_path)) mkdir($compiled_path, 0755, true);
+
+global $parser;
+if (!is_object($parser)) $parser = new Dwoo($compiled_path, $cache_path);
+
+global $kitLibrary;
 if (! is_object($kitLibrary)) $kitLibrary = new kitToolsLibrary();
+
+// if kitDirList is not installed use framework and create table if needed
+global $dbKITdirList;
+if (file_exists(WB_PATH.'/modules/kit_dirlist/class.link.php')) {
+    require_once WB_PATH.'/modules/kit_dirlist/class.link.php';
+}
+else {
+    require_once WB_PATH.'/modules/kit_form/framework/KIT/kit_dirlist/class.link.php';
+}
+if (!is_object($dbKITdirList)) {
+    $dbKITdirList = new dbKITdirList();
+    if (!$dbKITdirList->sqlTableExists()) $dbKITdirList->sqlCreateTable();
+}
+if (!$dbKITdirList->sqlFieldExists(dbKITdirList::field_reference)) {
+    // add the additional field for references
+    $dbKITdirList->sqlAlterTableAddField(dbKITdirList::field_reference, "VARCHAR(255) NOT NULL DEFAULT ''", dbKITdirList::field_id);
+    $dbKITdirList->sqlAlterTableAddField(dbKITdirList::field_file_orgin, "VARCHAR(255) NOT NULL DEFAULT ''", dbKITdirList::field_id);
+}
 
 ?>

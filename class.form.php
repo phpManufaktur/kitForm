@@ -306,6 +306,7 @@ class dbKITformFields extends dbConnectLE {
     const field_timestamp = 'field_timestamp';
     
     const type_checkbox = 'checkbox';
+    const type_file = 'file';
     const type_hidden = 'hidden';
     const type_html = 'html';
     const type_radio = 'radio';
@@ -372,7 +373,8 @@ class dbKITformFields extends dbConnectLE {
                 self::type_radio => $lang->translate('Radiobutton'),
                 self::type_select => $lang->translate('Selection list'), 
                 self::type_hidden => $lang->translate('Hidden field'),
-                self::type_html => $lang->translate('HTML Code (free format)')
+                self::type_html => $lang->translate('HTML Code (free format)'),
+                self::type_file => $lang->translate('File upload')
                 );
         $this->data_type_array  = array(
                 self::data_type_date => $lang->translate('Date'), 

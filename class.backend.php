@@ -63,7 +63,8 @@ class formBackend {
     private $error = '';
     private $message = '';
 
-    private $lang = null;
+    protected $lang = null;
+    protected $file_allowed_filetypes = 'jpg,gif,png,pdf,zip';
     
     public function __construct() {
         global $I18n;
@@ -183,6 +184,29 @@ class formBackend {
         return $result;
     } // getTemplate()
 
+    protected function convertBytes($value) {
+        if (is_numeric($value)) {
+            return $value;
+        }
+        else {
+            $value_length = strlen( $value );
+            $qty = substr( $value, 0, $value_length - 1 );
+            $unit = strtolower( substr( $value, $value_length - 1 ) );
+            switch ($unit):
+            case 'k':
+                $qty *= 1024;
+            break;
+            case 'm':
+                $qty *= 1048576;
+                break;
+            case 'g':
+                $qty *= 1073741824;
+                break;
+                endswitch;
+                return $qty;
+        }
+    } // convertBytes
+    
     
     /**
      * Verhindert XSS Cross Site Scripting
@@ -471,17 +495,99 @@ class formBackend {
                         case dbKITformFields::type_text_area:
                             // textarea pruefen
                             $field_data = array(
-                            dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
-                            dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
-                            dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
-                            dbKITformFields::field_data_type => dbKITformFields::data_type_text, 
-                            dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '');
+                                    dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
+                                    dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
+                                    dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
+                                    dbKITformFields::field_data_type => dbKITformFields::data_type_text, 
+                                    dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : ''
+                                    );
                             $where = array(
-                            dbKITformFields::field_id => $field_id);
+                                    dbKITformFields::field_id => $field_id
+                                    );
                             if (! $dbKITformFields->sqlUpdateRecord($field_data, $where)) {
                                 $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
                                 return false;
                             }
+                            break;
+                        case dbKITformFields::type_file:
+                            // FILE Type
+                            $settings = array();
+                            parse_str($data[dbKITformFields::field_type_add], $settings);
+                            $upload_max_filesize = $this->convertBytes(ini_get('upload_max_filesize'));
+                            $post_max_size = $this->convertBytes(ini_get('post_max_size'));
+                            $max_filesize = $upload_max_filesize;
+                            if ($upload_max_filesize > $post_max_size) $max_filesize = $post_max_size;
+                            
+                            // check if the field NAME has changed ...
+                            if ($settings['upload_method']['name'] != "upload_method_$field_name") {
+                                $settings['upload_method']['name'] = "upload_method_$field_name";
+                                $settings['file_types']['name'] = "file_types_$field_name";
+                                $settings['max_file_size']['name'] = "max_file_size_$field_name";                                
+                            }
+                            // update settings ...
+                            if (isset($_REQUEST["upload_method_$field_name"])) {
+                                // check the upload method
+                                $dummy = strtolower($_REQUEST["upload_method_$field_name"]);
+                                switch ($dummy):
+                                case 'standard' :
+                                    $settings['upload_method']['value'] = 'standard';
+                                    break;
+                                case 'uploadify' :
+                                    if (!file_exists(WB_PATH.'/modules/kit_uploader/info.php')) {
+                                        // missing kitUploader
+                                        $message .= $this->lang->translate('<p>To use the upload method <b>uploadify</b> kitUploader must be installed!</p>');
+                                        $settings['upload_method']['value'] = 'standard';
+                                        break;
+                                    }
+                                    $settings['upload_method']['value'] = 'uploadify';
+                                    break;
+                                default:
+                                    $checked = false;
+                                    $message .= $this->lang->translate('<p>Unknown upload method: <b>{{ method }}</b>, allowed methods are <i>standard</i> or <i>uploadify</i>.</p>',
+                                            array('method' => $dummy));
+                                    $settings['upload_method']['value'] = 'standard';
+                                    break;
+                                endswitch;
+                            }
+                            else {
+                                $settings['upload_method']['value'] = 'standard';
+                            }
+                            if (isset($_REQUEST["file_types_$field_name"])) {
+                                // set allowed file extensions, grant lowercase and remove spaces
+                                $dummy = strtolower($_REQUEST["file_types_$field_name"]);
+                                $dummy = str_replace(' ', '', $dummy);
+                                $settings['file_types']['value'] = $dummy;
+                            }
+                            else {
+                                $settings['file_types']['value'] = $this->file_allowed_filetypes;
+                            }
+                            if (isset($_REQUEST["max_file_size_$field_name"])) {
+                                $max = (int) $_REQUEST["max_file_size_$field_name"];
+                                if (($max*1024*1024) > $max_filesize) {
+                                    $max = ($max_filesize/1024/1024);
+                                    $message .= $this->lang->translate('<p>System does not allow uploads greater than <b>{{ max_filesize }} MB</b>. Please contact your webmaster to increase this value.</p>',
+                                            array('max_filesize' => $max_filesize/1024/1024));
+                                }
+                                $settings['max_file_size']['value'] = $max;
+                            }
+                            else {
+                                $settings['max_file_size']['value'] = $max_filesize/1024/1024;
+                            }    
+                            $field_data = array(    
+                                    dbKITformFields::field_name => (isset($_REQUEST['name_'.$field_name])) ? $_REQUEST['name_'.$field_name] : 'free_'.$field_id,
+                                    dbKITformFields::field_title => (isset($_REQUEST['title_'.$field_name])) ? $_REQUEST['title_'.$field_name] : 'title_'.$field_id,
+                                    dbKITformFields::field_value => '',
+                                    dbKITformFields::field_data_type => dbKITformFields::data_type_undefined,
+                                    dbKITformFields::field_hint => (isset($_REQUEST['hint_'.$field_name])) ? $_REQUEST['hint_'. $field_name] : '',
+                                    dbKITformFields::field_type_add => http_build_query($settings)
+                                    );
+                            $where = array(
+                                    dbKITformFields::field_id => $field_id
+                                    );
+                            if (!$dbKITformFields->sqlUpdateRecord($field_data, $where)) {
+                                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+                                return false;
+                            } 
                             break;
                         case dbKITformFields::type_checkbox:
                             // CHECKBOX pruefen
@@ -517,12 +623,13 @@ class formBackend {
                             }
                             // allgemeine Daten der Checkbox pruefen
                             $field_data = array(
-                            dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
-                            dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
-                            dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
-                            dbKITformFields::field_data_type => dbKITformFields::data_type_undefined, 
-                            dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '', 
-                            dbKITformFields::field_type_add => http_build_query($checkboxes));
+                                    dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
+                                    dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
+                                    dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
+                                    dbKITformFields::field_data_type => dbKITformFields::data_type_undefined, 
+                                    dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '', 
+                                    dbKITformFields::field_type_add => http_build_query($checkboxes)
+                                    );
                             $where = array(
                             dbKITformFields::field_id => $field_id);
                             if (! $dbKITformFields->sqlUpdateRecord($field_data, $where)) {
@@ -561,12 +668,13 @@ class formBackend {
                             }
                             // allgemeine Daten der Radiobuttons pruefen
                             $field_data = array(
-                            dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
-                            dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
-                            dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
-                            dbKITformFields::field_data_type => dbKITformFields::data_type_undefined, 
-                            dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '', 
-                            dbKITformFields::field_type_add => http_build_query($radios));
+                                    dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id, 
+                                    dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id, 
+                                    dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '', 
+                                    dbKITformFields::field_data_type => dbKITformFields::data_type_undefined, 
+                                    dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '', 
+                                    dbKITformFields::field_type_add => http_build_query($radios)
+                                    );
                             $where = array(
                             dbKITformFields::field_id => $field_id);
                             if (! $dbKITformFields->sqlUpdateRecord($field_data, $where)) {
@@ -647,7 +755,7 @@ class formBackend {
                             }
                             break;
                         default:
-                            $message .= "<p>Datentyp " . $data[dbKITformFields::field_type] . " wird nicht unterstützt!</p>";
+                            $message .= $this->lang->translate('<p>The datatype {{ datatype }} is not supported!</p>', array('datatype' => $data[dbKITformFields::field_type]));
                     endswitch
                     ;
                 }
@@ -745,17 +853,48 @@ class formBackend {
                 if ($form_id > 0) {
                     // Formular ist gueltig, neues Datenfeld hinzufuegen
                     $data = array(
-                    dbKITformFields::field_type => $_REQUEST[self::request_add_free_field], 
-                    dbKITformFields::field_title => $_REQUEST[self::request_free_field_title], 
-                    dbKITformFields::field_form_id => $form_id);
+                            dbKITformFields::field_type => $_REQUEST[self::request_add_free_field], 
+                            dbKITformFields::field_title => $_REQUEST[self::request_free_field_title], 
+                            dbKITformFields::field_form_id => $form_id
+                            );
                     $field_id = - 1;
                     if (! $dbKITformFields->sqlInsertRecord($data, $field_id)) {
                         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
                         return false;
                     }
-                    $data = array(
-                    dbKITformFields::field_name => "free_$field_id");
-                    $where = array(dbKITformFields::field_id => $field_id);
+                    if ($data[dbKITformFields::field_type] == dbKITformFields::type_file) {
+                        // create settings for file uploads
+                        
+                        $settings = array(
+                                'upload_method' => array(
+                                        'label' => 'Upload method',
+                                        'name' => "upload_method_free_$field_id",
+                                        'value' => 'standard'
+                                        ),
+                                'file_types' => array(
+                                        'label' => 'Allowed filetypes',
+                                        'name' => "file_types_free_$field_id",
+                                        'value' => $this->file_allowed_filetypes,
+                                        ),
+                                'max_file_size' => array(
+                                        'label' => 'max. filesize (MB)',
+                                        'name' => "max_file_size_free_$field_id",
+                                        'value' => $max_filesize/1024/1024
+                                        )
+                                );
+                        $data = array(
+                                dbKITformFields::field_name => "free_$field_id",
+                                dbKITformFields::field_type_add => http_build_query($settings)
+                                );
+                    }
+                    else {
+                        $data = array(
+                                dbKITformFields::field_name => "free_$field_id"
+                                );
+                    }
+                    $where = array(
+                            dbKITformFields::field_id => $field_id
+                            );
                     if (! $dbKITformFields->sqlUpdateRecord($data, $where)) {
                         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
                         return false;
@@ -1032,71 +1171,88 @@ class formBackend {
                     case dbKITformFields::type_text:
                         // INPUT TEXT
                         $form_fields[$field_name] = array(
-                        'id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')
-                                ), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')
-                                ), 
-                        'hint' => array(
-                        'dialog' => $this->lang->translate('hint_free_field_type_text'), 
-                        'name' => "hint_$field_name", 
-                        'value' => $data[dbKITformFields::field_hint], 
-                        'label' => $this->lang->translate('label_hint_label')
-                                ), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')
-                                ), 
-                        'default' => array(
-                        'value' => $data[dbKITformFields::field_value], 
-                        'name' => "default_$field_name", 
-                        'label' => $this->lang->translate('label_default_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')), 
-                        'data_type' => array('array' => $data_types, 
-                        'value' => $data[dbKITformFields::field_data_type], 
-                        'name' => "data_type_$field_name", 
-                        'label' => $this->lang->translate('label_data_type_label')));
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_text'), 
+                                        'name' => "hint_$field_name", 
+                                        'value' => $data[dbKITformFields::field_hint], 
+                                        'label' => $this->lang->translate('label_hint_label')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'default' => array(
+                                        'value' => $data[dbKITformFields::field_value], 
+                                        'name' => "default_$field_name", 
+                                        'label' => $this->lang->translate('label_default_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')
+                                        ), 
+                                'data_type' => array(
+                                        'array' => $data_types, 
+                                        'value' => $data[dbKITformFields::field_data_type], 
+                                        'name' => "data_type_$field_name", 
+                                        'label' => $this->lang->translate('label_data_type_label')
+                                        )
+                                );
                         break;
                     case dbKITformFields::type_text_area:
                         // TEXTAREA
                         $form_fields[$field_name] = array(
-                        'id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')
-                        ), 
-                        'hint' => array(
-                        'dialog' => $this->lang->translate('hint_free_field_type_text_area'), 
-                        'name' => "hint_$field_name", 
-                        'value' => $data[dbKITformFields::field_hint], 
-                        'label' => $this->lang->translate('label_hint_label')), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'default' => array(
-                        'value' => $data[dbKITformFields::field_value], 
-                        'name' => "default_$field_name", 
-                        'label' => $this->lang->translate('label_default_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')));
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_text_area'), 
+                                        'name' => "hint_$field_name", 
+                                        'value' => $data[dbKITformFields::field_hint], 
+                                        'label' => $this->lang->translate('label_hint_label')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'default' => array(
+                                        'value' => $data[dbKITformFields::field_value], 
+                                        'name' => "default_$field_name", 
+                                        'label' => $this->lang->translate('label_default_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')
+                                        )
+                                );
                         break;
                     case dbKITformFields::type_checkbox:
                         // CHECKBOX
@@ -1105,36 +1261,46 @@ class formBackend {
                         parse_str($data[dbKITformFields::field_type_add], $checkboxes);
                         // Option: neues Feld hinzufuegen 
                         $checkboxes[] = array(
-                        'name' => $field_id, 'value' => '', 'text' => '', 
-                        'checked' => 0);
-                        $form_fields[$field_name] = array('id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')), 
-                        'hint' => array(
-                                'dialog' => $this->lang->translate('hint_free_field_type_checkbox'), 
-                                'name' => "hint_$field_name", 
-                                'value' => $data[dbKITformFields::field_hint], 
-                                'label' => $this->lang->translate('label_hint_label'), 
-                                'hint_add' => $this->lang->translate('hint_free_checkbox_hint_add'), 
-                                'hint_val' => $this->lang->translate('hint_free_checkbox_hint_val'), 
-                                'hint_txt' => $this->lang->translate('hint_free_checkbox_hint_txt'), 
-                                'hint_sel' => $this->lang->translate('hint_free_checkbox_hint_sel')
-                                ), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')), 
-                        'checkbox' => $checkboxes);
+                                'name' => $field_id, 
+                                'value' => '', 'text' => '', 
+                                'checked' => 0
+                                );
+                        $form_fields[$field_name] = array(
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_checkbox'), 
+                                        'name' => "hint_$field_name", 
+                                        'value' => $data[dbKITformFields::field_hint], 
+                                        'label' => $this->lang->translate('label_hint_label'), 
+                                        'hint_add' => $this->lang->translate('hint_free_checkbox_hint_add'), 
+                                        'hint_val' => $this->lang->translate('hint_free_checkbox_hint_val'), 
+                                        'hint_txt' => $this->lang->translate('hint_free_checkbox_hint_txt'), 
+                                        'hint_sel' => $this->lang->translate('hint_free_checkbox_hint_sel')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')
+                                        ), 
+                                'checkbox' => $checkboxes
+                                );
                         break;
                     case dbKITformFields::type_radio:
                         // RADIOBUTTONS
@@ -1143,36 +1309,95 @@ class formBackend {
                         parse_str($data[dbKITformFields::field_type_add], $radios);
                         // Option: neues Feld hinzufuegen 
                         $radios[] = array(
-                        'name' => $field_id, 'value' => '', 'text' => '', 
-                        'checked' => 0);
-                        $form_fields[$field_name] = array('id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')
-                                ), 
-                        'hint' => array(
-                            'dialog' => $this->lang->translate('hint_free_field_type_radiobutton'), 
-                            'name' => "hint_$field_name", 
-                            'value' => $data[dbKITformFields::field_hint], 
-                            'label' => $this->lang->translate('label_hint_label'), 
-                            'hint_add' => $this->lang->translate('hint_free_radio_hint_add'), 
-                            'hint_val' => $this->lang->translate('hint_free_radio_hint_val'), 
-                            'hint_txt' => $this->lang->translate('hint_free_radio_hint_txt'), 
-                            'hint_sel' => $this->lang->translate('hint_free_radio_hint_sel')
-                                ), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')), 'radios' => $radios);
+                                'name' => $field_id, 
+                                'value' => '', 
+                                'text' => '', 
+                                'checked' => 0
+                                );
+                        $form_fields[$field_name] = array(
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_radiobutton'), 
+                                        'name' => "hint_$field_name", 
+                                        'value' => $data[dbKITformFields::field_hint], 
+                                        'label' => $this->lang->translate('label_hint_label'), 
+                                        'hint_add' => $this->lang->translate('hint_free_radio_hint_add'), 
+                                        'hint_val' => $this->lang->translate('hint_free_radio_hint_val'), 
+                                        'hint_txt' => $this->lang->translate('hint_free_radio_hint_txt'), 
+                                        'hint_sel' => $this->lang->translate('hint_free_radio_hint_sel')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')), 
+                                'radios' => $radios
+                                );
+                        break;
+                    case dbKITformFields::type_file:
+                        // File upload
+                        $settings = array();
+                        parse_str($data[dbKITformFields::field_type_add], $settings);
+                        $setting_array = array();
+                        foreach ($settings as $key => $setting) {
+                            $setting_array[$key] = array(
+                                    'label' => $this->lang->translate($setting['label']),
+                                    'name' => $setting['name'],
+                                    'value' => $setting['value']
+                                    );
+                        }
+                        $form_fields[$field_name] = array(
+                                'id' => $field_id,
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])),
+                                'name' => $field_name,
+                                'field' => array(
+                                        'name' => 'name_'. $field_name,
+                                        'value' => $field_name,
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ),
+                                'must' => array(
+                                        'name' => 'must_'. $field_name,
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0,
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ),
+                                'title' => array(
+                                        'name' => "title_$field_name",
+                                        'value' => $data[dbKITformFields::field_title],
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ),
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type],
+                                        'name' => "type_$field_name",
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]],
+                                        'label' => $this->lang->translate('label_type_label')
+                                        ),
+                                // additional settings for file uploads
+                                'settings' => $setting_array,
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_file'),
+                                        'name' => "hint_$field_name",
+                                        'value' => $data[dbKITformFields::field_hint],
+                                        'label' => $this->lang->translate('label_hint_label'),
+                                ),
+                                
+                        );
                         break;
                     case dbKITformFields::type_select:
                         // SELECT Auswahl
@@ -1181,96 +1406,122 @@ class formBackend {
                         parse_str($data[dbKITformFields::field_type_add], $options);
                         // Option: neues Feld hinzufuegen 
                         $options[] = array(
-                        'name' => $field_id, 'value' => '', 'text' => '', 
-                        'checked' => 0);
-                        $form_fields[$field_name] = array('id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')), 
-                        'hint' => array(
-                                'dialog' => $this->lang->translate('hint_free_field_type_select'), 
-                                'name' => "hint_$field_name", 
-                                'value' => $data[dbKITformFields::field_hint], 
-                                'label' => $this->lang->translate('label_hint_label'), 
-                                'hint_add' => $this->lang->translate('hint_free_select_hint_add'), 
-                                'hint_val' => $this->lang->translate('hint_free_select_hint_val'), 
-                                'hint_txt' => $this->lang->translate('hint_free_select_hint_txt'), 
-                                'hint_sel' => $this->lang->translate('hint_free_select_hint_sel')
-                                ), 
-                        'title' => array(
-                                'name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')), 
-                        'size' => array(
-                                'name' => "size_$field_name", 
-                                'value' => $data[dbKITformFields::field_value], 
-                                'label' => $this->lang->translate('label_size_label')
-                                ), 
-                        'options' => $options
+                                'name' => $field_id, 
+                                'value' => '', 
+                                'text' => '', 
+                                'checked' => 0
+                                );
+                        $form_fields[$field_name] = array(
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_select'), 
+                                        'name' => "hint_$field_name", 
+                                        'value' => $data[dbKITformFields::field_hint], 
+                                        'label' => $this->lang->translate('label_hint_label'), 
+                                        'hint_add' => $this->lang->translate('hint_free_select_hint_add'), 
+                                        'hint_val' => $this->lang->translate('hint_free_select_hint_val'), 
+                                        'hint_txt' => $this->lang->translate('hint_free_select_hint_txt'), 
+                                        'hint_sel' => $this->lang->translate('hint_free_select_hint_sel')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')), 
+                                'size' => array(
+                                        'name' => "size_$field_name", 
+                                        'value' => $data[dbKITformFields::field_value], 
+                                        'label' => $this->lang->translate('label_size_label')
+                                        ), 
+                                'options' => $options
                                 );
                         break;
                     case dbKITformFields::type_html:
-                        $form_fields[$field_name] = array('id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        //'value'			=> $data[dbKITformFields::field_value],
-                        'must' => array(
-                        'name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'hint' => array(
-                        'dialog' => $this->lang->translate('hint_free_field_type_html')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')), 
-                        'html' => array('name' => "html_$field_name", 
-                        'value' => $data[dbKITformFields::field_value], 
-                        'label' => $this->lang->translate('label_html_label')));
+                        $form_fields[$field_name] = array(
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'title' => array(
+                                        'name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_html')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')
+                                        ), 
+                                'html' => array(
+                                        'name' => "html_$field_name", 
+                                        'value' => $data[dbKITformFields::field_value], 
+                                        'label' => $this->lang->translate('label_html_label')
+                                        )
+                                );
                         break;
                     case dbKITformFields::type_hidden:
                         // HIDDEN Feld
                         $form_fields[$field_name] = array(
-                        'id' => $field_id, 
-                        'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
-                        'name' => $field_name, 
-                        'field' => array('name' => 'name_' . $field_name, 
-                        'value' => $field_name, 
-                        'label' => $this->lang->translate('label_name_label')), 
-                        'must' => array('name' => 'must_' . $field_name, 
-                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
-                        'text' => $this->lang->translate('mark as must field')), 
-                        'hint' => array(
-                        'dialog' => $this->lang->translate('hint_free_field_type_hidden')), 
-                        'title' => array('name' => "title_$field_name", 
-                        'value' => $data[dbKITformFields::field_title], 
-                        'label' => $this->lang->translate('label_title_label')), 
-                        'value' => array(
-                        'value' => $data[dbKITformFields::field_value], 
-                        'name' => "value_$field_name", 
-                        'label' => $this->lang->translate('label_value_label')), 
-                        'type' => array(
-                        'type' => $data[dbKITformFields::field_type], 
-                        'name' => "type_$field_name", 
-                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
-                        'label' => $this->lang->translate('label_type_label')));
+                                'id' => $field_id, 
+                                'label' => $this->lang->translate('label_free_label_marker', array('title' => $data[dbKITformFields::field_title])), 
+                                'name' => $field_name, 
+                                'field' => array(
+                                        'name' => 'name_' . $field_name, 
+                                        'value' => $field_name, 
+                                        'label' => $this->lang->translate('label_name_label')
+                                        ), 
+                                'must' => array(
+                                        'name' => 'must_' . $field_name, 
+                                        'value' => (in_array($field_id, $must_fields)) ? 1 : 0, 
+                                        'text' => $this->lang->translate('mark as must field')
+                                        ), 
+                                'hint' => array(
+                                        'dialog' => $this->lang->translate('hint_free_field_type_hidden')), 
+                                        'title' => array('name' => "title_$field_name", 
+                                        'value' => $data[dbKITformFields::field_title], 
+                                        'label' => $this->lang->translate('label_title_label')
+                                        ), 
+                                'value' => array(
+                                        'value' => $data[dbKITformFields::field_value], 
+                                        'name' => "value_$field_name", 
+                                        'label' => $this->lang->translate('label_value_label')
+                                        ), 
+                                'type' => array(
+                                        'type' => $data[dbKITformFields::field_type], 
+                                        'name' => "type_$field_name", 
+                                        'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
+                                        'label' => $this->lang->translate('label_type_label')
+                                        )
+                                );
                         break;
                     default:
-                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The field type <b>{{ type }}</b> is not implemented!', array('type' => $data[dbKITformFields::field_type]))));
+                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
+                                $this->lang->translate('The field type <b>{{ type }}</b> is not implemented!', array('type' => $data[dbKITformFields::field_type]))));
                         return false;
                 endswitch
                 ;
@@ -1289,19 +1540,24 @@ class formBackend {
                 return false;
             }
             $value = array();
-            $value[] = array('value' => dbKITform::action_none, 
-            'text' => $this->lang->translate('- not assigned -'), 
-            'selected' => (isset($links[$name]) && ($links[$name] == dbKITform::action_none)) ? 1 : 0);
+            $value[] = array(
+                    'value' => dbKITform::action_none, 
+                    'text' => $this->lang->translate('- not assigned -'), 
+                    'selected' => (isset($links[$name]) && ($links[$name] == dbKITform::action_none)) ? 1 : 0
+                    );
             foreach ($link_forms as $link) {
-                $value[] = array('value' => $link[dbKITform::field_name], 
-                'text' => $link[dbKITform::field_name], 
-                'selected' => (isset($links[$name]) && ($links[$name] == $link[dbKITform::field_name])) ? 1 : 0);
+                $value[] = array(
+                        'value' => $link[dbKITform::field_name], 
+                        'text' => $link[dbKITform::field_name], 
+                        'selected' => (isset($links[$name]) && ($links[$name] == $link[dbKITform::field_name])) ? 1 : 0
+                        );
             }
             $form['kit_link'][] = array(
                     'label' => $this->lang->translate('label_kit_link', array('text' => $text)), 
                     'name' => $name, 
                     'hint' => $this->lang->translate('hint_kit_link_add', array('form' => $text)), 
-                    'value' => $value);
+                    'value' => $value
+                    );
         }
         
         // neue KIT Aktion hinzufuegen
@@ -1372,22 +1628,29 @@ class formBackend {
             $sorter_active = 1;
         }
         // Dialog ausgeben
-        $data = array('form_action' => $this->page_link, 
-        'action_name' => self::request_action, 
-        'action_value' => self::action_edit_check, 
-        'form_name' => dbKITform::field_id, 'form_value' => $form_id, 
-        'header' => $this->lang->translate('Edit the form'), 
-        'is_intro' => ($this->isMessage()) ? 0 : 1, 
-        'intro' => ($this->isMessage()) ? $this->getMessage() : $this->lang->translate('With this dialog you can create and edit general forms and special forms for KeepInTouch (KIT).'), 
+        $data = array(
+                'form_action' => $this->page_link, 
+                'action_name' => self::request_action, 
+                'action_value' => self::action_edit_check, 
+                'form_name' => dbKITform::field_id, 
+                'form_value' => $form_id, 
+                'header' => $this->lang->translate('Edit the form'), 
+                'is_intro' => ($this->isMessage()) ? 0 : 1, 
+                'intro' => ($this->isMessage()) ? $this->getMessage() : $this->lang->translate('With this dialog you can create and edit general forms and special forms for KeepInTouch (KIT).'), 
                 'btn_ok' => $this->lang->translate('OK'), 
                 'btn_abort' => $this->lang->translate('Abort'), 
-        'abort_location' => $this->page_link, 'form' => $form, 
-        'fields' => $form_fields, 'kit_fields_intro' => $this->lang->translate('Select the KeepInTouch (KIT) contact fields you wish to use with this form.'), 
-        'sorter_table' => $sorter_table, 'sorter_active' => $sorter_active, 
-        'sorter_value' => $form_id, 'fields_name' => dbKITform::field_fields, 
-        'fields_value' => $form_data[dbKITform::field_fields], 
-        'must_fields_name' => dbKITform::field_must_fields, 
-        'must_fields_value' => $form_data[dbKITform::field_must_fields]);
+                'abort_location' => $this->page_link, 
+                'form' => $form, 
+                'fields' => $form_fields, 
+                'kit_fields_intro' => $this->lang->translate('Select the KeepInTouch (KIT) contact fields you wish to use with this form.'), 
+                'sorter_table' => $sorter_table, 
+                'sorter_active' => $sorter_active, 
+                'sorter_value' => $form_id, 
+                'fields_name' => dbKITform::field_fields, 
+                'fields_value' => $form_data[dbKITform::field_fields], 
+                'must_fields_name' => dbKITform::field_must_fields, 
+                'must_fields_value' => $form_data[dbKITform::field_must_fields]
+                );
         return $this->getTemplate('backend.form.edit.htt', $data);
     } // dlgFormEdit()
 

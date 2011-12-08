@@ -39,6 +39,7 @@ require_once (WB_PATH . '/include/captcha/captcha.php');
 require_once (WB_PATH . '/framework/class.wb.php');
 require_once (WB_PATH . '/modules/kit/class.mail.php');
 require_once (WB_PATH . '/modules/droplets_extension/interface.php');
+require_once(WB_PATH . '/framework/functions.php');
 
 global $dbKITform;
 global $dbKITformFields;
@@ -107,6 +108,25 @@ class formFrontend {
 	
 	protected $lang;
 	
+	// protected folder for uploads - uses kitDirList sheme!
+	const PROTECTION_FOLDER	= 'kit_protected';
+	const CONTACTS_FOLDER = 'contacts';
+	const USER_FOLDER = 'user';
+	
+	protected $general_excluded_extensions = array(
+	        'php',
+	        'php3',
+	        'php4',
+	        'php5',
+	        'php6',
+	        'phps',
+	        'js',
+	        'htm',
+	        'html',
+	        'shtml'
+	);
+	
+	
 	public function __construct() {
 	    global $I18n;
 		global $kitLibrary;
@@ -121,6 +141,7 @@ class formFrontend {
 	} // __construct()
 	
 
+	
 	public function getParams() {
 		return $this->params;
 	} // getParams()
@@ -309,6 +330,8 @@ class formFrontend {
 		
 		// special: feedback form
 		$is_feedback_form = false;
+		// special: file upload
+		$is_file_upload = false;
 		
 		if (isset ( $_REQUEST [self::request_link] )) {
 			$form_name = $_REQUEST [self::request_link];
@@ -407,6 +430,7 @@ class formFrontend {
 		$fields_array = explode ( ',', $fdata [dbKITform::field_fields] );
 		$must_array = explode ( ',', $fdata [dbKITform::field_must_fields] );
 		$form_fields = array ();
+		$upload_id = (isset($_REQUEST['upload_id'])) ? $_REQUEST['upload_id'] : createGUID();
 		foreach ( $fields_array as $field_id ) {
 			if ($field_id < 100) {
 				// IDs 1-99 sind fuer KIT reserviert
@@ -566,11 +590,55 @@ class formFrontend {
 							}
 							$checkboxes = $checked_boxes;
 						}
-						$form_fields [$field [dbKITformFields::field_name]] = array ('id' => $field [dbKITformFields::field_id], 'type' => $field [dbKITformFields::field_type], 'name' => $field [dbKITformFields::field_name], 'hint' => $field [dbKITformFields::field_hint], 'label' => $field [dbKITformFields::field_title], 'must' => (in_array ( $field_id, $must_array )) ? 1 : 0, 'value' => $field [dbKITformFields::field_value], 'checkbox' => $checkboxes );
+						$form_fields[$field[dbKITformFields::field_name]] = array (
+						        'id' => $field [dbKITformFields::field_id], 
+						        'type' => $field [dbKITformFields::field_type], 
+						        'name' => $field [dbKITformFields::field_name], 
+						        'hint' => $field [dbKITformFields::field_hint], 
+						        'label' => $field [dbKITformFields::field_title], 
+						        'must' => (in_array ( $field_id, $must_array )) ? 1 : 0, 
+						        'value' => $field [dbKITformFields::field_value], 
+						        'checkbox' => $checkboxes 
+						        );
 						break;
 					case dbKITformFields::type_hidden :
-						$form_fields [$field [dbKITformFields::field_name]] = array ('id' => $field [dbKITformFields::field_id], 'type' => $field [dbKITformFields::field_type], 'name' => $field [dbKITformFields::field_name], 'value' => $field [dbKITformFields::field_value] );
+						$form_fields[$field[dbKITformFields::field_name]] = array(
+						        'id' => $field [dbKITformFields::field_id], 
+						        'type' => $field [dbKITformFields::field_type], 
+						        'name' => $field [dbKITformFields::field_name], 
+						        'value' => $field [dbKITformFields::field_value] 
+						        );
 						break;
+					case dbKITformFields::type_file:
+					    parse_str($field[dbKITformFields::field_type_add], $settings);
+					    $ext_array = explode(',', $settings['file_types']['value']);
+					    $file_ext = '';
+					    $file_desc = '';
+					    foreach ($ext_array as $ext) {
+					        if (empty($ext)) continue;
+					        if (!empty($file_ext)) {
+					            $file_ext .= ';';
+					            $file_desc .= ', ';
+					        }
+					        $file_ext .= sprintf('*.%s', $ext);
+					        $file_desc .= sprintf('.%s', $ext);
+					    }
+					    $form_fields[$field[dbKITformFields::field_name]] = array(
+        					    'id' => $field [dbKITformFields::field_id],
+        					    'type' => $field [dbKITformFields::field_type],
+        					    'name' => $field [dbKITformFields::field_name],
+        					    'hint' => $field [dbKITformFields::field_hint],
+        					    'label' => $field [dbKITformFields::field_title],
+        					    'must' => (in_array ( $field_id, $must_array )) ? 1 : 0,
+					            'settings' => $settings,
+					            'upload_id' => $upload_id,
+					            'file_desc' => $file_desc,
+					            'file_ext' => $file_ext,
+					            'file_size' => $settings['max_file_size']['value']*1024*1024,
+					            'select_file' => $this->lang->translate('Select File')       					    
+					            );
+					    $is_file_upload = true;
+					    break;
 					case dbKITformFields::type_html :
 						$form_fields [$field [dbKITformFields::field_name]] = array ('id' => $field [dbKITformFields::field_id], 'type' => $field [dbKITformFields::field_type], 'value' => $field [dbKITformFields::field_value] );
 						break;
@@ -618,7 +686,10 @@ class formFrontend {
 		    return $this->showFeedbackForm($form_id, $form_data, $form_fields);
 		}
 		else {
-		    $data = array ('form' => $form_data, 'fields' => $form_fields );
+		    $data = array (
+		            'WB_URL' => WB_URL,
+		            'form' => $form_data, 
+		            'fields' => $form_fields );
 		    return $this->getTemplate ( 'form.htt', $data );
 		}
 	} // showForm()
@@ -637,6 +708,7 @@ class formFrontend {
 		global $kitLibrary;
 		global $dbKITformData;
 		global $dbContact;
+		global $dbKITdirList;
 		
 		if (! isset ( $_REQUEST [dbKITform::field_id] )) {
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Missing the form ID!')));
@@ -721,8 +793,12 @@ class formFrontend {
 					return false;
 				}
 				$field = $field [0];
-				$field_name = $field [dbKITformFields::field_name];
-				if (! isset ( $_REQUEST [$field_name] ) || empty ( $_REQUEST [$field_name] )) {
+				$field_name = $field[dbKITformFields::field_name];
+				if ($field[dbKITformFields::field_type] == dbKITformFields::type_file) {
+				    // file upload?
+				    continue;
+				}
+				elseif (!isset($_REQUEST[$field_name]) || empty($_REQUEST[$field_name])) {
 					// Feld muss gesetzt sein
 					$message .= $this->lang->translate('<p>The field <b>{{ field }}</b> must be filled out.</p>',
 					        array('field' => $field [dbKITformFields::field_title]));
@@ -738,15 +814,275 @@ class formFrontend {
 							}
 							break;
 						default :
-					
-		// alle anderen Datentypen ohne Pruefung...
-					endswitch
-					;
+						    // alle anderen Datentypen ohne Pruefung...
+					endswitch;
 				}
 			}
 		} // foreach
 		
-
+		// file upload?
+		$uploaded_files = array();
+		$uploaded_files['count'] = 0;
+		$file_array = array();
+		
+		if ($checked) {
+    		$where = array(
+    		        dbKITformFields::field_form_id => $form_id,
+    		        dbKITformFields::field_type => dbKITformFields::type_file);
+    		if (!$dbKITformFields->sqlSelectRecord($where, $file_array)) {
+    		    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+    		    return false;
+    		}
+    		
+    		if (count($file_array) > 0) {
+    		    // check the protected upload directory
+    		    $upload_path = WB_PATH.MEDIA_DIRECTORY.DIRECTORY_SEPARATOR.self::PROTECTION_FOLDER;
+    		    if (!file_exists($upload_path)) {
+    		        if (!mkdir($upload_path, 0755, true)) {
+    		            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+    		                    $this->lang->translate('Error creating the directory <b>{{ directory }}</b>.', array('directory' => $upload_path))));
+    		            return false;
+    		        }
+    		    }
+    		    // check if .htaccess and .htpasswd exists...
+    		    if (!file_exists($upload_path.DIRECTORY_SEPARATOR.'.htaccess') || !file_exists($upload_path.DIRECTORY_SEPARATOR.'.htpasswd')) {
+    		        if (!$this->createProtection()) return false;
+    		    }
+    		    
+    		    // get the email address
+    	        $email = $_REQUEST[kitContactInterface::kit_email];
+    	        // the user directory for this upload - the directory will be created when moving the uploaded file!
+    	        $upload_path .= DIRECTORY_SEPARATOR.self::CONTACTS_FOLDER.DIRECTORY_SEPARATOR.$email[0].DIRECTORY_SEPARATOR.$email.DIRECTORY_SEPARATOR.self::USER_FOLDER.DIRECTORY_SEPARATOR.date('ymd-His').DIRECTORY_SEPARATOR;		    		    
+    		}
+    		
+    		foreach ($file_array as $file) {
+    		    parse_str($file[dbKITformFields::field_type_add], $settings);
+    		    $method = $settings['upload_method']['value'];
+    		    if ($method == 'standard') {
+        		    // method: standard - check the file uploads
+        		    if (!isset($_FILES[$file[dbKITformFields::field_name]]) && (in_array($file[dbKITformFields::field_id], $must_array))) {
+        		        // file upload is a MUST field
+        		        $message .= $this->lang->translate('<p>The field <b>{{ field }}</b> must be filled out.</p>',
+        		                array('field' => $kitContactInterface->field_array [$field_name]));
+        		        $checked = false;
+        		        // go ahead...
+        		        continue;
+        		    }
+        		    if (isset($_FILES[$file[dbKITformFields::field_name]]) && (is_uploaded_file($_FILES[$file[dbKITformFields::field_name]]['tmp_name']))) {
+        		        // file was uploaded with the standard method
+        		        if ($_FILES[$file[dbKITformFields::field_name]]['error'] == UPLOAD_ERR_OK) {
+        		            // upload without error
+        		            if ($checked) {
+            		            $fext = explode('.', $_FILES[$file[dbKITformFields::field_name]]['name']);
+            		            // file extension
+            					$ext = strtolower(end($fext));
+            					if (in_array($ext, $this->general_excluded_extensions)) {
+            						// disallowed file or filetype - delete uploaded file
+            						$message .= $this->lang->translate('<p>The file {{ file }} is member of a blacklist or use a disallowed file extension.</p>',
+            						        array('file' => basename($_FILES[$file[dbKITformFields::field_name]]['name'])));
+            						$checked = false;
+            					}
+            					// get the settings for this file
+            					parse_str($file[dbKITformFields::field_type_add], $settings);
+            					if (!empty($settings['file_types'])) {
+            					    $ext_array = explode(',', $settings['file_types']['value']);
+            					    if (!in_array($ext, $ext_array)) {
+            					        $message .= $this->lang->translate('<p>Please upload only files with the extension <b>{{ extensions }}</b>, the file {{ file }} is refused.</p>',
+            					                array('extensions' => implode(', ', $ext_array), 'file' => basename($_FILES[$file[dbKITformFields::field_name]]['name'])));
+            					        $checked = false;
+            					    }
+            					}
+            					if ($_FILES[$file[dbKITformFields::field_name]]['size'] > ($settings['max_file_size']['value']*1024*1024)) {
+            					    $message .= $this->lang->translate('<p>The file size exceeds the limit of {{ size }} MB.</p>',
+            					            array('size' => $settings['max_file_size']));
+            					    $checked = false;
+            					}
+        		            }
+        					if (!$checked) {
+        					    // not checked - delete the file and continue
+        					    @unlink($_FILES[$file[dbKITformFields::field_name]]['tmp_name']);
+        					    continue;
+        					}
+        					// now create the directory
+        					if (!file_exists($upload_path)) {
+        					    if (!mkdir($upload_path, 0755, true)) {
+        					        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+        					                $this->lang->translate('Error creating the directory <b>{{ directory }}</b>.', array('directory' => $upload_path))));
+        					        return false;
+        					    }
+        					}
+        					$mf = media_filename($_FILES[$file[dbKITformFields::field_name]]['name']);
+        					if (!move_uploaded_file($_FILES[$file[dbKITformFields::field_name]]['tmp_name'], $upload_path.$mf)) {
+        					    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
+        					            $this->lang->translate('Error moving the file <b>{{ file }}</b> to the target directory!',
+        					                    array('file' => $_FILES[$file[dbKITformFields::field_name]]['name']))));
+        					    return false;
+        					}
+        					// create dbKITdirList entry
+        					$data = array(
+        					        dbKITdirList::field_count => 0,
+        					        dbKITdirList::field_date => date('Y-m-d H:i:s'),
+        					        dbKITdirList::field_file => $mf,
+        					        dbKITdirList::field_path => $upload_path.$mf,
+        					        dbKITdirList::field_user => $email
+        					        );
+        					$file_id = -1;
+        					if (!$dbKITdirList->sqlInsertRecord($data, $file_id)) {
+        					    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITdirList->getError()));
+        					    return false;
+        					}
+        					// add $file_id to the uploaded files ...
+        					$uploaded_files['count'] += 1;
+        					$uploaded_files['items'][$file_id] = array(
+        					        'id' => $file_id,
+        					        'name' => $mf,
+        					        'name_origin' => $_FILES[$file[dbKITformFields::field_name]]['name'],
+        					        'size' => $_FILES[$file[dbKITformFields::field_name]]['size'],
+        					        'path' => substr($upload_path.$mf, strlen(WB_PATH)),
+        					        'download' => WB_URL.'/modules/kit/kdl.php?id='.$file_id
+        					        );
+        					$contact_id = -1;
+        					if (!$kitContactInterface->isEMailRegistered($email, $contact_id)) {
+        					    if ($kitContactInterface->isError()) {
+        					        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+        					        return false;
+        					    }
+        					    // contact does not exists
+        					    $data = array(
+        					            kitContactInterface::kit_email => $email
+        					            );
+        					    if (!$kitContactInterface->addContact($data, $contact_id)) {
+        					        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+        					        return false;
+        					    }
+        					}
+        					// add notice to KIT
+        					$kitContactInterface->addNotice($contact_id, 
+        					        $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.', 
+        					                array('link' => WB_URL.'/modules/kit/kdl.php?id='.$file_id, 'file' => $mf)));
+        					
+        		        }
+        		        else {
+        		            // handling upload errors
+        		            switch ($_FILES[$file[dbKITformFields::field_name]]['error']):
+        		            case UPLOAD_ERR_INI_SIZE:
+        		                $message .= $this->lang->translate('<p>The file size exceeds the php.ini directive "upload_max_size" <b>{{ size }}</b>.</p>',
+        		                        array('size' => ini_get('upload_max_filesize')));
+        		                $checked = false;
+        		                break;
+        		            case UPLOAD_ERR_PARTIAL:
+        		                $message .= $this->lang->translate('<p>The file <b>{{ file }}</b> was uploaded partial.</p>',
+        		                        array('file' => $_FILES[dbKITformFields::field_name]['name']));
+        		                $checked = false;
+        		                break;
+        		            default:
+        		                $message .= $this->lang->translate('<p>Unspecified error, no description available.</p>');
+        		                $checked = false;
+        		            endswitch;
+        		            // delete temporary file 
+        		            @unlink($_FILES[$file[dbKITformFields::field_name]]['tmp_name']);
+        		        }
+        		    }
+    		    } // method: standard
+    		    else {
+    		        // method: uploadify
+    		        if (isset($_REQUEST['upload_delete']) && !empty($_REQUEST['upload_delete']) && isset($_REQUEST['upload_id'])) {
+    		            // if 'upload_delete' isset and not empty the file was uploaded and then deleted
+    		            $where = array(
+    		                    dbKITdirList::field_reference => $_REQUEST['upload_id'],
+    		                    dbKITdirList::field_file_origin => $_REQUEST['upload_delete']
+    		                    );
+    		            if (!$dbKITdirList->sqlDeleteRecord($where)) {
+    		                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITdirList->getError()));
+    		                return false;
+    		            }
+    		            $message .= $this->lang->translate('<p>The file <b>{{ file }}</b> was deleted.<p>', array('file' => $_REQUEST['upload_delete']));
+    		        }
+    		        if (isset($_REQUEST['upload_id'])) {
+    		            $where = array(
+    		                    dbKITdirList::field_reference => $_REQUEST['upload_id']
+    		                    );
+    		            $uploads = array();
+    		            if (!$dbKITdirList->sqlSelectRecord($where, $uploads)) {
+    		                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITdirList->getError()));
+    		                return false;
+    		            }
+    		            if ((count($uploads) < 1) && (in_array($file[dbKITformFields::field_id], $must_array))) {
+    		                // file upload is a MUST field
+    		                $message .= $this->lang->translate('<p>The field <b>{{ field }}</b> must be filled out.</p>',
+    		                        array('field' => $kitContactInterface->field_array [$field_name]));
+    		                $checked = false;
+    		                // go ahead...
+    		                continue;
+    		            }
+    		            foreach ($uploads as $upload) {
+    		                // now create the directory
+        					if (!file_exists($upload_path)) {
+        					    if (!mkdir($upload_path, 0755, true)) {
+        					        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+        					                $this->lang->translate('Error creating the directory <b>{{ directory }}</b>.', array('directory' => $upload_path))));
+        					        return false;
+        					    }
+        					}
+        					// move the uploads from temporary directory to the target directory
+    		                if (!rename($upload[dbKITdirList::field_path], $upload_path.$upload[dbKITdirList::field_file])) {
+    		                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, 		                            
+    		                            $this->lang->translate('Error moving file <b>{{ file_origin }}</b> to <b>{{ file_target }}</b>.',
+    		                                    array('file_origin' => $upload[dbKITdirList::field_path], 'file_target' => $upload_path.$upload[dbKITdirList::field_file]))));
+    		                    return false;
+    		                }
+    		                // delete the temporary directory if empty
+    		                if ($this->isDirectoryEmpty($upload_path)) {
+    		                    @unlink($upload_path);
+    		                }
+    		                $data = array(
+    		                        dbKITdirList::field_path => $upload_path.$upload[dbKITdirList::field_file],
+    		                        dbKITdirList::field_user => $email
+    		                        );
+    		                $where = array(
+    		                        dbKITdirList::field_id => $upload[dbKITdirList::field_id]
+    		                        );
+    		                if (!$dbKITdirList->sqlUpdateRecord($data, $where)) {
+    		                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITdirList->getError()));
+    		                    return false;
+    		                }
+    		                // add $file_id to the uploaded files ...
+    		                $uploaded_files['count'] += 1;
+    		                $uploaded_files['items'][$upload[dbKITdirList::field_id]] = array(
+    		                        'id' => $upload[dbKITdirList::field_id],
+    		                        'name' => $upload[dbKITdirList::field_file],
+    		                        'name_origin' => $upload[dbKITdirList::field_file_origin],
+    		                        'size' => filesize($upload_path.$upload[dbKITdirList::field_file]),
+    		                        'path' => substr($upload_path.$upload[dbKITdirList::field_file], strlen(WB_PATH)),
+    		                        'download' => WB_URL.'/modules/kit/kdl.php?id='.$upload[dbKITdirList::field_id]
+    		                );
+    		                $contact_id = -1;
+    		                if (!$kitContactInterface->isEMailRegistered($email, $contact_id)) {
+    		                    if ($kitContactInterface->isError()) {
+    		                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+    		                        return false;
+    		                    }
+    		                    // contact does not exists
+    		                    $data = array(
+    		                            kitContactInterface::kit_email => $email
+    		                    );
+    		                    if (!$kitContactInterface->addContact($data, $contact_id)) {
+    		                        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+    		                        return false;
+    		                    }
+    		                }
+    		                /*
+    		                // add notice to KIT
+    		                $kitContactInterface->addNotice($contact_id,
+    		                        $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.',
+    		                                array('link' => WB_URL.'/modules/kit/kdl.php?id='.$upload[dbKITdirList::field_id], 'file' => $upload[dbKITdirList::field_file])));
+    		                                */
+    		            }
+    		        }
+    		    }
+    		} // foreach
+		} // if checked
+    		
 		if ($checked) {
 			// Daten sind ok und koennen uebernommen werden 
 			
@@ -904,8 +1240,7 @@ class formFrontend {
 					default :
 						$values [$fid] = (isset ( $_REQUEST [$field [dbKITformFields::field_name]] )) ? $_REQUEST [$field [dbKITformFields::field_name]] : '';
 						break;
-				endswitch
-				;
+				endswitch;
 			}
 			$form_data = array (dbKITformData::field_form_id => $form_id, dbKITformData::field_kit_id => $contact_id, dbKITformData::field_date => date ( 'Y-m-d H:i:s' ), dbKITformData::field_fields => implode ( ',', $fields ), dbKITformData::field_values => http_build_query ( $values ) );
 			$data_id = -1;
@@ -938,7 +1273,7 @@ class formFrontend {
 			
 			// ok - Daten sind gesichert, vorab LOG schreiben
 			if ($is_feedback_form) {
-			    $protocol = $this->lang->translate('[kitForm] The contact has <a href="{{ url }}">submitted a form</a>',
+			    $protocol = $this->lang->translate('[kitForm] The contact has <a href="{{ url }}">submitted a feedback</a>',
 			            array('url' => sprintf('%s&%s',
 			                    ADMIN_URL . '/admintools/tool.php?tool=kit_form',
 			                    http_build_query(array(
@@ -948,7 +1283,7 @@ class formFrontend {
 			                    )));
 			}
 			else {
-			    $protocol = $this->lang->translate('[kitForm] The contact has <a href="{{ url }}">submitted a feedback</a>.',
+			    $protocol = $this->lang->translate('[kitForm] The contact has <a href="{{ url }}">submitted a form</a>.',
 			            array('url' => sprintf('%s&%s',
 			                    ADMIN_URL . '/admintools/tool.php?tool=kit_form',
 			                    http_build_query(array(
@@ -958,6 +1293,14 @@ class formFrontend {
 			            )));
 			}
 			$dbContact->addSystemNotice($contact_id, $protocol);
+
+			foreach ($uploaded_files['items'] as $file) {
+			    // add a system notice for each file
+			    $kitContactInterface->addNotice($contact_id,
+			            $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.',
+			                    array('link' => WB_URL.'/modules/kit/kdl.php?id='.$file['id'], 'file' => $file['name'])));
+			    
+			}
 			
 			$contact = array();
 			if (! $kitContactInterface->getContact ( $contact_id, $contact )) {
@@ -1003,7 +1346,7 @@ class formFrontend {
 				$items [$field [dbKITformFields::field_name]] = array(
 				        'label' => $field[dbKITformFields::field_title], 
 				        'value' => $value,
-				        //'items' => isset($items) ? $items : array() 
+				        'type' => $field[dbKITformFields::field_type]
 				        );
 			}
 			
@@ -1021,10 +1364,15 @@ class formFrontend {
 			$provider_name = $provider_data ['name'];
 			
 			$form_d = $form_data;
-			$form_d ['datetime'] = date ( cfg_datetime_str, strtotime ( $form_d [dbKITformData::field_date] ) );
+			$form_d['datetime'] = date(cfg_datetime_str, strtotime($form_d[dbKITformData::field_date]));
 			$form_d['subject'] = $form[dbKITform::field_title];
 			
-			$data = array ('form' => $form_d, 'contact' => $contact, 'items' => $items );
+			$data = array (
+			        'form' => $form_d, 
+			        'contact' => $contact, 
+			        'items' => $items,
+			        'files' => $uploaded_files
+			        );
 			
 			$client_mail = $this->getTemplate ( 'mail.client.htt', $data );
 			if ($form[dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
@@ -1067,12 +1415,44 @@ class formFrontend {
 			if (isset ( $_REQUEST [kitContactInterface::kit_password_retype] ))
 				unset ( $_REQUEST [kitContactInterface::kit_password_retype] );
 		}
+		else {
+		    unset($_REQUEST['upload_id']);
+		}
 		
 		$this->setMessage ( $message );
 		return $this->showForm ();
 	} // checkForm()
 	
-
+	/**
+	 * Check if a directory is empty or not
+	 * @param string $directory
+	 * @return boolean
+	 */
+	protected function isDirectoryEmpty($directory) {
+	    // if directory not exists return true...
+	    if (!file_exists($directory)) return true;
+	    // get a handle
+	    if (false === ($handle = @opendir($directory))) {
+	        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
+	                $this->lang->translate('Can\'t open the directory <b>{{ directory }}</b>!', array('directory' => $directory))));
+	        return false;
+	    }	    
+	    // read directory
+	    while(false !== ($f = readdir($handle))) {
+	        // . and .. exists always!
+	        if ($f == "." || $f == "..") { 
+	            continue;
+	        } 
+	        else {
+	            // directory is not empty
+	            closedir($handle);
+	            return false;
+	        } 
+	    }  
+	    closedir($handle);
+	    return true;
+	} // isDirectoryEmpty()
+	
 	/**
 	 * Prueft den LOGIN und schaltet den User ggf. frei
 	 * 
@@ -2257,7 +2637,7 @@ class formFrontend {
 		}
 		$message = $kitContactInterface->getMessage ();
 		if ($send_activation == false) {
-			$message .= sprintf ($this->lang->translate('<p>Then newsletter abonnement for the email address <b>{{ email }}</b> was updated.</p>',
+			$message .= sprintf ($this->lang->translate('<p>The newsletter abonnement for the email address <b>{{ email }}</b> was updated.</p>',
 			        array('email' => $email)));
 			$this->setMessage ( $message );
 			$data = array ('message' => $this->getMessage () );
@@ -2313,7 +2693,29 @@ class formFrontend {
 	
 	} // subscribeNewsletter()
 
-
+	/**
+	 * Create .htaccess protection
+	 * @return boolean
+	 */
+	protected function createProtection() {
+	    global $kitLibrary;
+	    $protection_path = WB_PATH.MEDIA_DIRECTORY.DIRECTORY_SEPARATOR.self::PROTECTION_FOLDER.DIRECTORY_SEPARATOR;
+	    $data = sprintf("# .htaccess generated by kitForm\nAuthUserFile %s\nAuthGroupFile /dev/null".
+	            "\nAuthName \"KIT - Protected Media Directory\"\nAuthType Basic\n<Limit GET>\n".
+	            "require valid-user\n</Limit>",$protection_path.'.htpasswd');
+	    if (false === file_put_contents($protection_path.'.htaccess', $data)) {
+	        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Can\'t create the .htaccess file!')));
+	        return false;
+	    }
+	    $data = sprintf("# .htpasswd generated by kitForm\nkit_protector:%s", crypt($kitLibrary->generatePassword()));
+	    if (false === file_put_contents($protection_path.'.htpasswd', $data)) {
+	        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Can\'t create the .htpasswd file!')));
+	        return false;
+	    }
+	    return true;
+	} // createProtection()
+	
+	
 } // class formFrontend
 
 

@@ -7,13 +7,21 @@
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  *}
-{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r{/if} {$contact.kit_title} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
+{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
 
 vielen Dank für die Übermittlung der folgenden Daten:
 
 {foreach $items item}
-{$item.label} --> {$item.value}
+{if $item.type != 'file'}{$item.label} --> {$item.value}{/if}
 {/foreach}
+
+{if $files.count > 0}
+Die folgende(n) Datei(en) wurde(n) übertragen:
+
+{foreach $files.items file}
+{$file.name} - {$file.size} Bytes
+{/foreach}
+{/if}
 
 Wir werden uns in Kürze mit Ihnen in Verbindung setzen!
 

@@ -41,9 +41,13 @@ $PRECHECK['WB_ADDONS'] = array(
 	'dwoo' => array('VERSION' => '0.11', 'OPERATOR' => '>='),
 	'droplets' => array('VERSION' => '1.0', 'OPERATOR' => '>='),
 	'droplets_extension' => array('VERSION' => '0.16', 'OPERATOR' => '>='),
-	'kit' => array('VERSION' => '0.42', 'OPERATOR' => '>='),
+	'kit' => array('VERSION' => '0.48', 'OPERATOR' => '>='),
 	'kit_tools' => array('VERSION' => '0.14', 'OPERATOR' => '>=')
 );
+// if kitDirList is installed it must at minimum 0.27 ...
+if (file_exists(WB_PATH.'/modules/kit_dirlist/include.php')) {
+    $PRECHECK['WB_ADDONS']['kit_dirlist'] = array('VERSION' => '0.27', 'OPERATOR' => '>=');
+}
 
 global $database;  
 $sql = "SELECT `value` FROM `".TABLE_PREFIX."settings` WHERE `name`='default_charset'";

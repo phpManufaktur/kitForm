@@ -8,7 +8,7 @@
  * @version $Id$
  *}
  <div class="kit_form">
-   <form name="{$form.name}" action="{$form.action.link}" method="post">
+   <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
     <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
     <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
@@ -20,8 +20,8 @@
     {/if}
     <table width="100%">
       <colgroup>
-        <col width="30%" />
-        <col width="50%" />
+        <col width="20%" />
+        <col width="*" />
         <col width="20%" />
       </colgroup>
       {foreach $fields as field}
@@ -144,6 +144,61 @@
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
               <td class="form_value"><textarea name="{$field.name}">{$field.value}</textarea></td>
               <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'file'}
+          {if $field.settings.upload_method.value == 'standard'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value"><input type="file" name="{$field.name}" /></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.settings.upload_method.value == 'uploadify'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <table>
+                  <colgroup>
+                    <col width="35" />
+                    <col width="*" />
+                  </colgroup>
+                  <tr>
+                    <td title="{$field.select_file}"><input id="{$field.name}" name="{$field.name}" type="file" /></td>
+                    <td><div id="queue_{$field.name}"></div></td>
+                  </tr>
+                </table>
+                <input type="hidden" name="upload_id" value="{$field.upload_id}" />
+                <input type="hidden" name="upload_delete" value="" />
+                <script type="text/javascript">
+                  $(document).ready(function() {
+                    $('#{$field.name}').uploadify({
+                      'uploader'  : '/modules/kit_uploader/plugins/uploadify-2/uploadify.swf',
+                      'script'    : '/modules/kit_uploader/plugins/uploadify-2/uploadify.php',
+                      'cancelImg' : '/modules/kit_uploader/plugins/uploadify-2/cancel.png',
+                      'folder'    : '/temp/kit_form/{$field.upload_id}',
+                      'buttonImg'  : '/modules/kit_uploader/plugins/uploadify-2/folder.png',
+                      'width'     : 28,
+                      'height'    : 25, 
+                      'multi' : false,
+                      'auto'           : true,
+                      'fileExt'        : '{$field.file_ext}', 
+                      'fileDesc'       : '{$field.file_desc}',
+                      'queueID'        : 'queue_{$field.name}',
+                      'scriptData' : {
+                          'upload_id':'{$field.upload_id}'
+                        },
+                      'queueSizeLimit' : 3,
+                      'simUploadLimit' : 3,
+                      'removeCompleted': false,
+                      'sizeLimit' : {$field.file_size}
+                    });
+                 });
+                </script>
+              </td>
+              <td class="form_hint">max. {$field.settings.max_file_size.value} MB</td>
+            </tr>
+          {else}
+            <tr>
+              <td colspan="3">[form.htt] Unbekannte Upload Methode: {$field.settings.upload_method.value}</td>
             </tr>
           {/if}
         {/if}

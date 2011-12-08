@@ -231,6 +231,55 @@
               </table>
             </td>
             <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'file'}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="uncheck_free_must_field"><input type="checkbox" name="{$field.must.name}" value="1" disabled="disabled" /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="40%" />
+                  <col width="60%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.type.label}</td>
+                  <td class="sub_value_free_field">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.title.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.field.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
+                </tr>  
+                {* upload method *}
+                <tr>
+                  <td class="sub_label_free_field">{$field.settings.upload_method.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.settings.upload_method.name}" value="{$field.settings.upload_method.value}" /></td>
+                </tr>  
+                {* file types *}
+                <tr>
+                  <td class="sub_label_free_field">{$field.settings.file_types.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.settings.file_types.name}" value="{$field.settings.file_types.value}" /></td>
+                </tr>  
+                {* max. file size *}
+                <tr>
+                  <td class="sub_label_free_field">{$field.settings.max_file_size.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.settings.max_file_size.name}" value="{$field.settings.max_file_size.value}" /></td>
+                </tr>  
+                
+                <tr>
+                  <td class="sub_label_free_field_hint">{$field.hint.label}</td>
+                  <td class="sub_value_free_field"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+                
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
           {elseif $field.type.type == 'text_area'}
             {* Eingabefeld fuer Massentext *}
             <td class="label_free_field">{$field.label}</td>
@@ -414,7 +463,7 @@
             </td>
             <td class="hint_form_edit">{$field.hint.dialog}</td>
           {else}
-            <td colspan="5">UNBEKANNTER DATENTYP {$field.type.type}</td>
+            <td colspan="5">[backend.form.edit.htt] DATATYPE UNKNOWN: {$field.type.type}</td>
           {/if}
         {/if}
       </tr>

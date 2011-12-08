@@ -74,6 +74,8 @@ $LANG = array(
             => 'Eingabefeld für MASSENTEXT',
         'hint_free_field_type_checkbox'
             => 'CHECKBOXEN definieren',
+        'hint_free_field_type_file'
+            => 'Define File Uploads',
         'hint_free_field_type_hidden'
             => 'Versteckte Datenfelder',
         'hint_free_field_type_html'
@@ -154,6 +156,8 @@ $LANG = array(
             => 'Status',
         'label_form_title'
             => 'Formular Titel',
+        'label_free_field_title'
+            => '',
         'label_free_label_marker'
             => '{{ title }} <i style="font-weight:normal;">(FREE)</i>',
         'label_hint_label'

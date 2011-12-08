@@ -9,7 +9,7 @@
  *}
 Der Kontakt:
 
-{$contact.kit_title}
+{if $contact.kit_title == 'titleMister'}Herr{else}Frau{/if}
 {$contact.kit_first_name} {$contact.kit_last_name}
 {$contact.kit_company}
 {$contact.kit_department}
@@ -23,7 +23,21 @@ Der Kontakt:
 hat am {$form.datetime} Uhr die folgenden Daten übermittelt:
 
 {foreach $items item}
-{$item.label} --> {$item.value}
+{if $item.type != 'file'}{$item.label} --> {$item.value}{/if}
 {/foreach}
+
+{if $files.count > 0}
+Die folgenden Dateien wurden übertragen:
+
+{foreach $files.items file}
+Datei:    {$file.name} - {$file.size} Bytes
+FTP Pfad: {$file.path}
+Download: {$file.download}
+
+{/foreach}
+
+FÜR EINEN DOWNLOAD MÜSSEN SIE IM BACKEND ANGEMELDET SEIN!
+{/if}
+
 
 +++++ AUTOMATISCHE BENACHRICHTIGUNG DURCH kitForm +++++
