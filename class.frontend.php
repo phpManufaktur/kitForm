@@ -319,6 +319,7 @@ class formFrontend {
 		global $dbKITform;
 		global $dbKITformFields;
 		global $kitContactInterface;
+		global $kitLibrary;
 		
 		if (empty ( $this->params )) {
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The form name is empty, please check the parameters for the droplet!')));
@@ -430,7 +431,7 @@ class formFrontend {
 		$fields_array = explode ( ',', $fdata [dbKITform::field_fields] );
 		$must_array = explode ( ',', $fdata [dbKITform::field_must_fields] );
 		$form_fields = array ();
-		$upload_id = (isset($_REQUEST['upload_id'])) ? $_REQUEST['upload_id'] : createGUID();
+		$upload_id = (isset($_REQUEST['upload_id'])) ? $_REQUEST['upload_id'] : $kitLibrary->createGUID();
 		foreach ( $fields_array as $field_id ) {
 			if ($field_id < 100) {
 				// IDs 1-99 sind fuer KIT reserviert

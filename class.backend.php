@@ -864,6 +864,9 @@ class formBackend {
                     }
                     if ($data[dbKITformFields::field_type] == dbKITformFields::type_file) {
                         // create settings for file uploads
+                        $upload_max_filesize = $this->convertBytes(ini_get('upload_max_filesize'));
+                        $post_max_size = $this->convertBytes(ini_get('post_max_size'));
+                        $max_filesize = $upload_max_filesize;
                         
                         $settings = array(
                                 'upload_method' => array(
