@@ -1295,12 +1295,13 @@ class formFrontend {
 			}
 			$dbContact->addSystemNotice($contact_id, $protocol);
 
-			foreach ($uploaded_files['items'] as $file) {
-			    // add a system notice for each file
-			    $kitContactInterface->addNotice($contact_id,
-			            $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.',
-			                    array('link' => WB_URL.'/modules/kit/kdl.php?id='.$file['id'], 'file' => $file['name'])));
-			    
+			if (isset($uploaded_files['items'])) {
+    			foreach ($uploaded_files['items'] as $file) {
+    			    // add a system notice for each file
+    			    $kitContactInterface->addNotice($contact_id,
+    			            $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.',
+    			                    array('link' => WB_URL.'/modules/kit/kdl.php?id='.$file['id'], 'file' => $file['name'])));
+    			}
 			}
 			
 			$contact = array();
