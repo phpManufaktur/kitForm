@@ -142,7 +142,7 @@ $LANG = array(
         'hint_free_field_type_checkbox'
             => 'CHECKBOXEN definieren',
         'hint_free_field_type_file'
-            => 'Datenübertragung definieren',
+            => 'Die Übertragungsmethode "<b>standard</b>" verwendet das normale Dateiauswahlfeld für Formulare.<br />Für die alternative Übertragungsmethode "<b>uploadify</b>" muß der <b>kitUploader</b> installiert sein. In diesem Fall können nur die festgelegten Dateitypen für den Upload ausgewählt werden und während der Datenübertragung wird ein Fortschrittsbalken eingeblendet. "<b>uploadify</b>" ist für Dateien ab 2 MB geeignet.<br />Legen Sie die erlaubten Dateitypen fest, geben Sie keine Dateitypen an können alle Dateien hochgeladen werden.<br />Die max. Dateigröße ist abhängig von der Konfiguration Ihres Webservers, bitten Sie ggf. Ihren Webmaster die Einstellungen zu ändern.',
         'hint_free_field_type_hidden'
             => 'Versteckte Datenfelder',
         'hint_free_field_type_html'
