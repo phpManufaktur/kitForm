@@ -1848,8 +1848,10 @@ class formBackend {
                 return false;
             }
             if (count($field) < 1) {
-                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $fid)));
-                return false;
+                // still continue, don't prompt a error ... 
+                continue;
+                //$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, sprintf(kit_error_invalid_id, $fid)));
+                //return false;
             }
             $field = $field[0];
             switch ($field[dbKITformFields::field_data_type]) :

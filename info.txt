@@ -8,6 +8,10 @@
  * @version $Id$
  */
 
+Release 0.26
+
+fixed - problem with invalid ID's in the kitForm protocol
+
 Release 0.25
 2011-12-08
 added - upload field for standard upload and upload field for a upload dialog
