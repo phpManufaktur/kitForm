@@ -306,6 +306,7 @@ class dbKITformFields extends dbConnectLE {
     const field_timestamp = 'field_timestamp';
     
     const type_checkbox = 'checkbox';
+    const type_delayed = 'delayed'; // special field for a delayed execution of the form
     const type_file = 'file';
     const type_hidden = 'hidden';
     const type_html = 'html';
@@ -318,6 +319,7 @@ class dbKITformFields extends dbConnectLE {
     public $type_array;
     
     const kit_data_undefined = 'null';
+    const kit_delayed_transmission = 'kit_delayed_transmission';
     
     const data_type_date = 'date';
     const data_type_float = 'float';
@@ -374,7 +376,8 @@ class dbKITformFields extends dbConnectLE {
                 self::type_select => $lang->translate('Selection list'), 
                 self::type_hidden => $lang->translate('Hidden field'),
                 self::type_html => $lang->translate('HTML Code (free format)'),
-                self::type_file => $lang->translate('File upload')
+                self::type_file => $lang->translate('File upload'),
+                self::type_delayed => $lang->translate('Delayed execution')
                 );
         $this->data_type_array  = array(
                 self::data_type_date => $lang->translate('Date'), 
@@ -435,7 +438,13 @@ class dbKITformData extends dbConnectLE {
     const field_date = 'data_date';
     const field_fields = 'data_fields';
     const field_values = 'data_values';
+    const field_status = 'data_status';
     const field_timestamp = 'data_timestamp';
+
+    const status_active = 1;
+    const status_locked = 2;
+    const status_deleted = 4;
+    const status_delayed = 8;
     
     public $create_tables = false;
 
@@ -449,6 +458,7 @@ class dbKITformData extends dbConnectLE {
         $this->addFieldDefinition(self::field_date, "DATETIME");
         $this->addFieldDefinition(self::field_fields, "TEXT NOT NULL DEFAULT ''");
         $this->addFieldDefinition(self::field_values, "MEDIUMTEXT NOT NULL DEFAULT ''");
+        $this->addFieldDefinition(self::field_status, "TINYINT NOT NULL DEFAULT '".self::status_active."'");
         $this->addFieldDefinition(self::field_timestamp, "TIMESTAMP");
         $this->setIndexFields(array(self::field_form_id, self::field_kit_id));
         $this->checkFieldDefinitions();
@@ -480,6 +490,7 @@ class dbKITformCommands extends dbConnectLE {
     const TYPE_FEEDBACK_PUBLISH = 2; // kitForm: Feedback
     const TYPE_FEEDBACK_REFUSE = 4; // kitForm: Feedback
     const TYPE_IDEA_EMAIL_INFO = 8; // kitIdea: change E-Mail info
+    const TYPE_DELAYED_TRANSMISSION = 16; // kitForm: delayed transmission
     
 
     const STATUS_UNDEFINED = 1;

@@ -65,7 +65,7 @@
             </tr>
           {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
                    $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
-                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile') }
+                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype') }
             <tr>
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
               <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
@@ -102,6 +102,14 @@
                 {foreach $field.checkbox checkbox}
                 <input type="checkbox" name="{$field.name}[]" value="{$checkbox.value}"{if $checkbox.checked == 1} checked="checked"{/if} /> {$checkbox.text}<br />
                 {/foreach}
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'delayed'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <input type="checkbox" name="{$field.checkbox.name}" value="{$field.checkbox.value}"{if $field.checkbox.checked == 1} checked="checked"{/if} /> {$field.checkbox.text}<br />
               </td>
               <td class="form_hint">{$field.hint}</td>
             </tr>
@@ -201,6 +209,10 @@
               <td colspan="3">[form.htt] Unbekannte Upload Methode: {$field.settings.upload_method.value}</td>
             </tr>
           {/if}
+        {else}
+          <tr>
+            <td colspan="3">[form.htt] Unbekannter Feld Typ: {$field.type}</td>
+          </tr>
         {/if}
       {/foreach}
       {if ($form.captcha.active == 1) && ($form.kit_action.value != 'act_login')}

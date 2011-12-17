@@ -95,11 +95,21 @@ if (!$dbKITform->sqlFieldExists(dbKITform::field_email_html)) {
 
 // Release 0.21
 global $dbKITformCommands;
-if (!is_object($dbKITformCommands)) new dbKITformCommands();
+if (!is_object($dbKITformCommands)) $dbKITformCommands = new dbKITformCommands();
 
 if (!$dbKITformCommands->sqlTableExists()) {
     if (!$dbKITformCommands->sqlCreateTable()) {
         $error .= sprintf('[UPGRADE] %s', $dbKITformCommands->getError());
+    }
+}
+
+// Release 0.26
+global $dbKITformData;
+if (!is_object($dbKITformData)) $dbKITformData = new dbKITformData();
+
+if (!$dbKITformData->sqlFieldExists(dbKITformData::field_status)) {
+    if (!$dbKITformData->sqlAlterTableAddField(dbKITformData::field_status, "TINYINT NOT NULL DEFAULT '".dbKITformData::status_active."'", dbKITformData::field_values)) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITformData->getError());
     }
 }
 

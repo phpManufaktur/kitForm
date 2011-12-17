@@ -248,7 +248,8 @@ td.sub_label_free_field_must {
   text-align: left;
   padding: 0 0 0 10px;
 }
-td.sub_label_free_field_html, 
+td.sub_label_free_field_html,
+td.sub_label_free_field,
 td.sub_label_free_field_hint {
   vertical-align: top;
   padding: 4px 5px 0 0;

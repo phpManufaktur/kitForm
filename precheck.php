@@ -41,8 +41,8 @@ $PRECHECK['WB_ADDONS'] = array(
 	'dwoo' => array('VERSION' => '0.11', 'OPERATOR' => '>='),
 	'droplets' => array('VERSION' => '1.0', 'OPERATOR' => '>='),
 	'droplets_extension' => array('VERSION' => '0.16', 'OPERATOR' => '>='),
-	'kit' => array('VERSION' => '0.48', 'OPERATOR' => '>='),
-	'kit_tools' => array('VERSION' => '0.14', 'OPERATOR' => '>=')
+	'kit' => array('VERSION' => '0.49', 'OPERATOR' => '>='),
+	'kit_tools' => array('VERSION' => '0.15', 'OPERATOR' => '>=')
 );
 // if kitDirList is installed it must at minimum 0.27 ...
 if (file_exists(WB_PATH.'/modules/kit_dirlist/include.php')) {

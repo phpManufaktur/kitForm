@@ -9,8 +9,19 @@
  */
 
 Release 0.26
-
+2011-12-17
 fixed - problem with invalid ID's in the kitForm protocol
+changed - increased fault tolerance if kitForm detect no longer existing form 
+  fields it does no longer throw an error
+added - status field for the form datas (active, locked, deleted, delayed)
+added - new field type "delayed transmission" enables the user to save the form
+  and edit it again before submitting it
+added - new templates confirm.delayed.transmission.htt and
+  mail.client.delayed.transmission.htt
+changed - template form.htt
+changed - template backend.form.htt
+added - optional field type "retype email address" add a second field for 
+  retyping the email address to avoid typing errors
 
 Release 0.25
 2011-12-08

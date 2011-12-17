@@ -364,6 +364,45 @@
               </table>
             </td>
             <td class="hint_form_edit">{$field.hint.dialog}</td>
+          {elseif $field.type.type == 'delayed'}
+            {* delayed execution *}
+            <td class="label_free_field">{$field.label}</td>
+            <td class="check_free_field"><input type="checkbox" name="{$field.name}" value="1" checked="checked" /></td>
+            <td class="{if $field.must.value == 1}check_free_must_field{else}uncheck_free_must_field{/if}"><input type="checkbox" name="{$field.must.name}" value="1"{if $field.must.value == 1} checked="checked"{/if} /></td>
+            <td class="data_free_field">
+              <table class="table_free_field" width="100%">
+                <colgroup>
+                  <col width="5%" />
+                  <col width="35%" />
+                  <col width="55%" />
+                  <col width="5%" />
+                </colgroup>
+                <tr>
+                  <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.type.label}</td>
+                  <td class="sub_value_free_field" colspan="2">{$field.type.value}</td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.title.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.title.name}" value="{$field.title.value}" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.text.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><textarea name="{$field.text.name}">{$field.text.value}</textarea></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" disabled="disabled" /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
+                  <td class="sub_value_free_field" colspan="2"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
+                </tr>
+              </table>
+            </td>
+            <td class="hint_form_edit">{$field.hint.dialog}</td>
           {elseif $field.type.type == 'radio'}
             {* RADIOBUTTONS definieren *}
             <td class="label_free_field">{$field.label}</td>

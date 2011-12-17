@@ -25,10 +25,14 @@ $LANG = array(
             => '<i>- nicht festgelegt -</i>',
         '[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.'
             => 'Datei <a href="{{ link }}">{{ file }}</a> übertragen.',
+        '[kitForm] The contact has saved a form for later transmission (ID {{ id }}).'
+            => '[kitForm] Der Kontakt hat ein Formular zur späteren Übermittlung gespeichert (ID {{ id }}).',
         '[kitForm] The contact has <a href="{{ url }}">submitted a form</a>.'
             => '[kitForm] Der Kontakt hat ein <a href="{{ url }}">Formular übermittelt</a>.',
         '[kitForm] The contact has <a href="{{ url }}">submitted a feedback</a>.'
             => '[kitForm] Der Kontakt hat ein <a href="{{ url }}">Feedback übermittelt</a>.',
+        '[kitForm] The temporary saved form with the ID {{ id }} was deleted.'
+            => '[kitForm] Das temporär gespeicherte Formular mit der ID {{ id }} wurde gelöscht.',
             
         'Abort' 
             => 'Abbruch',
@@ -56,6 +60,8 @@ $LANG = array(
             
         'Date' 
             => 'Datum',
+        'Delayed execution'
+            => 'Übermittlung verzögern',
         'Deleted' 
             => 'Gelöscht',
         'Details of the submitted form'
@@ -135,6 +141,8 @@ $LANG = array(
             => 'Geben Sie den TEXT an, der für diesen Eintrag in der Auswahlliste angezeigt werden soll.',
         'hint_free_field_add'
             => 'Wählen Sie den gewünschten Datentyp aus und legen Sie im Eingabefeld einen <b>Titel</b> für das Datenfeld fest, dieser wird in der Feldliste verwendet und später auch im Formular neben dem Feld angezeigt.',
+        'hint_free_field_type_delayed'
+            => 'Ermöglicht es dem Kunden das Formular zu speichern jedoch noch nicht abzusenden. Der Kunde erhält einen Link der das Beabeiten und Absenden des Formular ermöglicht.',
         'hint_free_field_type_text'
             => 'Eingabefeld für TEXT',
         'hint_free_field_type_text_area'
@@ -165,6 +173,8 @@ $LANG = array(
             => '',
         'hint_kit_email'
             => '<span style="color:#800000;">Das E-Mail Feld ist grundsätzlich Pflicht!</span>',
+        'hint_kit_email_retype'
+            => 'Die E-Mail Adresse muss wiederholt werden um Tippfehler auszuschließen.',
         'hint_kit_fax'
             => '',
         'hint_kit_field_add'
@@ -323,6 +333,8 @@ $LANG = array(
         'Register' 
             => 'Registrierung',
             
+        'Save the form and submit it later'
+            => 'Formular speichern und Daten noch nicht übermitteln',
         'Select File'
             => 'Datei auswählen',
         'Select a form to get details and editing.<br />To create a new form please select the tab "Edit".'
@@ -388,6 +400,8 @@ $LANG = array(
             => '<p>Die Definition des neuen Auswahlliste ist nicht vollständig, bitte geben Sie einen <b>Wert</b> und einen <b>Text</b> für die Liste an!</p>',
         'The droplets for kitForm were successfully installed.\n'  
             => 'Die Droplets für kitForm wurden erfolgreich installiert.\n',
+        '<p>The email address and the retyped email address does not match!</p>'
+            => '<p>Die E-Mail Adresse und die Wiederholung der E-Mail Adresse stimmen nicht überein!</p>',
         '<p>The email address <b>{{ email }}</b> is already registered, please login with your user data!</p>'  
             => '<p>Die E-Mail Adresse <b>{{ email }}</b> ist bereits registriert, bitte melden Sie sich mit Ihren Benutzerdaten an.</p>',
         '<p>The email address <b>{{ email }}</b> is not valid, please check your input.</p>' 
@@ -446,8 +460,12 @@ $LANG = array(
             => '<p>Das Formular mit der <b>ID {{ id }}</b> wurde aktualisiert.</p>',
         '<p>The general datafield <b>{{ field }}</b> was added to the form.</p>' 
             => '<p>Das allgemeine Datenfeld "<b>{{ field }}</b>" wurde dem Formular hinzugefügt.</p>',
+        'The ID {{ id }} is invalid!'
+            => 'Die ID {{ id }} ist ungültig!',
         '<p>The KIT datafield <b>{{ field }}</b> was added to the form.</p>'
             => '<p>Das KIT Datenfeld <b>{{ field }}</b> wurde dem Formular hinzugefügt.</p>',
+        '<p>The link to access this form is no longer valid and the temporary saved form data are now deleted.</p><p>Please submit the form or use again the option for a delayed transmission to create a new access link.</p>'
+            => '<p><b>Dieses zwischengespeicherte Formular wurde noch nicht übermittelt!</b></p><p>Der Link zum Bearbeiten dieses Formulars ist nicht mehr gültig. Die temporär gespeicherten Formulardaten wurden gelöscht.</p><p>Übermitteln Sie das Formular nach der Bearbeitung oder nutzen Sie die Möglichkeit einer verzögerten Übermittlung damit ein neuer Link für den Zugriff auf dieses Formular erzeugt wird.</p>',
         '<p>The name <b>{{ name }}</b> is already in use by the form with the <b>ID {{ id }}</b>, please use another name!</p>' 
             => '<p>Der Formular Bezeichner <b>{{ name }}</b> wird bereits von dem Formular mit der <b>ID {{ id }}</b> verwendet, bitte suchen Sie einen anderen Bezeichner.</p>',
         '<p>The newsletter abonnement for the email address <b>{{ email }}</b> was updated.</p>'  
@@ -460,6 +478,8 @@ $LANG = array(
             => '<p>Das Benutzerkonto wurde aktualisiert.</p>',
         '<p>There was no file for import!</p>' 
             => '<p>Es wurde keine Datei importiert!</p>',
+        'Text'
+            => 'Text',
         'This command does not exists or was already executed!'
             => 'Der Befehl existiert nicht oder wurde bereits ausgeführt.',
         '<p>To use the upload method <b>uploadify</b> kitUploader must be installed!</p>'

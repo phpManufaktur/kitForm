@@ -1,0 +1,23 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @link http://phpmanufaktur.de
+ * @copyright 2011
+ * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
+ * @version $Id$
+ *}
+{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
+
+das Formular {$form.title} wurde entsprechend Ihrem Wunsch zwischengespeichert, Sie können es jederzeit über den Link
+
+{$form.link}
+
+wieder aufrufen und ergänzen oder ändern.
+
+Aus Sicherheitsgründen kann dieser Link nur ein einziges Mal verwendet werden. Um einen neuen Link zu erhalten speichern Sie das Formular bitte erneut!
+
+Zum jetzigen Zeitpunkt haben wir als Betreiber der Website keine Kenntnis über die zwischengespeicherten Daten, diese werden uns erst mitgeteilt, wenn Sie das Formular tatsächlich übermitteln. Entsprechend werden wir auch nicht mit Ihnen in Verbindung treten.
+
+Mit freundlichen Grüßen
+Ihr Website Betreiber

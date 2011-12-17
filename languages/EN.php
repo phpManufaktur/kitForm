@@ -60,6 +60,8 @@ $LANG = array(
             => 'Geben Sie den TEXT an, der rechts neben dem Radiobutton angezeigt werden soll.',
         'hint_free_select_hint_add'
             => 'Setzen Sie ein Häkchen um einen Eintrag zur Auswahlliste hinzufügen, entfernen Sie das Häkchen um einen Eintrag zu entfernen.',
+        'hint_free_field_type_delayed'
+            => 'Enables a delayed transmission of the form. If checked by the user the form will be saved but not processed and the user get a link to edit and submit the saved form.',
         'hint_free_select_hint_val'
             => 'Geben Sie den WERT an, den dieser Eintrag übermitteln soll.',
         'hint_free_select_hint_sel'
@@ -98,6 +100,8 @@ $LANG = array(
             => '',
         'hint_kit_email'
             => '<span style="color:#800000;">Das E-Mail Feld ist grundsätzlich Pflicht!</span>',
+        'hint_kit_email_retype'
+            => '',
         'hint_kit_fax'
             => '',
         'hint_kit_field_add'
