@@ -8,6 +8,12 @@
  * @version $Id$
  */
 
+Release 0.27
+2011-12-19
+fixed - precheck.php looks if kitDirList is installed and check the release
+  number and kitDirList needs kitForm - so we got an endless loop if kitDirList
+  must be updated ...
+
 Release 0.26
 2011-12-17
 fixed - problem with invalid ID's in the kitForm protocol

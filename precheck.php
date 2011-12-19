@@ -44,10 +44,13 @@ $PRECHECK['WB_ADDONS'] = array(
 	'kit' => array('VERSION' => '0.49', 'OPERATOR' => '>='),
 	'kit_tools' => array('VERSION' => '0.15', 'OPERATOR' => '>=')
 );
+
+/* must be removed, otherwise we'll create an endless loop ... 
 // if kitDirList is installed it must at minimum 0.27 ...
 if (file_exists(WB_PATH.'/modules/kit_dirlist/include.php')) {
     $PRECHECK['WB_ADDONS']['kit_dirlist'] = array('VERSION' => '0.27', 'OPERATOR' => '>=');
 }
+*/
 
 global $database;  
 $sql = "SELECT `value` FROM `".TABLE_PREFIX."settings` WHERE `name`='default_charset'";

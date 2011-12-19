@@ -36,7 +36,7 @@ if (defined('WB_PATH')) {
 $module_directory = 'kit_form';
 $module_name = 'kitForm';
 $module_function = 'tool';
-$module_version = '0.26';
+$module_version = '0.27';
 $module_status = 'Beta';
 $module_platform = '2.8';
 $module_author = 'Ralf Hertsch, Berlin (Germany)';
