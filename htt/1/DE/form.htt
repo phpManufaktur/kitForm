@@ -1,11 +1,20 @@
 {*
  * kitForm
- *
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * 
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
  *}
  <div class="kit_form">
    <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">

@@ -1,11 +1,20 @@
 {*
  * kitForm
- *
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * 
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
  *}
 <p>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</p>
 <p><b>Bitte bestätigen Sie Ihre Anmeldung</b> für unseren Newsletter in dem Sie den folgenden Link in Ihrem Browser öffnen:</p>

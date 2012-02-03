@@ -1,17 +1,22 @@
 /**
  * kitForm
  * 
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  */
 
+Release 0.29
+2012-02-03
+added - entries for fields of type 'select', 'checkbox' and 'radio' can now
+  be moved and change their position.
+
 Release 0.28
 2012-02-03
 added - check of option 'relaying' for email providers, handle emails in a 
-  different way an use the reply-to header
+  different way and use the reply-to header
 
 Release 0.27
 2011-12-19

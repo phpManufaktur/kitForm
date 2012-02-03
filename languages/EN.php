@@ -2,14 +2,14 @@
 
 /**
  * kitForm
- *
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
- * @link http://phpmanufaktur.de/kit_form
- * @copyright 2011
+ * 
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
+ * @link http://phpmanufaktur.de
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  * 
- * @todo: translation incomplete!
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
 /**

@@ -3,11 +3,13 @@
 /**
  * kitForm
  * 
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
- * @link http://phpmanufaktur.de/kit_form
- * @copyright 2011
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
+ * @link http://phpmanufaktur.de
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
  */
 
 $LANG = array(
@@ -73,6 +75,8 @@ $LANG = array(
             => 'Formular bearbeiten',
         'Enter title ...'
             => 'Titel eingeben ...',
+        'Error: The <b>ID {{ id }}</b> is invalid.'
+            => 'Fehler: Die <b>ID {{ id }}</b> ist ungültig.',
         'Error creating the directory <b>{{ directory }}</b>.'
             => 'Das Verzeichnis <b>{{ directory }}</b> konnte nicht erstellt werden.',
         'Error executing template <b>{{ template }}</b>:<br />{{ error }}'     
@@ -297,6 +301,10 @@ $LANG = array(
             => 'Das Datenfeld <b>{{ field }}</b> ist nicht gesetzt!',
         'Missing the form ID!'
             => 'Es wurde keine ID für das Formular übergeben!',
+        'Move item down'
+            => 'Element nach unten schieben',
+        'Move item up'
+            => 'Element nach oben schieben',
             
         'Off' 
             => 'Ausgeschaltet',
@@ -462,6 +470,8 @@ $LANG = array(
             => '<p>Das allgemeine Datenfeld "<b>{{ field }}</b>" wurde dem Formular hinzugefügt.</p>',
         'The ID {{ id }} is invalid!'
             => 'Die ID {{ id }} ist ungültig!',
+        'The item has successfully moved'
+            => 'Das Element wurde verschoben.',
         '<p>The KIT datafield <b>{{ field }}</b> was added to the form.</p>'
             => '<p>Das KIT Datenfeld <b>{{ field }}</b> wurde dem Formular hinzugefügt.</p>',
         '<p>The link to access this form is no longer valid and the temporary saved form data are now deleted.</p><p>Please submit the form or use again the option for a delayed transmission to create a new access link.</p>'

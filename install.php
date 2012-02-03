@@ -3,9 +3,9 @@
 /**
  * kitForm
  * 
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  * 
@@ -101,5 +101,7 @@ if ($message != "") {
 if (!empty($error)) {
 	$admin->print_error($error);
 }
-
+else {
+    $admin->print_success('Thank you for using kitForm!', WB_URL.'/admins/admintools/tool.php?tool=kit_form&act=abt');
+}
 ?>

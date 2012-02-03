@@ -3,9 +3,9 @@
 /**
  * kitForm
  * 
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
  * 
@@ -46,6 +46,8 @@ class formBackend {
     const request_import_name = 'impn';
     const request_protocol_id = 'pid';
     const request_export = 'exp';
+    const request_move = 'mov';
+    const request_position = 'pos';
     
     const action_about = 'abt';
     const action_default = 'def';
@@ -55,6 +57,9 @@ class formBackend {
     const action_list = 'lst';
     const action_protocol = 'pro';
     const action_protocol_id = 'pid';
+    const action_up = 'up';
+    const action_down = 'down';
+    const action_move = 'mov';
     
     private $page_link = '';
     private $img_url = '';
@@ -268,6 +273,9 @@ class formBackend {
                 break;
             case self::action_import:
                 $result = $this->show(self::action_edit, $this->importForm());
+                break;
+            case self::action_move:
+                $result = $this->show(self::action_edit, $this->checkMove());
                 break;
             case self::action_list:
             default:
@@ -1385,7 +1393,35 @@ class formBackend {
                                         'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
                                         'label' => $this->lang->translate('label_type_label')
                                         ), 
-                                'checkbox' => $checkboxes
+                                'checkbox' => $checkboxes,
+                                'move' => array(
+                                    'img_src' => $this->img_url,
+                                    'position' => self::request_position,
+                                    'leptoken' => (isset($_GET['leptoken'])) ? $_GET['leptoken'] : '',
+                                    'count' => count($checkboxes)-1,
+                                    'up' => array(
+                                        'text' => $this->lang->translate('Move item up'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_up,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    ),
+                                    'down' => array(
+                                        'text' => $this->lang->translate('Move item down'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_down,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    )
+                                )
                                 );
                         break;
                     case dbKITformFields::type_radio:
@@ -1434,7 +1470,35 @@ class formBackend {
                                         'name' => "type_$field_name", 
                                         'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]], 
                                         'label' => $this->lang->translate('label_type_label')), 
-                                'radios' => $radios
+                                'radios' => $radios,
+                                'move' => array(
+                                    'img_src' => $this->img_url,
+                                    'position' => self::request_position,
+                                    'leptoken' => (isset($_GET['leptoken'])) ? $_GET['leptoken'] : '',
+                                    'count' => count($radios)-1,
+                                    'up' => array(
+                                        'text' => $this->lang->translate('Move item up'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_up,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    ),
+                                    'down' => array(
+                                        'text' => $this->lang->translate('Move item down'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_down,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    )
+                                )
                                 );
                         break;
                     case dbKITformFields::type_delayed:
@@ -1585,7 +1649,35 @@ class formBackend {
                                         'value' => $data[dbKITformFields::field_value], 
                                         'label' => $this->lang->translate('label_size_label')
                                         ), 
-                                'options' => $options
+                                'options' => $options,
+                                'move' => array(
+                                    'img_src' => $this->img_url,
+                                    'position' => self::request_position,
+                                    'leptoken' => (isset($_GET['leptoken'])) ? $_GET['leptoken'] : '',
+                                    'count' => count($options)-1,
+                                    'up' => array(
+                                        'text' => $this->lang->translate('Move item up'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_up,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    ),
+                                    'down' => array(
+                                        'text' => $this->lang->translate('Move item down'),
+                                        'link' => sprintf('%s&%s',
+                                            $this->page_link,
+                                            http_build_query(array(
+                                                self::request_action => self::action_move,
+                                                self::request_move => self::action_down,
+                                                dbKITformFields::field_id => $field_id,
+                                                dbKITform::field_id => $form_id
+                                            ))),
+                                    )
+                                )
                                 );
                         break;
                     case dbKITformFields::type_html:
@@ -1795,6 +1887,75 @@ class formBackend {
         return $this->getTemplate('backend.form.edit.htt', $data);
     } // dlgFormEdit()
 
+    
+    protected function checkMove() {
+        global $dbKITformFields;
+        
+        $field_id = (isset($_REQUEST[dbKITformFields::field_id])) ? (int) $_REQUEST[dbKITformFields::field_id] : -1;
+        $position = (isset($_REQUEST[self::request_position])) ? (int) $_REQUEST[self::request_position] : -1;
+        $move_up = (isset($_REQUEST[self::request_move]) && ($_REQUEST[self::request_move] == self::action_up)) ? true : false;
+        $SQL = sprintf("SELECT %s FROM %s WHERE %s='%s'", 
+            dbKITformFields::field_type_add, 
+            $dbKITformFields->getTableName(),
+            dbKITformFields::field_id,
+            $field_id);
+        $result = array();
+        if (!$dbKITformFields->sqlExec($SQL, $result)) {
+            $this->setError(sprintf('[%s  %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+            return false;
+        }
+        if (count($result) < 1) {
+            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate(
+                'Error: The <b>ID {{ id }}</b> is invalid.'), array('id' => $field_id)));
+            return false;
+        }
+        parse_str($result[0][dbKITformFields::field_type_add], $fields);
+        if ($move_up) {
+            $new_position = $position - 1;
+            if ($new_position < 0) $new_position = 0; 
+        } 
+        else {
+            $new_position = $position + 1;
+            if ($new_position >= count($fields)) $new_position = -1;
+        }
+        
+        $new_fields = array();
+        if ($move_up) {
+            for ($i=0; $i < count($fields); $i++) {
+                if ($i == $new_position) $new_fields[] = $fields[$position];
+                if ($i == $position) continue;
+                $new_fields[] = $fields[$i];
+            }
+        }
+        elseif ($new_position > -1) {
+            for ($i=0; $i < count($fields); $i++) {
+                if ($i == $position) {
+                    $new_fields[] = $fields[$new_position];
+                    $new_fields[] = $fields[$position];
+                    continue;
+                }
+                if ($i == $new_position) continue;
+                $new_fields[] = $fields[$i];
+            }
+        }
+        else {
+            // nothing to do ...
+            $new_fields = $fields;
+        }
+        $where = array(
+            dbKITformFields::field_id => $field_id
+        );
+        $data = array(    
+            dbKITformFields::field_type_add => http_build_query($new_fields)
+        );
+        if (!$dbKITformFields->sqlUpdateRecord($data, $where)) {
+            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
+            return false;
+        }
+        $this->setMessage($this->lang->translate('The item has successfully moved'));
+        return $this->dlgFormEdit();
+    } // checkMove()
+    
     /**
      * Shows a list with all available forms
      * 

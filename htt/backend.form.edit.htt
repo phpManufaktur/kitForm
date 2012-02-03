@@ -1,11 +1,20 @@
 {*
  * kitForm
- *
- * @author Ralf Hertsch (ralf.hertsch@phpmanufaktur.de)
+ * 
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011
+ * @copyright 2011-2012 - phpManufaktur by Ralf Hertsch
  * @license GNU GPL (http://www.gnu.org/licenses/gpl.html)
  * @version $Id$
+ * 
+ * FOR VERSION- AND RELEASE NOTES PLEASE LOOK AT INFO.TXT!
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
  *}
 <form name="form_edit" action="{$form_action}" method="post">
   <input type="hidden" name="{$action_name}" value="{$action_value}" />
@@ -21,7 +30,7 @@
     <colgroup>
       <col width="200" />
       <col width="*" />
-      <col width="300" />
+      <col width="350" />
     </colgroup>
     <tr>
       <td class="label_form_edit">{$form.form_id.label}</td>
@@ -104,14 +113,14 @@
   <div id="sorter">
     <table width="100%">
       <colgroup>
-        <col width="200" />
+        <col width="150" />
         <col width="20" />
         <col width="20" />
         <col width="*" />
-        <col width="300" />
+        <col width="200" />
       </colgroup>
       <tbody>
-      {foreach $fields field}
+      {foreach $fields field}          
       <tr id="rowID_{$field.id}">
         {if $field.id < 100}
           {* KIT Datenfelder *}
@@ -130,8 +139,8 @@
             <td class="data_free_field">
               <table class="table_free_field" width="100%">
                 <colgroup>
-                  <col width="40%" />
-                  <col width="60%" />
+                  <col width="30%" />
+                  <col width="70%" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
@@ -177,8 +186,8 @@
             <td class="data_free_field">
               <table class="table_free_field" width="100%">
                 <colgroup>
-                  <col width="40%" />
-                  <col width="60%" />
+                  <col width="30%" />
+                  <col width="70%" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
@@ -206,8 +215,8 @@
             <td class="data_free_field">
               <table class="table_free_field" width="100%">
                 <colgroup>
-                  <col width="40%" />
-                  <col width="60%" />
+                  <col width="30%" />
+                  <col width="70%" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
@@ -238,8 +247,8 @@
             <td class="data_free_field">
               <table class="table_free_field" width="100%">
                 <colgroup>
-                  <col width="40%" />
-                  <col width="60%" />
+                  <col width="30%" />
+                  <col width="70%" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
@@ -288,8 +297,8 @@
             <td class="data_free_field">
               <table class="table_free_field" width="100%">
                 <colgroup>
-                  <col width="40%" />
-                  <col width="60%" />
+                  <col width="30%" />
+                  <col width="70%" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="2">{$field.must.text}</td>
@@ -326,9 +335,9 @@
               <table class="table_free_field" width="100%">
                 <colgroup>
                   <col width="5%" />
-                  <col width="35%" />
-                  <col width="55%" />
-                  <col width="5%" />
+                  <col width="25%" />
+                  <col width="*" />
+                  <col width="50" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
@@ -345,17 +354,23 @@
                   <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
                   <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
                 </tr>
-                {foreach $field.checkbox checkbox}
+                {$i=0}{foreach $field.checkbox checkbox}
                   <tr>
                     <td><input type="checkbox" name="cb_active_{$checkbox.name}" value="1"{if count_characters($checkbox.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
                     <td><input type="text" name="cb_value_{$checkbox.name}" value="{$checkbox.value}" title="{$field.hint.hint_val}" /></td>
                     <td><input type="text" name="cb_text_{$checkbox.name}" value="{$checkbox.text}" title="{$field.hint.hint_txt}" /></td>
                     {if count_characters($checkbox.value) > 0}
-                    <td><input type="checkbox" name="cb_checked_{$checkbox.name}" value="1"{if $checkbox.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    <td>
+                      <input type="checkbox" name="cb_checked_{$checkbox.name}" value="1"{if $checkbox.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" />
+                      {if $i == 0}<span class="sub_move_up"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>
+                      {else}<span class="sub_move_up"><a href="javascript:move_up('{$field.move.up.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}up_9x11.png" width="9" height="11" title="{$field.move.up.text}" /></a></span>{/if}
+                      {if $i == $field.move.count-1}<span class="sub_move_down"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>                      
+                      {else}<span class="sub_move_down"><a href="javascript:move_up('{$field.move.down.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}down_9x11.png" width="9" height="11" title="{$field.move.down.text}" /></a></span>{/if}         
+                    </td>
                     {else}
                     <td>&nbsp;</td>
                     {/if}
-                  </tr>
+                  </tr>{$i=$i+1}
                 {/foreach}
                 <tr>
                   <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
@@ -373,8 +388,8 @@
               <table class="table_free_field" width="100%">
                 <colgroup>
                   <col width="5%" />
-                  <col width="35%" />
-                  <col width="55%" />
+                  <col width="25%" />
+                  <col width="*" />
                   <col width="5%" />
                 </colgroup>
                 <tr>
@@ -412,9 +427,9 @@
               <table class="table_free_field" width="100%">
                 <colgroup>
                   <col width="5%" />
-                  <col width="35%" />
-                  <col width="55%" />
-                  <col width="5%" />
+                  <col width="25%" />
+                  <col width="*" />
+                  <col width="50" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
@@ -431,17 +446,23 @@
                   <td class="sub_label_free_field" colspan="2">{$field.field.label}</td>
                   <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.field.name}" value="{$field.field.value}" /></td>
                 </tr>
-                {foreach $field.radios radio}
+                {$i=0}{foreach $field.radios radio}
                   <tr>
                     <td><input type="checkbox" name="rb_active_{$radio.name}" value="1"{if count_characters($radio.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
                     <td><input type="text" name="rb_value_{$radio.name}" value="{$radio.value}" title="{$field.hint.hint_val}" /></td>
                     <td><input type="text" name="rb_text_{$radio.name}" value="{$radio.text}" title="{$field.hint.hint_txt}" /></td>
                     {if count_characters($radio.value) > 0}
-                    <td><input type="radio" name="rb_checked_{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    <td>
+                      <input type="radio" name="rb_checked_{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" />
+                      {if $i == 0}<span class="sub_move_up"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>
+                      {else}<span class="sub_move_up"><a href="javascript:move_up('{$field.move.up.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}up_9x11.png" width="9" height="11" title="{$field.move.up.text}" /></a></span>{/if}
+                      {if $i == $field.move.count-1}<span class="sub_move_down"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>                      
+                      {else}<span class="sub_move_down"><a href="javascript:move_up('{$field.move.down.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}down_9x11.png" width="9" height="11" title="{$field.move.down.text}" /></a></span>{/if}  
+                    </td>
                     {else}
                     <td>&nbsp;</td>
                     {/if}
-                  </tr>
+                  </tr>{$i=$i+1}
                 {/foreach}
                 <tr>
                   <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
@@ -459,9 +480,9 @@
               <table class="table_free_field" width="100%">
                 <colgroup>
                   <col width="5%" />
-                  <col width="35%" />
-                  <col width="55%" />
-                  <col width="5%" />
+                  <col width="25%" />
+                  <col width="*" />
+                  <col width="50" />
                 </colgroup>
                 <tr>
                   <td class="sub_label_free_field_must" colspan="4">{$field.must.text}</td>
@@ -482,17 +503,24 @@
                   <td class="sub_label_free_field" colspan="2">{$field.size.label}</td>
                   <td class="sub_value_free_field" colspan="2"><input type="text" name="{$field.size.name}" value="{$field.size.value}" /></td>
                 </tr>
+                {$i=0}
                 {foreach $field.options option}
                   <tr>
                     <td><input type="checkbox" name="opt_active_{$option.name}" value="1"{if count_characters($option.value) > 0} checked="checked"{/if} title="{$field.hint.hint_add}" /></td>
                     <td><input type="text" name="opt_value_{$option.name}" value="{$option.value}" title="{$field.hint.hint_val}" /></td>
                     <td><input type="text" name="opt_text_{$option.name}" value="{$option.text}" title="{$field.hint.hint_txt}" /></td>
                     {if count_characters($option.value) > 0}
-                    <td><input type="radio" name="opt_checked_{$field.name}" value="{$option.value}"{if $option.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" /></td>
+                    <td>
+                      <input type="radio" name="opt_checked_{$field.name}" value="{$option.value}"{if $option.checked == 1} checked="checked"{/if} title="{$field.hint.hint_sel}" />
+                      {if $i == 0}<span class="sub_move_up"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>
+                      {else}<span class="sub_move_up"><a href="javascript:move_up('{$field.move.up.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}up_9x11.png" width="9" height="11" title="{$field.move.up.text}" /></a></span>{/if}
+                      {if $i == $field.move.count-1}<span class="sub_move_down"><img src="{$field.move.img_src}empty_9x11.png" width="9" height="11" title="" /></span>                      
+                      {else}<span class="sub_move_down"><a href="javascript:move_up('{$field.move.down.link}','{$field.move.position}','{$i}','{$field.move.leptoken}');"><img src="{$field.move.img_src}down_9x11.png" width="9" height="11" title="{$field.move.down.text}" /></a></span>{/if}
+                    </td>
                     {else}
                     <td>&nbsp;</td>
                     {/if}
-                  </tr>
+                  </tr>{$i=$i+1}
                 {/foreach}
                 <tr>
                   <td class="sub_label_free_field_hint" colspan="2">{$field.hint.label}</td>
@@ -515,7 +543,7 @@
       <col width="200" />
       <col width="150" />
       <col width="*" />
-      <col width="300" />
+      <col width="350" />
     </colgroup>
     <tr><td colspan="4">&nbsp;</td></tr>
       {foreach $form.kit_link link}
