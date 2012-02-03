@@ -1480,6 +1480,7 @@ class formFrontend {
 			}
 			$provider_email = $provider_data ['email'];
 			$provider_name = $provider_data ['name'];
+			$relaying = ($provider_data['relaying'] == 1) ? true : false; 
 			
 			$form_d = $form_data;
 			$form_d['datetime'] = date(cfg_datetime_str, strtotime($form_d[dbKITformData::field_date]));
@@ -1516,7 +1517,16 @@ class formFrontend {
 				if (!empty($cc)) $cc_array [$cc] = $cc;
 			}
 			$mail = new kitMail ( $form [dbKITform::field_provider_id] );
-			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
+			if (!$relaying) {
+			    $mail->AddReplyTo($contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email]);
+			    $from_email = $provider_email;
+			    $from_name = $contact [kitContactInterface::kit_email]; 
+			}
+			else {
+			    $from_email = $contact [kitContactInterface::kit_email];
+			    $from_name = $contact [kitContactInterface::kit_email];
+			}
+			if (! $mail->mail ( $provider_subject, $provider_mail, $from_email, $from_name, array ($provider_email => $provider_name ), ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 				$err = $mail->getMailError ();
 				if (empty ( $err ))
 					$err = $this->lang->translate('Can\'t send the email to <b>{{ email }}</b>!', array('email' => $contact[kitContactInterface::kit_email]));
@@ -1907,6 +1917,7 @@ class formFrontend {
 		}
 		$provider_email = $provider_data['email'];
 		$provider_name = $provider_data['name'];
+		$relaying = ($provider_data['relaying'] == 1) ? true : false;
 		
 		// create and save commands
 		$cmd_publish = $kitLibrary->createGUID();
@@ -2013,11 +2024,20 @@ class formFrontend {
 		    if (!empty($cc)) $cc_array[$cc] = $cc;
 		}
 		$mail = new kitMail($form[dbKITform::field_provider_id]);
+		if (!$relaying) {
+		    $mail->AddReplyTo($contact_data[kitContactInterface::kit_email], $contact_data[kitContactInterface::kit_email]);
+		    $from_email = $provider_email;
+		    $from_name = $contact_data[kitContactInterface::kit_email];
+		} 
+		else {
+		    $from_email = $contact_data[kitContactInterface::kit_email];
+		    $from_name = $contact_data[kitContactInterface::kit_email];
+		}
 		if (!$mail->mail(
 		        $provider_subject, 
 		        $provider_mail, 
-		        $contact_data[kitContactInterface::kit_email], 
-		        $contact_data[kitContactInterface::kit_email], 
+		        $from_email, 
+		        $from_name, 
 		        array($provider_email => $provider_name ), 
 		        ($form[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array 
 		        )) {
@@ -2688,6 +2708,7 @@ class formFrontend {
 		}
 		$provider_email = $provider_data ['email'];
 		$provider_name = $provider_data ['name'];
+		$relaying = (bool) $provider_data['relaying'];
 		
 		$data = array ('contact' => $contact_data, 'form' => $form_data );
 		
@@ -2712,7 +2733,16 @@ class formFrontend {
 			if (!empty($cc)) $cc_array [$cc] = $cc;
 			
 		$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
-		if (! $mail->mail ( $provider_subject, $provider_mail, $contact_data [kitContactInterface::kit_email], $contact_data [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
+		if (!$relaying) {
+		    $mail->AddReplyTo($contact_data [kitContactInterface::kit_email]);
+		    $from_name = $contact_data [kitContactInterface::kit_email];
+		    $from_email = $provider_email;		    
+		}
+		else {
+		    $from_name = $contact_data [kitContactInterface::kit_email];
+		    $from_email = $contact_data [kitContactInterface::kit_email];
+		}
+		if (! $mail->mail ( $provider_subject, $provider_mail, $from_email, $from_name, array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 			$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, 
 			        $this->lang->translate('Can\'t send the email to <b>{{ email }}</b>!', array('email' => SERVER_EMAIL))));
 			return false;
@@ -2999,6 +3029,8 @@ class formFrontend {
 			}
 			$provider_email = $provider_data ['email'];
 			$provider_name = $provider_data ['name'];
+			$relaying = (bool) $provider_data['relaying'];
+			
 			$client_mail = $this->getTemplate ( 'mail.client.register.newsletter.htt', $data );
 			if ($form_data[dbKITform::field_email_html] == dbKITform::html_off) $client_mail = strip_tags($client_mail);
 			$client_subject = strip_tags($this->getTemplate('mail.client.subject.htt', $data));
@@ -3019,8 +3051,18 @@ class formFrontend {
 			foreach ( $ccs as $cc )
 				if (!empty($cc)) $cc_array [$cc] = $cc;
 			
+			
 			$mail = new kitMail ( $form_data [dbKITform::field_provider_id] );
-			if (! $mail->mail ( $provider_subject, $provider_mail, $contact [kitContactInterface::kit_email], $contact [kitContactInterface::kit_email], array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
+			if (!$relaying) {
+			    $mail->AddReplyTo($contact[kitContactInterface::kit_email]);
+			    $from_name = $contact[kitContactInterface::kit_email];
+			    $from_email = $provider_email;
+			}
+			else {
+			    $from_name = $contact[kitContactInterface::kit_email];
+			    $from_email = $contact[kitContactInterface::kit_email];
+			}			
+			if (! $mail->mail ( $provider_subject, $provider_mail, $from_email, $from_name, array ($provider_email => $provider_name ), ($form_data[dbKITform::field_email_html] == dbKITform::html_on) ? true : false, $cc_array )) {
 				$this->setError ( sprintf ( '[%s - %s] %s', __METHOD__, __LINE__, 
 				        $this->lang->translate('Can\'t send the email to <b>{{ email }}</b>!', array('email' => SERVER_EMAIL))));
 				return false;

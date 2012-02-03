@@ -8,6 +8,11 @@
  * @version $Id$
  */
 
+Release 0.28
+2012-02-03
+added - check of option 'relaying' for email providers, handle emails in a 
+  different way an use the reply-to header
+
 Release 0.27
 2011-12-19
 fixed - precheck.php looks if kitDirList is installed and check the release
