@@ -41,7 +41,7 @@ $module_status = 'Beta';
 $module_platform = '2.8';
 $module_author = 'Ralf Hertsch, Berlin (Germany)';
 $module_license = 'GNU General Public License';
-$module_description = 'Formular generator for KeepInTouch (KIT)';
+$module_description = 'Form generator for KeepInTouch (KIT)';
 $module_home = 'http://phpmanufaktur.de/kit_form';
 $module_guid = 'F66B6CFC-FA47-4F67-81F2-D4159B65A9E1';
 
