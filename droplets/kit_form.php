@@ -1,5 +1,14 @@
-//:interface to kitForm
-//:Please visit http://phpManufaktur.de for informations about kitForm!
+//:Place a kitForm dialog, feedback, action or form everywhere you need it
+//:Usage: [[kit_form?form=FORM_NAME]] - specify the name of the form defined in kitForm
+ Optional Parameters:
+ preset=NUMBER - select the Preset /kit_form/htt/NUMBER, default is 1
+ css=TRUE|FALSE - use the CSS /kit_form/kit_form.css, default is TRUE, needs DropletsExtension
+ auto_login_lepton=TRUE|FALSE - enables an automatic login at the KIT interface for authenticated LEPTON users
+ language=LANG_CODE - if set kitIdea ignore the language settings of the page and use this language instead.
+ fallback_preset=NUMBER - the preset kitIdea should use if a template does not exists in the specified preset directory, default is 1 
+ fallback_language=LANG_CODE - the language kitIdea should use if a template does not exists in the needed language, default is DE (german)
+ debug=TRUE|FALSE - switch the template debugging on or off, default is FALSE.
+
 /**
  * kitForm
  * 
@@ -38,10 +47,20 @@ if (file_exists(WB_PATH.'/modules/kit_form/class.frontend.php')) {
 	require_once(WB_PATH.'/modules/kit_form/class.frontend.php');
 	$formular = new formFrontend();
 	$params = $formular->getParams();
-	$params[formFrontend::param_form] = (isset($form)) ? strtolower(trim($form)) : '';
-	$params[formFrontend::param_preset] = (isset($preset)) ? (int) $preset : 1;
-	$params[formFrontend::param_css] = (isset($css) && (strtolower($css) == 'false')) ? false : true;
-	$params[formFrontend::param_auto_login_wb] = (isset($auto_login_wb) && (strtolower($auto_login_wb) == 'true')) ? true : false;
+	$params[formFrontend::PARAM_FORM] = (isset($form)) ? strtolower(trim($form)) : '';
+	$params[formFrontend::PARAM_PRESET] = (isset($preset)) ? (int) $preset : 1;
+	$params[formFrontend::PARAM_CSS] = (isset($css) && (strtolower($css) == 'false')) ? false : true;
+	if (isset($auto_login_wb)) {
+	    // for downwards compatibility only
+	    $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (strtolower($auto_login_wb) == 'true') ? true : false;
+	}
+	else {
+	    $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (isset($auto_login_lepton) && (strtolower($auto_login_lepton) == 'true')) ? true : false;
+	}
+	$params[formFrontend::PARAM_LANGUAGE] = (isset($language)) ? strtoupper($language) : LANGUAGE;
+	$params[formFrontend::PARAM_FALLBACK_LANGUAGE] = (isset($fallback_language)) ? strtoupper($fallback_language) : 'DE';
+	$params[formFrontend::PARAM_FALLBACK_PRESET] = (isset($fallback_preset)) ? (int) $fallback_preset : 1;
+	$params[formFrontend::PARAM_DEBUG] = (isset($debug) && (strtolower($debug) == 'true')) ? true : false;
 	if (!$formular->setParams($params)) return $formular->getError();
 	return $formular->action();
 }

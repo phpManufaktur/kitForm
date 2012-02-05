@@ -16,6 +16,10 @@
  *
  * Use {dump()} to get a list of all in this template available variables!
  *}
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
  <div class="kit_confirm">
    <h2>Auf Wiedersehen {if count_characters($contact.kit_last_name) > 0}{$contact.kit_title} {$contact.kit_last_name}!{else}!{/if}</h2>
    <p><i>Wir freuen uns schon auf Ihren nächsten Besuch!</i></p>

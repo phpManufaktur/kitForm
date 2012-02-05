@@ -17,6 +17,8 @@ $LANG = array(
             => '- keine Aktion -',
         '- not assigned -'
             => '- nicht zugeordnet -',
+        '- select country -'
+            => '- Land auswählen -',
         '- select datafield -'
             => '- Datenfeld auswählen -',
         '- select KIT action -'
@@ -87,6 +89,8 @@ $LANG = array(
             => 'Die Datei <b>{{ file }}</b> konnte nicht in das Zielverzeichnis verschoben werden!',
         'Error reading the file <b>{{ file }}</b>.' 
             => '<p>Die Datei <b>%s</b> konnte nicht eingelesen werden!</p>',
+        'Error: The template {{ template }} does not exists in any of the possible paths!'
+            => 'Das Template {{ template }} wurde in keinem der möglichen Pfade gefunden!',
         'Error writing the file <b>{{ file }}</b>.'
             => 'Fehler beim Schreiben der Datei <b>{{ file }}</b>.',
             
@@ -167,6 +171,8 @@ $LANG = array(
             => 'Sie können Aktionen festlegen, die für KeepInTouch automatisch durchgeführt werden, z.B. das Formular als Anmelde- oder Registrierdialog zu verwenden. Freie Datenfelder werden in diesem Fall von kitForm mit Ausnahme von Zuweisungen über versteckte Datenfelder ignoriert.',
         'hint_kit_address_type'
             => 'Adresstyp (Privat, Dienstlich) zur Auswahl anzeigen',
+        'hint_kit_birthday'    
+            => '',
         'hint_kit_city'
             => '',
         'hint_kit_company'
@@ -327,6 +333,8 @@ $LANG = array(
             => '<p>Bitte wählen Sie ein Datenfeld aus <b>und</b> geben Sie einen Titel für das neue Datenfeld an.</p>',
         '<p>Please select a service provider for this form!</p>'
             => '<p>Sie haben noch keinen E-Mail Dienstleister für dieses Formular ausgewählt!</p>',
+        '<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>'
+            => '<p>Bitte geben Sie Ihren Geburtstag in der Form <b>{{ date_str }}</b> an.</p>',
         '<p>Please upload only files with the extension <b>{{ extensions }}</b>, the file {{ file }} is refused.</p>'
             => '<p>Bitte übertragen Sie nur Dateien mit den Endungen <b>{{ extensions }}</b>, die Datei <b>{{ file }}</b> wird zurückgewiesen.</p>',
         'Protocol Details'
@@ -400,6 +408,8 @@ $LANG = array(
             => '<p>Der Datentyp {{ datatype }} wird nicht unterstützt!</p>',
         'The datatype <b>{{ type }}</b> is not supported!'    
             => 'Der Datentyp <b>{{ type }}</b> wird nicht unterstützt!',
+        '<p>The date <b>{{ date }}</b> is invalid!</p>'
+            => 'Die Datumsangabe <b>{{ date }}</b> ist ungültig!</p>',
         '<p>The definition of the new checkbox is not complete. Please specify a <b>value</b> and a <b>text</b> for it!</p>'
             => '<p>Die Definition der neuen Checkbox ist nicht vollständig, bitte geben Sie einen <b>Wert</b> und einen <b>Text</b> für die Checkbox an!</p>',
         '<p>The definition of the new radiobutton is not complete. Please specify a <b>value</b> and a <b>text</b> for it!</p>'

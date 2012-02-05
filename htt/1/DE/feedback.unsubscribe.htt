@@ -19,6 +19,10 @@
  * If you insert additional fields to this form you MUST insert them here
  * explicit, they will not appear automatically!
  *}
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
  <div id="feedback_body"><a name="{$form.anchor}"></a> 
   <h2>{$form.title}</h2>
   {if isset($form.response)}

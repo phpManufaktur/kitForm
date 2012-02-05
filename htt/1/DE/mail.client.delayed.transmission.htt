@@ -16,6 +16,10 @@
  *
  * Use {dump()} to get a list of all in this template available variables!
  *}
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
 {if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}
 
 das Formular {$form.title} wurde entsprechend Ihrem Wunsch zwischengespeichert, Sie können es jederzeit über den Link

@@ -8,6 +8,20 @@
  * @version $Id$
  */
 
+Release 0.30
+2012-02-04
+added - KIT support for country selection
+added - KIT support for birthday date
+added - fallback for presets and languages - it is no longer neccessary that all
+  forms for all languages really exists, kitForm now falls back to the standard
+  preset in /kit_form/htt/1 in three steps.
+added - switches in the Droplet [[kit_form]] for language, fallback_language,
+  fallback_preset and debug (see also Droplet hints)
+removed the default preset in /kit_form/htt/2 because it is to much work to keep
+  this nearly with preset 1 identical preset up-to-date
+added - debug switch in all templates, please read /kit_form/htt/changes.txt for
+  more informations 
+
 Release 0.29
 2012-02-03
 added - entries for fields of type 'select', 'checkbox' and 'radio' can now

@@ -33,7 +33,7 @@ if (defined('WB_PATH')) {
 
 
 // for extended error reporting set to true!
-if (! defined('KIT_DEBUG')) define('KIT_DEBUG', true);
+if (!defined('KIT_DEBUG')) define('KIT_DEBUG', true);
 require_once (WB_PATH . '/modules/kit_tools/debug.php');
 
 // use LEPTON 2.x I18n for access to language files

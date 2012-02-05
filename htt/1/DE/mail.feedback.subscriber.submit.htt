@@ -17,6 +17,10 @@
  * If you insert additional fields to the feedback form you MUST insert them here
  * explicit, they will not appear automatically!
  *}
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
  
 Auf der Seite
 

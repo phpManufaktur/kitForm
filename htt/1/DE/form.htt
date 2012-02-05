@@ -16,6 +16,10 @@
  *
  * Use {dump()} to get a list of all in this template available variables!
  *}
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
  <div class="kit_form">
    <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
@@ -74,7 +78,8 @@
             </tr>
           {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
                    $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
-                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype') }
+                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype') ||
+                   $field.type == 'kit_birthday' }
             <tr>
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
               <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
@@ -98,6 +103,18 @@
                 {foreach $field.newsletters newsletter}
                 <input type="checkbox" name="{$field.name}[]" value="{$newsletter.value}"{if $newsletter.checked == 1} checked="checked"{/if} /> {$newsletter.text}<br />
                 {/foreach}
+              </td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif $field.type == 'kit_country'}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <select name="{$field.name}" size="1">
+                {foreach $field.countries country}
+                <option value="{$country.value}"{if $field.value == $country.value} selected="selected"{/if}>{$country.text}</option>
+                {/foreach}
+                </select>
               </td>
               <td class="form_hint">{$field.hint}</td>
             </tr>
@@ -235,7 +252,7 @@
       {if (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none') && ($form.links.act_register != 'act_none'))}
         {* Es wird der LOGIN Dialog angezeigt und es sind Verweise auf PASSWORT VERGESSEN und REGISTRIEREN gesetzt... *}
         <tr>
-          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a> oder Sie möchten sich als Anwender <a href="{$form.links.command}={$form.links.act_register}">registrieren lassen</a>?</td>
+          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a> oder Sie mÃƒÂ¶chten sich als Anwender <a href="{$form.links.command}={$form.links.act_register}">registrieren lassen</a>?</td>
         </tr>
       {elseif (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none'))}
         {* Es wird der LOGIN Dialog angezeigt und es ist ein Verweis auf PASSWORT VERGESSEN gesetzt *}

@@ -1,0 +1,29 @@
+kitForm
+(c) 2011-2012 by phpManufaktur
+Ralf Hertsch, Stockholmer Str. 31, 13359 Berlin (Germany)
+http://phpManufaktur.de - ralf.hertsch@phpManufaktur.de
+
+THIS FILE INFORMS YOU ABOUT CHANGES IN THE kitIdea STANDARD TEMPLATES.
+IF YOU ARE USING YOUR OWN TEMPLATES (PRESETS) PLEASE CHECK THE CHANGES AND
+ADAPT YOUR TEMPLATES IF NECESSARY.
+
+Release 0.24
+2012-02-01
+
+Removed the standard template preset /modules/kit_form/htt/2 (no longer supported)
+
+All standard templates in /modules/kit_form/htt/1 contains now a debugging code 
+at the top:
+
+{if $DEBUG == 1}
+  {$template_path}
+  {dump()}
+{/if}
+
+The $template_path returns the actual path of the parsed template and dump() gives
+you a list of all in the template available variables. You can switch DEBUG on or
+off with the parameter 'debug' in the droplet kit_form, i.e.:
+
+[[kit_form?form=test&debug=true]]
+
+will execute the form 'test' in debugging mode.

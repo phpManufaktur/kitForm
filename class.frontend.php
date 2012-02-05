@@ -75,11 +75,15 @@ class formFrontend {
 	private $message = '';
 	private $contact = array ();
 	
-	const param_preset = 'fpreset';
-	const param_form = 'form';
-	const param_return = 'return';
-	const param_css = 'css';
-	const param_auto_login_wb = 'auto_login_wb';
+	const PARAM_PRESET = 'kf_preset';
+	const PARAM_FORM = 'form';
+	const PARAM_RETURN = 'return';
+	const PARAM_CSS = 'css';
+	const PARAM_AUTO_LOGIN_LEPTON = 'auto_login_lepton';
+	const PARAM_FALLBACK_PRESET = 'fallback_preset';
+	const PARAM_FALLBACK_LANGUAGE = 'fallback_language';
+	const PARAM_LANGUAGE = 'language';
+	const PARAM_DEBUG = 'debug';
 	
 	const FIELD_FEEDBACK_TEXT = 'feedback_text';
 	const FIELD_FEEDBACK_URL = 'feedback_url';
@@ -99,11 +103,15 @@ class formFrontend {
 	const FORM_ANCHOR = 'kf';
 	
 	private $params = array (
-	        self::param_preset => 1, 
-	        self::param_form => '', 
-	        self::param_return => false, 
-	        self::param_css => true, 
-	        self::param_auto_login_wb => false 
+	        self::PARAM_PRESET => 1, 
+	        self::PARAM_FORM => '', 
+	        self::PARAM_RETURN => false, 
+	        self::PARAM_CSS => true, 
+	        self::PARAM_AUTO_LOGIN_LEPTON => false,
+	        self::PARAM_LANGUAGE => KIT_FORM_LANGUAGE,
+	        self::PARAM_FALLBACK_LANGUAGE => 'DE',
+	        self::PARAM_FALLBACK_PRESET => 1,
+	        self::PARAM_DEBUG => false
 	        );
 	
 	protected $lang;
@@ -126,7 +134,9 @@ class formFrontend {
 	        'shtml'
 	);
 	
-	
+	/**
+	 * Constructor for kitForm
+	 */
 	public function __construct() {
 	    global $I18n;
 		global $kitLibrary;
@@ -141,18 +151,28 @@ class formFrontend {
 	} // __construct()
 	
 
-	
+	/**
+	 * Get the parameters - this function is important for the kit_form droplet.
+	 * 
+	 * @return array $params
+	 */
 	public function getParams() {
 		return $this->params;
 	} // getParams()
 	
 
+	/**
+	 * Set the parameters - this function will be called by the kit_form droplet.
+	 * 
+	 * @param array $params
+	 * @return boolean true on success
+	 */
 	public function setParams($params = array()) {
 		$this->params = $params;
-		$this->template_path = WB_PATH . '/modules/kit_form/htt/' . $this->params [self::param_preset] . '/' . KIT_FORM_LANGUAGE . '/';
-		if (! file_exists ( $this->template_path )) {
+		// check only the preset path but not the subdirectories with the languages! 
+		if (! file_exists ( $this->template_path. $this->params[self::PARAM_PRESET] )) {
 			$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,  
-			        $this->lang->translate('The preset directory <b>{{ directory }}</b> does not exists, can\'t load any template!', array('directory' => '/modules/kit_form/htt/'.$this->params[self::param_preset].'/'.KIT_FORM_LANGUAGE.'/' ) )));
+			        $this->lang->translate('The preset directory <b>{{ directory }}</b> does not exists, can\'t load any template!', array('directory' => '/modules/kit_form/htt/'.$this->params[self::PARAM_PRESET].'/' ) )));
 			return false;
 		}
 		return true;
@@ -252,9 +272,36 @@ class formFrontend {
 	 */
 	protected function getTemplate($template, $template_data) {
 		global $parser;
+		$template_path = $this->template_path. $this->params[self::PARAM_PRESET]. '/'. $this->params[self::PARAM_LANGUAGE] . '/'. $template;
+		if (!file_exists($template_path)) {
+		    // template does not exist - fallback to default language!
+		    $template_path = $this->template_path. $this->params[self::PARAM_PRESET]. '/'. $this->params[self::PARAM_FALLBACK_LANGUAGE] . '/'. $template;
+		    if (!file_exists($template_path)) {
+		        // template does not exists - fallback to the default preset!
+		        $template_path = $this->template_path. $this->params[self::PARAM_FALLBACK_PRESET]. '/'. $this->params[self::PARAM_LANGUAGE] . '/'. $template;
+		        if (!file_exists($template_path)) {
+		            // template does not exists - fallback to the default preset and the default language
+		            $template_path = $this->template_path. $this->params[self::PARAM_FALLBACK_PRESET]. '/'. $this->params[self::PARAM_FALLBACK_LANGUAGE] . '/'. $template;
+		            if (!file_exists($template_path)) {
+		                // template does not exists in any possible path - give up!
+		                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate(
+		                    'Error: The template {{ template }} does not exists in any of the possible paths!', array('template', $template))));
+		                return false;
+		            }
+		        }
+		    } 
+		}
+		
+		// add the template_path to the $template_data (for debugging purposes)
+		if (!isset($template_data['template_path'])) $template_data['template_path'] = $template_path;
+		// add the debug flag to the $template_data
+		if (!isset($template_data['DEBUG'])) $template_data['DEBUG'] = (int) $this->params[self::PARAM_DEBUG];
+		
 		try {
-			$result = $parser->get ( $this->template_path . $template, $template_data );
+		    // try to execute the template with Dwoo
+			$result = $parser->get($template_path, $template_data );
 		} catch ( Exception $e ) {
+		    // prompt the Dwoo error
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__,  
 			        $this->lang->translate('Error executing template <b>{{ template }}</b>:<br />{{ error }}', 
 			                array('template' => $template, 'error' => $e->getMessage()))));
@@ -299,7 +346,7 @@ class formFrontend {
 		isset ( $_REQUEST [self::request_action] ) ? $action = $_REQUEST [self::request_action] : $action = self::action_default;
 		
 		// CSS laden? 
-		if ($this->params [self::param_css]) { 
+		if ($this->params [self::PARAM_CSS]) { 
 			if (! is_registered_droplet_css ( 'kit_form', PAGE_ID )) {
 				register_droplet_css ( 'kit_form', PAGE_ID, 'kit_form', 'kit_form.css' );
 			}
@@ -345,6 +392,7 @@ class formFrontend {
 		global $dbKITformFields;
 		global $kitContactInterface;
 		global $kitLibrary;
+		global $dbContactAddress;
 		
 		if (empty($this->params)) {
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
@@ -365,7 +413,7 @@ class formFrontend {
 		} elseif (isset($_REQUEST[dbKITform::field_id])) {
 			$form_id = $_REQUEST[dbKITform::field_id];
 		} else {
-			$form_name = $this->params[self::param_form];
+			$form_name = $this->params[self::PARAM_FORM];
 		}
 		
 		if ($form_id > 0) {
@@ -536,6 +584,7 @@ class formFrontend {
 					case kitContactInterface::kit_email_retype:
 					case kitContactInterface::kit_password :
 					case kitContactInterface::kit_password_retype :
+					case kitContactInterface::kit_birthday:
 						$form_fields [$field_name] = array (
 						    'id' => $field_id, 
 						    'type' => $field_name, 
@@ -583,6 +632,33 @@ class formFrontend {
 						        'hint' => $this->lang->translate('hint_' . $field_name ), 
 						        'newsletters' => $newsletter_array );
 						break;
+					case kitContactInterface::kit_country:
+					    $country_array = array();
+					    $country_array[] = array(
+					        'value' => '',
+					        'text' => $this->lang->translate('- select country -')
+					    );
+					    $countries = $dbContactAddress->country_array;
+					    unset($countries['-1']);
+					    setlocale(LC_ALL, 'de_DE');
+					    asort($countries, SORT_LOCALE_STRING);
+					    foreach ($countries as $code => $country) {
+					        $country_array[] = array(
+					            'value' => $code,
+					            'text' => $country
+					        );
+					    }
+					    $form_fields[$field_name] = array(    
+					        'id' => $field_id,
+					        'type' => $field_name,
+					        'name' => $field_name,
+					        'value' => 'DE',
+					        'must' => (in_array($field_id, $must_array)) ? 1 : 0,
+					        'label' => $kitContactInterface->field_array[$field_name],
+					        'hint' => $this->lang->translate('hint_'.$field_name),
+					        'countries' => $country_array
+					    );
+					    break;
 					default :
 						// Datentyp nicht definiert - Fehler ausgeben
 						$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
@@ -921,6 +997,39 @@ class formFrontend {
 			}
 		} // foreach
 		
+		// special: check if kit_birthday is valid
+		$kit_birthday = '';
+		if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
+		    if (false === strpos($_REQUEST[kitContactInterface::kit_birthday], kit_cfg_date_separator)) {
+		        $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>', array('date_str' => cfg_date_str));
+		        $checked = false;
+		    }
+		    else {
+		        $barray = explode(cfg_date_separator, $_REQUEST[kitContactInterface::kit_birthday]);
+		        $df = explode(cfg_date_separator, cfg_date_str);
+		        if (count($barray) == 3) {
+		            $da = array();
+		            for ($i=0; $i<3; $i++) $da[$df[$i]] = $barray[$i];
+		            if ($da['Y'] < 100) $da['Y'] = 1900 + $da['Y'];
+		            if (($da['Y'] < 1900) || ($da['Y'] > date('Y')) || ($da['m'] < 1) || 
+		                ($da['m'] > 12) || ($da['d'] < 1) || ($da['d'] > 31)) $checked = false;
+		            if ($checked && (false !== ($date = mktime(0, 0, 0, $da['m'], $da['d'], $da['Y'])))) {
+		                $kit_birthday = $date;
+		            }
+		            else {
+		                $checked = false;
+		            }
+		            if (!$checked) $message .= $this->lang->translate('<p>The date <b>{{ date }}</b> is invalid!</p>', 
+		                array('date' => $_REQUEST[kitContactInterface::kit_birthday]));
+		        }
+		        else {
+		            // date is invalid
+		            $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>', array('date_str' => cfg_date_str));
+		            $checked = false;
+		        }
+		    }
+		}
+		
 		// file upload?
 		$uploaded_files = array();
 		$uploaded_files['count'] = 0;
@@ -1235,6 +1344,12 @@ class formFrontend {
 							}
 						}
 						break;
+					case kitContactInterface::kit_birthday:
+					    // check birthday
+					    if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
+					        $contact_array[$key] = date('Y-m-d H:i:s', $kit_birthday);
+					    }
+					    break;
 					default :
 						if (isset($_REQUEST[$key]))
 							$contact_array[$key] = $_REQUEST[$key];
@@ -1425,7 +1540,7 @@ class formFrontend {
 				return false;
 			}
 			
-			if ($this->params [self::param_return] == true) {
+			if ($this->params [self::PARAM_RETURN] == true) {
 				// direkt zum aufrufenden Programm zurueckkehren
 				$result = array ('contact' => $contact, 'result' => true );
 				return $result;
@@ -2886,7 +3001,7 @@ class formFrontend {
 		$_SESSION [kitContactInterface::session_kit_contact_id] = $register [dbKITregister::field_contact_id];
 		
 		// if auto_login_wb
-		if ($this->params[self::param_auto_login_wb]) {
+		if ($this->params[self::PARAM_AUTO_LOGIN_LEPTON]) {
 			if (!$this->authenticate_wb_user($register[dbKITregister::field_email], $register[dbKITregister::field_password])) {
 				$error = $this->isError() ? $this->getError() : $this->lang->translate('<p>Unspecified error, no description available.</p>');
 				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $error));
