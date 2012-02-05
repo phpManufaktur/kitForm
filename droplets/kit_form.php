@@ -1,14 +1,5 @@
 //:Place a kitForm dialog, feedback, action or form everywhere you need it
-//:Usage: [[kit_form?form=FORM_NAME]] - specify the name of the form defined in kitForm
- Optional Parameters:
- preset=NUMBER - select the Preset /kit_form/htt/NUMBER, default is 1
- css=TRUE|FALSE - use the CSS /kit_form/kit_form.css, default is TRUE, needs DropletsExtension
- auto_login_lepton=TRUE|FALSE - enables an automatic login at the KIT interface for authenticated LEPTON users
- language=LANG_CODE - if set kitIdea ignore the language settings of the page and use this language instead.
- fallback_preset=NUMBER - the preset kitIdea should use if a template does not exists in the specified preset directory, default is 1 
- fallback_language=LANG_CODE - the language kitIdea should use if a template does not exists in the needed language, default is DE (german)
- debug=TRUE|FALSE - switch the template debugging on or off, default is FALSE.
-
+//:Usage: [[kit_form?form=FORM_NAME]] - specify the name of the form defined in kitForm. Optional Parameters: preset=NUMBER - select the Preset /kit_form/htt/NUMBER, default is 1. css=TRUE|FALSE - use the CSS /kit_form/kit_form.css, default is TRUE, needs DropletsExtension. auto_login_lepton=TRUE|FALSE - enables an automatic login at the KIT interface for authenticated LEPTON users. language=LANG_CODE - if set kitIdea ignore the language settings of the page and use this language instead. fallback_preset=NUMBER - the preset kitIdea should use if a template does not exists in the specified preset directory, default is 1. fallback_language=LANG_CODE - the language kitIdea should use if a template does not exists in the needed language, default is DE (german). debug=TRUE|FALSE - switch the template debugging on or off, default is FALSE.
 /**
  * kitForm
  * 
