@@ -78,11 +78,20 @@
             </tr>
           {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
                    $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
-                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype') ||
-                   $field.type == 'kit_birthday' }
+                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype' ||
+                   $field.type == 'kit_birthday' || $field.type == 'kit_free_field_1' || $field.type == 'kit_free_field_2' || 
+                   $field.type == 'kit_free_field_3' || $field.type == 'kit_free_field_4' || $field.type == 'kit_free_field_5')}
             <tr>
               <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
               <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
+              <td class="form_hint">{$field.hint}</td>
+            </tr>
+          {elseif ($field.type == 'kit_free_note_1' || $field.type == 'kit_free_note_2')}
+            <tr>
+              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
+              <td class="form_value">
+                <textarea name="{$field.name}">{$field.value}</textarea>
+              </td>
               <td class="form_hint">{$field.hint}</td>
             </tr>
           {elseif $field.type == 'kit_email'}

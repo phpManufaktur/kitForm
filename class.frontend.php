@@ -46,6 +46,7 @@ global $dbKITformFields;
 global $dbKITformTableSort;
 global $dbKITformData;
 global $dbKITformCommands;
+global $dbMemos;
 
 class formFrontend {
 	
@@ -393,6 +394,7 @@ class formFrontend {
 		global $kitContactInterface;
 		global $kitLibrary;
 		global $dbContactAddress;
+    global $dbCfg;
 		
 		if (empty($this->params)) {
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, 
@@ -585,7 +587,7 @@ class formFrontend {
 					case kitContactInterface::kit_password :
 					case kitContactInterface::kit_password_retype :
 					case kitContactInterface::kit_birthday:
-						$form_fields [$field_name] = array (
+          	$form_fields [$field_name] = array (
 						    'id' => $field_id, 
 						    'type' => $field_name, 
 						    'name' => $field_name, 
@@ -595,7 +597,48 @@ class formFrontend {
 						    'hint' => $this->lang->translate('hint_' . $field_name ) 
 						);
 						break;
-					case kitContactInterface::kit_zip_city :
+					case kitContactInterface::kit_free_field_1:
+          case kitContactInterface::kit_free_field_2:
+          case kitContactInterface::kit_free_field_3:
+          case kitContactInterface::kit_free_field_4:
+          case kitContactInterface::kit_free_field_5:
+          case kitContactInterface::kit_free_note_1:
+          case kitContactInterface::kit_free_note_2:
+            if ($field_id < 36) {
+              // additional field
+              $additional_fields = $dbCfg->getValue(dbKITcfg::cfgAdditionalFields);
+              foreach ($additional_fields as $add_field) {
+                list($i, $val) = explode('|', $add_field);
+                $i += 30; // add the KIT offset for the field (KIT_FREE_FIELD_1 == 31)
+                if ($i == $field_id) {
+                  $label = $val;
+                  break;
+                }
+              }
+            }
+            else {
+              // additional note
+              $additional_notes = $dbCfg->getValue(dbKITcfg::cfgAdditionalNotes);
+              foreach ($additional_notes as $add_note) {
+                list($i, $val) = explode('|', $add_note);
+                $i += 35; // add the KIT offset for the note (KIT_FREE_NOTE_1 == 36)
+                if ($i == $field_id) {
+                  $label = $val;
+                  break;
+                }
+              }
+            }
+            $form_fields [$field_name] = array (
+						    'id' => $field_id, 
+						    'type' => $field_name, 
+						    'name' => $field_name, 
+						    'value' => (isset ( $_REQUEST [$field_name] )) ? $_REQUEST [$field_name] : '', 
+						    'must' => (in_array ( $field_id, $must_array )) ? 1 : 0, 
+						    'label' => $label, 
+						    'hint' => $this->lang->translate('hint_' . $field_name ) 
+						);
+						break;
+          case kitContactInterface::kit_zip_city :
 						// Auswahl fuer Postleitzahl und Stadt
 						$form_fields [$field_name] = array (
 						    'id' => $field_id, 
@@ -869,6 +912,8 @@ class formFrontend {
 		global $dbKITformData;
 		global $dbContact;
 		global $dbKITdirList;
+		global $dbCfg;
+        global $dbMemos;
 		
 		if (! isset ( $_REQUEST [dbKITform::field_id] )) {
 			$this->setError (sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Missing the form ID!')));
@@ -1000,11 +1045,12 @@ class formFrontend {
 		// special: check if kit_birthday is valid
 		$kit_birthday = '';
 		if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
-		    if (false === strpos($_REQUEST[kitContactInterface::kit_birthday], kit_cfg_date_separator)) {
+		    if ((strpos($_REQUEST[kitContactInterface::kit_birthday], kit_cfg_date_separator) == false) && 
+		        (in_array($kitContactInterface->index_array[kitContactInterface::kit_birthday], $must_array))) { 
 		        $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>', array('date_str' => cfg_date_str));
 		        $checked = false;
 		    }
-		    else {
+		    elseif(!empty($_REQUEST[kitContactInterface::kit_birthday])) {
 		        $barray = explode(cfg_date_separator, $_REQUEST[kitContactInterface::kit_birthday]);
 		        $df = explode(cfg_date_separator, cfg_date_str);
 		        if (count($barray) == 3) {
@@ -1300,7 +1346,14 @@ class formFrontend {
 			$field_array [kitContactInterface::kit_intern] = ''; // Feld fuer internen Verteiler hinzufuegen 
 			foreach ( $field_array as $key => $value ) {
 				switch ($key) :
-					case kitContactInterface::kit_zip_city :
+					case kitContactInterface::kit_free_field_1:
+          case kitContactInterface::kit_free_field_2:
+          case kitContactInterface::kit_free_field_3:
+          case kitContactInterface::kit_free_field_4:
+          case kitContactInterface::kit_free_field_5:
+          case kitContactInterface::kit_free_note_1:
+          case kitContactInterface::kit_free_note_2:
+          case kitContactInterface::kit_zip_city :
 						// nothing to do...
 						break;
 					case kitContactInterface::kit_newsletter :
@@ -1346,7 +1399,7 @@ class formFrontend {
 						break;
 					case kitContactInterface::kit_birthday:
 					    // check birthday
-					    if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
+					    if (isset($_REQUEST[kitContactInterface::kit_birthday]) && !empty($kit_birthday)) {
 					        $contact_array[$key] = date('Y-m-d H:i:s', $kit_birthday);
 					    }
 					    break;
@@ -1421,6 +1474,89 @@ class formFrontend {
 				}
 			}
 			
+          // special: check additional fields and notes
+          $check_array = array(kitContactInterface::kit_free_field_1, kitContactInterface::kit_free_field_2,
+            kitContactInterface::kit_free_field_3, kitContactInterface::kit_free_field_4, kitContactInterface::kit_free_field_5,
+            kitContactInterface::kit_free_note_1, kitContactInterface::kit_free_note_2);
+          
+          foreach ($check_array as $check_field) {
+              if (isset($_REQUEST[$check_field])) {
+                  // get the old user defined fields for compare        
+                  $SQL = sprintf("SELECT %s,%s,%s,%s,%s,%s,%s FROM %s WHERE %s='%s'",
+                    dbKITcontact::field_free_1,
+                    dbKITcontact::field_free_2,
+                    dbKITcontact::field_free_3,
+                    dbKITcontact::field_free_4,
+                    dbKITcontact::field_free_5,
+                    dbKITcontact::field_free_note_1,
+                    dbKITcontact::field_free_note_2,
+                    $dbContact->getTableName(),
+                    dbKITcontact::field_id,
+                    $contact_id
+                    );
+                  $field_array = array();
+                  if (!$dbContact->sqlExec($SQL, $field_array)) {
+                    $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbContact->getError()));
+                    return false;
+                  }
+                  $field_array = $field_array[0];
+                
+                    $fid = $field_array[$kitContactInterface->field_assign[$check_field]];
+                    if (($fid < 1) && (!empty($_REQUEST[$check_field]))) {
+                        // field is not empty and does not exists in in dbKITmemo
+                        $data = array(
+                            dbKITmemos::field_contact_id => $contact_id,
+                            dbKITmemos::field_memo => trim($_REQUEST[$check_field]),
+                            dbKITmemos::field_status => dbKITmemos::status_active,
+                            dbKITmemos::field_update_by => 'SYSTEM',
+                            dbKITmemos::field_update_when => date('Y-m-d H:i:s')
+                        );
+                        $mid = -1;
+                        if (!$dbMemos->sqlInsertRecord($data, $mid)) {
+                            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbMemos->getError()));
+                            return false;
+                        }
+                        // update contact record!
+                        $where = array(    
+                            dbKITcontact::field_id => $contact_id
+                        );
+                        $data = array(
+                            $check_field => $mid
+                        );
+                        if (!$dbContact->sqlUpdateRecord($data, $where)) {
+                            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbContact->getError()));
+                            return false;
+                        }
+                    }
+                    elseif ($fid > 0) {
+                        // field already exists in dbKITmemo - get the data field
+                        $where = array(
+                            dbKITmemos::field_id => $fid
+                        );
+                        $memo = array();
+                        if (!$dbMemos->sqlSelectRecord($where, $memo)) {
+                            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbMemos->getError()));
+                            return false;
+                        }
+                        $memo = $memo[0];
+                        if (trim($_REQUEST[$check_field] != $memo[dbKITmemos::field_memo])) {
+                            // entries differ - update record
+                            $data = array(
+                                dbKITmemos::field_memo => trim($_REQUEST[$check_field]),
+                                dbKITmemos::field_status => dbKITmemos::status_active,
+                                dbKITmemos::field_update_by => 'SYSTEM',
+                                dbKITmemos::field_update_when => date('Y-m-d H:i:s')
+                            );
+                            if (!$dbMemos->sqlUpdateRecord($data, $where)) {
+                                $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbMemos->getError()));
+                                return false;
+                            }
+                        }
+                    }
+                
+              }
+          }
+          
 			// Kontakt Datensatz ist erstellt oder aktualisiert, allgemeine Daten uebernehmen und E-Mails versenden
 			$fields = array ();
 			$values = array ();

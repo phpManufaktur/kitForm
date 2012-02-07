@@ -191,6 +191,20 @@ $LANG = array(
             => 'KIT Datenfelder werden automatisch in KeepInTouch (KIT) übernommen. Bereits eingefügte KIT Datenfelder werden in der Auswahlliste nicht mehr angezeigt.',
         'hint_kit_first_name'
             => '',
+        'hint_kit_free_field_1'
+            => 'Frei definiertes KIT Eingabefeld',
+        'hint_kit_free_field_2'
+            => 'Frei definiertes KIT Eingabefeld',
+        'hint_kit_free_field_3'
+            => 'Frei definiertes KIT Eingabefeld',
+        'hint_kit_free_field_4'
+            => 'Frei definiertes KIT Eingabefeld',
+        'hint_kit_free_field_5'
+            => 'Frei definiertes KIT Eingabefeld',
+        'hint_kit_free_note_1'
+            => 'Frei definiertes KIT Notizfeld',
+        'hint_kit_free_note_1'
+            => 'Frei definiertes KIT Notizfeld',
         'hint_kit_last_name'
             => '',
         'hint_kit_link_add'

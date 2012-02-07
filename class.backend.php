@@ -1046,6 +1046,7 @@ class formBackend {
         global $dbKITformFields;
         global $dbKITformTableSort;
         global $kitContactInterface;
+        global $dbCfg;
         
         // Soll der Dialog exportiert werden?
         if (isset($_REQUEST[self::request_export]) && $_REQUEST[self::request_export] > 0) {
@@ -1222,9 +1223,37 @@ class formBackend {
             if ($field_id < 100) {
                 // KIT Datenfeld
                 $field_name = array_search($field_id, $kitContactInterface->index_array);
+                $label = $kitContactInterface->field_array[$field_name];
+                if (($field_id > 30) && ($field_id < 38)) {
+                    // additional field or note
+                    if ($field_id < 36) {
+                        // additional field
+                        $additional_fields = $dbCfg->getValue(dbKITcfg::cfgAdditionalFields);
+                        foreach ($additional_fields as $add_field) {
+                            list($i, $val) = explode('|', $add_field);
+                            $i += 30; // add the KIT offset for the field (KIT_FREE_FIELD_1 == 31)
+                            if ($i == $field_id) {
+                              $label = $val.'*';
+                              break;
+                            }
+                        }
+                    }
+                    else {
+                      // additional note
+                      $additional_notes = $dbCfg->getValue(dbKITcfg::cfgAdditionalNotes);
+                      foreach ($additional_notes as $add_note) {
+                          list($i, $val) = explode('|', $add_note);
+                          $i += 35; // add the KIT offset for the note (KIT_FREE_NOTE_1 == 36)
+                          if ($i == $field_id) {
+                            $label = $val.'*';
+                            break;
+                          }
+                      }
+                    }
+                }
                 $form_fields[$field_name] = array(
                         'id' => $field_id, 
-                        'label' => $this->lang->translate('label_kit_label_marker', array('name' => $kitContactInterface->field_array[$field_name])), 
+                        'label' => $this->lang->translate('label_kit_label_marker', array('name' => $label)), 
                         'name' => $field_name, 
                         'must' => array(
                                 'name' => 'must_' . $field_name, 
@@ -1810,6 +1839,38 @@ class formBackend {
         $form['kit_field']['value'][] = array('value' => - 1, 
         'text' => $this->lang->translate('- select datafield -'));
         $field_array = $kitContactInterface->field_array;
+        
+        // remove the additional fields from the list
+        unset($field_array[kitContactInterface::kit_free_field_1]);
+        unset($field_array[kitContactInterface::kit_free_field_2]);
+        unset($field_array[kitContactInterface::kit_free_field_3]);
+        unset($field_array[kitContactInterface::kit_free_field_4]);
+        unset($field_array[kitContactInterface::kit_free_field_5]);
+        unset($field_array[kitContactInterface::kit_free_note_1]);
+        unset($field_array[kitContactInterface::kit_free_note_2]);
+        
+        // check if additional fields are defined
+        $show_additional_fields = false;
+        $additional_fields = $dbCfg->getValue(dbKITcfg::cfgAdditionalFields);
+        if (isset($additional_fields[0]) && !empty($additional_fields[0])) $show_additional_fields = true;
+        $additional_notes = $dbCfg->getValue(dbKITcfg::cfgAdditionalNotes);
+        if (isset($additional_notes[0]) && !empty($additional_notes[0])) $show_additional_fields = true;
+        if (count($additional_notes) > 0) $show_additional_fields = true;
+        if ($show_additional_fields) {
+            // adapt the list ...
+            foreach ($additional_fields as $field_data) {
+                if (empty($field_data)) continue;
+                if (false === (strpos($field_data, '|'))) continue;
+                list($fid, $label) = explode('|', $field_data);
+                $field_array[sprintf('kit_free_field_%d', $fid)] = sprintf('%s*', $label);   
+            }
+            foreach ($additional_notes as $field_data) {
+                if (empty($field_data)) continue;
+                if (false === (strpos($field_data, '|'))) continue;
+                list($fid, $label) = explode('|', $field_data);
+                $field_array[sprintf('kit_free_note_%d', $fid)] = sprintf('%s*', $label);   
+            }
+        }
         asort($field_array);
         foreach ($field_array as $field => $text) {
             if (in_array($kitContactInterface->index_array[$field], $fields)) continue;
