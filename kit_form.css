@@ -102,3 +102,53 @@ input[name=kit_city] {
 .feedback_text {
   font-style: italic;
 }
+/*
+  tableless kit_form
+*/
+#kit_form {
+  width: 98%;
+  margin: 0 0 30px 0;
+  padding: 0;
+}
+.kf_clear {
+  clear: left;
+}
+.kf_label {
+  float: left;
+  font-size: 8pt;
+  width: 20%;
+  height: auto;
+}
+.kf_value {
+  float: left;
+  width: 58%;
+}
+.kf_hint {
+  float:left;
+  font-size: 7pt;
+  width: 20%;
+}
+.kf_buttons {
+  float:left;
+  width: 78%;
+  text-align: left;
+}
+.kf_captcha {
+  float: left;
+  width: 78%;
+}
+.kf_message,
+.kf_password_forgotten,
+.kf_register,
+.kf_message,
+.kf_html {
+  width: 98%;
+}
+.kf_uploadify_queue {
+  float: left;
+  width: 35%;
+}
+.kf_uploadify_select_file {
+  float: left;
+  width: 63%;
+}

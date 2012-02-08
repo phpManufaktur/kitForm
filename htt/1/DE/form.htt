@@ -20,8 +20,8 @@
   {$template_path}
   {dump()}
 {/if}
- <div class="kit_form">
-   <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">
+<div id="kit_form">
+  <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
     <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
     <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
@@ -31,256 +31,212 @@
         Mitteilungen auszugeben! *}
       <div class="message">{$form.response}</div>
     {/if}
-    <table width="100%">
-      <colgroup>
-        <col width="20%" />
-        <col width="*" />
-        <col width="20%" />
-      </colgroup>
-      {foreach $fields as field}
-        {if $field.id < 100}
-          {* ID's unter 100 sind KIT Datenfelder *}
-          {if (($field.type == 'kit_title') || ($field.type == 'kit_title_academic'))}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <select name="{$field.name}" size="1">
-                  {foreach $field.titles title}
-                  <option value="{$title.value}"{if $title.checked == 1} selected="selected"{/if}>{$title.text}</option>
-                  {/foreach}
-                </select>
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif ($field.type == 'kit_password') || ($field.type == 'kit_password_retype')}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="password" name="{$field.name}" value="{$field.value}" /></td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr> 
-          {elseif $field.type == 'kit_address_type'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <select name="{$field.name}" size="1">
-                  {foreach $field.address_types address_type}
-                  <option value="{$address_type.value}"{if $address_type.checked == 1} selected="selected"{/if}>{$address_type.text}</option>
-                  {/foreach}
-                </select>
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'kit_zip_city'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="text" name="{$field.name_zip}" value="{$field.value_zip}" /><input type="text" name="{$field.name_city}" value="{$field.value_city}" /></td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
-                   $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
-                   $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype' ||
-                   $field.type == 'kit_birthday' || $field.type == 'kit_free_field_1' || $field.type == 'kit_free_field_2' || 
-                   $field.type == 'kit_free_field_3' || $field.type == 'kit_free_field_4' || $field.type == 'kit_free_field_5')}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif ($field.type == 'kit_free_note_1' || $field.type == 'kit_free_note_2')}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <textarea name="{$field.name}">{$field.value}</textarea>
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'kit_email'}
-            {* 
-              Es ist wichtig das E-Mail Feld auf DISABLED zu setzen, wenn das Formular das KONTO (ACCOUNT) des Kunden anzeigt!
-              Die E-Mail Adresse darf in diesem Fall nicht veraendert werden! Zur Uebermittlung der E-Mail Adresse wird
-              ein zusaetzliches HIDDEN Feld eingefuegt.
-            *}
-            <tr>
-              <td class="form_label">{$field.label}{if (($field.must == 1) && ($form.kit_action.value != 'act_account'))}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" {if $form.kit_action.value == 'act_account'}disabled="disabled" {/if}/></td>
-              <td class="form_hint">{$field.hint}{if $form.kit_action.value == 'act_account'}<input type="hidden" name="{$field.name}" value="{$field.value}" />{/if}</td>
-            </tr>
-          {elseif $field.type == 'kit_newsletter'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                {foreach $field.newsletters newsletter}
-                <input type="checkbox" name="{$field.name}[]" value="{$newsletter.value}"{if $newsletter.checked == 1} checked="checked"{/if} /> {$newsletter.text}<br />
-                {/foreach}
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'kit_country'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <select name="{$field.name}" size="1">
-                {foreach $field.countries country}
-                <option value="{$country.value}"{if $field.value == $country.value} selected="selected"{/if}>{$country.text}</option>
-                {/foreach}
-                </select>
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {/if}
-        {else}
-          {* allgemeine Datenfelder *}
-          {if $field.type == 'checkbox'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                {foreach $field.checkbox checkbox}
-                <input type="checkbox" name="{$field.name}[]" value="{$checkbox.value}"{if $checkbox.checked == 1} checked="checked"{/if} /> {$checkbox.text}<br />
-                {/foreach}
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'delayed'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <input type="checkbox" name="{$field.checkbox.name}" value="{$field.checkbox.value}"{if $field.checkbox.checked == 1} checked="checked"{/if} /> {$field.checkbox.text}<br />
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'hidden'}
-            <input type="hidden" name="{$field.name}" value="{$field.value}" />
-          {elseif $field.type == 'html' }
-            <tr>
-              <td class="form_html" colspan="3">{$field.value}</td>
-            </tr>
-          {elseif $field.type == 'radio'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                {foreach $field.radio radio}
-                <input type="radio" name="{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} /> {$radio.text}<br />
-                {/foreach}
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'select'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <select name="{$field.name}" size="{$field.value}">
-                {foreach $field.option option}
-                <option value="{$option.value}"{if $option.checked == 1} selected="selected"{/if}>{$option.text}</option>
-                {/foreach}
-                </select>
-              </td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'text'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="text" name="{$field.name}" value="{$field.value}" /></td>
-              <td class="form_hint">{$field.hint}</td> 
-            </tr>
-          {elseif $field.type == 'text_area'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><textarea name="{$field.name}">{$field.value}</textarea></td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.type == 'file'}
-          {if $field.settings.upload_method.value == 'standard'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value"><input type="file" name="{$field.name}" /></td>
-              <td class="form_hint">{$field.hint}</td>
-            </tr>
-          {elseif $field.settings.upload_method.value == 'uploadify'}
-            <tr>
-              <td class="form_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-              <td class="form_value">
-                <table>
-                  <colgroup>
-                    <col width="35" />
-                    <col width="*" />
-                  </colgroup>
-                  <tr>
-                    <td title="{$field.select_file}"><input id="{$field.name}" name="{$field.name}" type="file" /></td>
-                    <td><div id="queue_{$field.name}"></div></td>
-                  </tr>
-                </table>
-                <input type="hidden" name="upload_id" value="{$field.upload_id}" />
-                <input type="hidden" name="upload_delete" value="" />
-                <script type="text/javascript">
-                  $(document).ready(function() {
-                    $('#{$field.name}').uploadify({
-                      'uploader'  : '/modules/kit_uploader/plugins/uploadify-2/uploadify.swf',
-                      'script'    : '/modules/kit_uploader/plugins/uploadify-2/uploadify.php',
-                      'cancelImg' : '/modules/kit_uploader/plugins/uploadify-2/cancel.png',
-                      'folder'    : '/temp/kit_form/{$field.upload_id}',
-                      'buttonImg'  : '/modules/kit_uploader/plugins/uploadify-2/folder.png',
-                      'width'     : 28,
-                      'height'    : 25, 
-                      'multi' : false,
-                      'auto'           : true,
-                      'fileExt'        : '{$field.file_ext}', 
-                      'fileDesc'       : '{$field.file_desc}',
-                      'queueID'        : 'queue_{$field.name}',
-                      'scriptData' : {
-                          'upload_id':'{$field.upload_id}'
-                        },
-                      'queueSizeLimit' : 3,
-                      'simUploadLimit' : 3,
-                      'removeCompleted': false,
-                      'sizeLimit' : {$field.file_size}
-                    });
-                 });
-                </script>
-              </td>
-              <td class="form_hint">max. {$field.settings.max_file_size.value} MB</td>
-            </tr>
-          {else}
-            <tr>
-              <td colspan="3">[form.htt] Unbekannte Upload Methode: {$field.settings.upload_method.value}</td>
-            </tr>
-          {/if}
-        {else}
-          <tr>
-            <td colspan="3">[form.htt] Unbekannter Feld Typ: {$field.type}</td>
-          </tr>
+    {foreach $fields as field}
+      {if $field.id < 100}
+        {* ID's unter 100 sind KIT Datenfelder *}
+        {if (($field.type == 'kit_title') || ($field.type == 'kit_title_academic'))}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <select name="{$field.name}" size="1">
+              {foreach $field.titles title}
+              <option value="{$title.value}"{if $title.checked == 1} selected="selected"{/if}>{$title.text}</option>
+            {/foreach}
+            </select>
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif ($field.type == 'kit_password') || ($field.type == 'kit_password_retype')}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><input type="password" name="{$field.name}" value="{$field.value}" /></div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'kit_address_type'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <select name="{$field.name}" size="1">
+              {foreach $field.address_types address_type}
+              <option value="{$address_type.value}"{if $address_type.checked == 1} selected="selected"{/if}>{$address_type.text}</option>
+              {/foreach}
+            </select>
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"</div>
+        {elseif $field.type == 'kit_zip_city'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><input type="text" name="{$field.name_zip}" value="{$field.value_zip}" /><input type="text" name="{$field.name_city}" value="{$field.value_city}" /></div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
+                 $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
+                 $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype' ||
+                 $field.type == 'kit_birthday' || $field.type == 'kit_free_field_1' || $field.type == 'kit_free_field_2' || 
+                 $field.type == 'kit_free_field_3' || $field.type == 'kit_free_field_4' || $field.type == 'kit_free_field_5')}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" /></div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif ($field.type == 'kit_free_note_1' || $field.type == 'kit_free_note_2')}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <textarea name="{$field.name}">{$field.value}</textarea>
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'kit_email'}
+          {* 
+            Es ist wichtig das E-Mail Feld auf DISABLED zu setzen, wenn das Formular das KONTO (ACCOUNT) des Kunden anzeigt!
+            Die E-Mail Adresse darf in diesem Fall nicht veraendert werden! Zur Uebermittlung der E-Mail Adresse wird
+            ein zusaetzliches HIDDEN Feld eingefuegt.
+          *}
+          <div class="kf_label">{$field.label}{if (($field.must == 1) && ($form.kit_action.value != 'act_account'))}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" {if $form.kit_action.value == 'act_account'}disabled="disabled" {/if}/></div>
+          <div class="kf_hint">{$field.hint}{if $form.kit_action.value == 'act_account'}<input type="hidden" name="{$field.name}" value="{$field.value}" />{/if}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'kit_newsletter'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            {foreach $field.newsletters newsletter}
+            <input type="checkbox" name="{$field.name}[]" value="{$newsletter.value}"{if $newsletter.checked == 1} checked="checked"{/if} /> {$newsletter.text}<br />
+            {/foreach}
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'kit_country'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <select name="{$field.name}" size="1">
+              {foreach $field.countries country}
+              <option value="{$country.value}"{if $field.value == $country.value} selected="selected"{/if}>{$country.text}</option>
+              {/foreach}
+            </select>
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
         {/if}
-      {/foreach}
-      {if ($form.captcha.active == 1) && ($form.kit_action.value != 'act_login')}
-        <tr>
-          <td>&nbsp;</td>
-          <td colspan="2">
-            {$form.captcha.code}
-          </td>
-        </tr>
+      {else}
+        {* allgemeine Datenfelder *}
+        {if $field.type == 'checkbox'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            {foreach $field.checkbox checkbox}
+            <input type="checkbox" name="{$field.name}[]" value="{$checkbox.value}"{if $checkbox.checked == 1} checked="checked"{/if} /> {$checkbox.text}<br />
+            {/foreach}
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'delayed'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <input type="checkbox" name="{$field.checkbox.name}" value="{$field.checkbox.value}"{if $field.checkbox.checked == 1} checked="checked"{/if} /> {$field.checkbox.text}<br />
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'hidden'}
+          <input type="hidden" name="{$field.name}" value="{$field.value}" />
+        {elseif $field.type == 'html' }
+          <div class="kf_html">{$field.value}</div>
+        {elseif $field.type == 'radio'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            {foreach $field.radio radio}
+            <input type="radio" name="{$field.name}" value="{$radio.value}"{if $radio.checked == 1} checked="checked"{/if} /> {$radio.text}<br />
+            {/foreach}
+          </div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'select'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value">
+            <select name="{$field.name}" size="{$field.value}">
+              {foreach $field.option option}
+              <option value="{$option.value}"{if $option.checked == 1} selected="selected"{/if}>{$option.text}</option>
+              {/foreach}
+            </select>
+          </div> 
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'text'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" /></div>
+          <div class="kf_hint">{$field.hint}</div> 
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'text_area'}
+          <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+          <div class="kf_value"><textarea name="{$field.name}">{$field.value}</textarea></div>
+          <div class="kf_hint">{$field.hint}</div>
+          <div class="kf_clear"></div>
+        {elseif $field.type == 'file'}
+          {if $field.settings.upload_method.value == 'standard'}
+            <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+            <div class="kf_value"><input type="file" name="{$field.name}" /></div>
+            <div class="kf_hint">{$field.hint}</div>
+            <div class="kf_clear"></div>
+          {elseif $field.settings.upload_method.value == 'uploadify'}
+            <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
+            <div class="kf_value">
+              <div class="kf_uploadify_select_file" title="{$field.select_file}"><input id="{$field.name}" name="{$field.name}" type="file" /></div>
+              <div class="kf_uploadify_queue"><div id="queue_{$field.name}"></div></div>
+              <input type="hidden" name="upload_id" value="{$field.upload_id}" />
+              <input type="hidden" name="upload_delete" value="" />
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $('#{$field.name}').uploadify({
+                    'uploader'  : '/modules/kit_uploader/plugins/uploadify-2/uploadify.swf',
+                    'script'    : '/modules/kit_uploader/plugins/uploadify-2/uploadify.php',
+                    'cancelImg' : '/modules/kit_uploader/plugins/uploadify-2/cancel.png',
+                    'folder'    : '/temp/kit_form/{$field.upload_id}',
+                    'buttonImg'  : '/modules/kit_uploader/plugins/uploadify-2/folder.png',
+                    'width'     : 28,
+                    'height'    : 25, 
+                    'multi' : false,
+                    'auto'           : true,
+                    'fileExt'        : '{$field.file_ext}', 
+                    'fileDesc'       : '{$field.file_desc}',
+                    'queueID'        : 'queue_{$field.name}',
+                    'scriptData' : {
+                        'upload_id':'{$field.upload_id}'
+                      },
+                    'queueSizeLimit' : 3,
+                    'simUploadLimit' : 3,
+                    'removeCompleted': false,
+                    'sizeLimit' : {$field.file_size}
+                  });
+                });
+              </script>
+            </div> 
+            <div class="kf_hint">max. {$field.settings.max_file_size.value} MB</div>
+            <div class="kf_clear"></div>
+          {else}
+            <div class="kf_message">[form.htt] Unbekannte Upload Methode: {$field.settings.upload_method.value}</div>
+            <div class="kf_clear"></div>
+          {/if}
+        {else}
+          <div class="kf_message">[form.htt] Unbekannter Feld Typ: {$field.type}</div>
+          <div class="kf_clear"></div>
       {/if}
-      {if (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none') && ($form.links.act_register != 'act_none'))}
-        {* Es wird der LOGIN Dialog angezeigt und es sind Verweise auf PASSWORT VERGESSEN und REGISTRIEREN gesetzt... *}
-        <tr>
-          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a> oder Sie mÃƒÂ¶chten sich als Anwender <a href="{$form.links.command}={$form.links.act_register}">registrieren lassen</a>?</td>
-        </tr>
-      {elseif (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none'))}
-        {* Es wird der LOGIN Dialog angezeigt und es ist ein Verweis auf PASSWORT VERGESSEN gesetzt *}
-        <tr>
-          <td colspan="3">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a>?</td>
-        </tr>
-      {/if}
-      {if (isset($form.links.act_logout) && ($form.links.act_logout != 'act_none'))}
-        {* Link zum Abmelden anzeigen *}
-        <tr>
-          <td colspan="3"><a href="{$form.links.command}={$form.links.act_logout}">Abmelden ...</a></td>
-        </tr>
-      {/if}
-      <tr>
-        <td>&nbsp;</td>
-        <td colspan="2">
-          <input type="submit" value="{$form.btn.ok}" /> <input type="button" value="{$form.btn.abort}" onclick="javascript: window.location = '{$form.action.link}'; return false;" />
-        </td>
-      </tr>
-    </table>
-   </form>
- </div>
+    {/foreach}
+    {if ($form.captcha.active == 1) && ($form.kit_action.value != 'act_login')}
+      <div class="kf_label">&nbsp;</div>
+      <div class="kf_captcha">
+        {$form.captcha.code}
+      </div>
+      <div class="kf_clear"></div>
+    {/if}
+    {if (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none') && ($form.links.act_register != 'act_none'))}
+      {* Es wird der LOGIN Dialog angezeigt und es sind Verweise auf PASSWORT VERGESSEN und REGISTRIEREN gesetzt... *}
+      <div class="kf_register">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a> oder Sie möchten sich als Anwender <a href="{$form.links.command}={$form.links.act_register}">registrieren lassen</a>?</div>
+    {elseif (($form.kit_action.value == 'act_login') && ($form.links.act_send_password != 'act_none'))}
+      {* Es wird der LOGIN Dialog angezeigt und es ist ein Verweis auf PASSWORT VERGESSEN gesetzt *}
+      <div class="kf_password_forgotten">Sie haben Ihr <a href="{$form.links.command}={$form.links.act_send_password}">Passwort vergessen</a>?</div>
+    {/if}
+    {if (isset($form.links.act_logout) && ($form.links.act_logout != 'act_none'))}
+      {* Link zum Abmelden anzeigen *}
+      <div class="logout"><a href="{$form.links.command}={$form.links.act_logout}">Abmelden ...</a></div>
+    {/if}
+    <div class="kf_label">&nbsp;</div>
+    <div class="kf_buttons">
+      <input type="submit" value="{$form.btn.ok}" /> <input type="button" value="{$form.btn.abort}" onclick="javascript: window.location = '{$form.action.link}'; return false;" />
+    </div>
+    <div class="kf_clear"></div>
+  </form>
+</div>
