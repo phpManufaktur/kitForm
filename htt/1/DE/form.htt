@@ -89,8 +89,8 @@
             ein zusaetzliches HIDDEN Feld eingefuegt.
           *}
           <div class="kf_label">{$field.label}{if (($field.must == 1) && ($form.kit_action.value != 'act_account'))}<span class="form_must_indicator">*</span>{/if}</div>
-          <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" {if $form.kit_action.value == 'act_account'}disabled="disabled" {/if}/></div>
-          <div class="kf_hint">{$field.hint}{if $form.kit_action.value == 'act_account'}<input type="hidden" name="{$field.name}" value="{$field.value}" />{/if}</div>
+          <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" {if (($form.kit_action.value == 'act_account') || ($form.kit_action.value == 'act_change_password'))}disabled="disabled" {/if}/></div>
+          <div class="kf_hint">{$field.hint}{if (($form.kit_action.value == 'act_account') || ($form.kit_action.value == 'act_change_password'))}<input type="hidden" name="{$field.name}" value="{$field.value}" />{/if}</div>
           <div class="kf_clear"></div>
         {elseif $field.type == 'kit_newsletter'}
           <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>

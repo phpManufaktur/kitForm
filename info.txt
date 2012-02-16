@@ -8,6 +8,13 @@
  * @version $Id$
  */
 
+Release 0.31
+2012-02-16
+added - new standard dialog kit_password_change enables the user to change the
+  password
+added - new KIT LINK to force password changes if the system detect insecure
+  passwords
+
 Release 0.30
 2012-02-04
 added - KIT support for country selection
