@@ -82,7 +82,7 @@
           </div>
           <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
-        {elseif $field.type == 'kit_email'}
+        {elseif $field.type == 'kit_email'} 
           {* 
             Es ist wichtig das E-Mail Feld auf DISABLED zu setzen, wenn das Formular das KONTO (ACCOUNT) des Kunden anzeigt!
             Die E-Mail Adresse darf in diesem Fall nicht veraendert werden! Zur Uebermittlung der E-Mail Adresse wird
@@ -112,6 +112,8 @@
           </div>
           <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
+        {elseif $field.type == 'kit_contact_language'}
+          <input type="hidden" name="{$field.name}" value="{$field.value}" />
         {/if}
       {else}
         {* allgemeine Datenfelder *}

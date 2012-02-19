@@ -7,7 +7,19 @@ THIS FILE INFORMS YOU ABOUT CHANGES IN THE kitIdea STANDARD TEMPLATES.
 IF YOU ARE USING YOUR OWN TEMPLATES (PRESETS) PLEASE CHECK THE CHANGES AND
 ADAPT YOUR TEMPLATES IF NECESSARY.
 
-Release 0.24
+___________________
+Release 0.32
+2012-02-19
+
+added the lines 115,116 in /modules/kit_form/htt/1/form.htt:
+
+{elseif $field.type == 'kit_contact_language'}
+  <input type="hidden" name="{$field.name}" value="{$field.value}" />
+  
+for KIT contact language support (KIT 0.54)
+
+___________________
+Release 0.28
 2012-02-01
 
 Removed the standard template preset /modules/kit_form/htt/2 (no longer supported)

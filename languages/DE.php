@@ -102,6 +102,8 @@ $LANG = array(
       => 'Formular bearbeiten',
   'Enter title ...'
       => 'Titel eingeben ...',
+	'Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.'
+		=> '<p>Bitte aktualisieren Sie <b>{{ addon }}</b>. Installiert ist die Release <b>{{ release }}</b>, benötigt wird die Release <b>{{ needed }}</b>.</p>',
   'Error: The <b>ID {{ id }}</b> is invalid.'
       => 'Fehler: Die <b>ID {{ id }}</b> ist ungültig.',
   'Error creating the directory <b>{{ directory }}</b>.'
@@ -202,6 +204,8 @@ $LANG = array(
       => '',
   'hint_kit_company'
       => '',
+  'hint_kit_contact_language'
+		  => 'Dieses versteckte Datenfeld hält die Sprache der Seite fest, in der das Formular angezeigt wird und übernimmt diese als "Kontakt Sprache" nach KIT.',
   'hint_kit_country'
       => '',
   'hint_kit_department'

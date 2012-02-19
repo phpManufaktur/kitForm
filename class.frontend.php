@@ -150,6 +150,46 @@ class formFrontend {
     $this->lang = $I18n;
   } // __construct()
 
+
+  /**
+   * Check dependency to to other KIT modules
+   *
+   * @return boolean true on success
+   */
+  public function checkDependency() {
+  	// check dependency for KIT
+  	global $PRECHECK;
+  	global $database;
+
+  	// need the precheck.php
+  	require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/precheck.php');
+
+		if (isset($PRECHECK['KIT']['kit'])) {
+			$table = TABLE_PREFIX.'addons';
+			$version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit'", MYSQL_ASSOC);
+			if (!version_compare($version, $PRECHECK['KIT']['kit']['VERSION'], $PRECHECK['KIT']['kit']['OPERATOR'])) {
+				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+						$this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
+								array('addon' => 'KeepInTouch', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit']['VERSION']))));
+				return false;
+			}
+		}
+		if (file_exists(WB_PATH.'/modules/kit_dirlist/info.php')) {
+			// check only if kitDirList is installed
+  		if (isset($PRECHECK['KIT']['kit_dirlist'])) {
+  			$table = TABLE_PREFIX.'addons';
+  			$version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit_dirlist'", MYSQL_ASSOC);
+  			if (!version_compare($version, $PRECHECK['KIT']['kit_dirlist']['VERSION'], $PRECHECK['KIT']['kit_dirlist']['OPERATOR'])) {
+  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+						$this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
+								array('addon' => 'kitDirList', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit_dirlist']['VERSION']))));
+  				return false;
+  			}
+  		}
+  	} // if file_exists()
+  	return true;
+  } // checkDependency()
+
   /**
    * Get the parameters - this function is important for the kit_form droplet.
    *
@@ -336,17 +376,6 @@ class formFrontend {
    * @return string result
    */
   public function action() {
-    if ($this->isError())
-      return sprintf('<div class="error">%s</div>', $this->getError());
-    $html_allowed = array();
-    foreach ($_REQUEST as $key => $value) {
-      if (!in_array($key, $html_allowed)) {
-        $_REQUEST[$key] = $this->xssPrevent($value);
-      }
-    }
-
-    isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
-
     // CSS laden?
     if ($this->params[self::PARAM_CSS]) {
       if (!is_registered_droplet_css('kit_form', PAGE_ID)) {
@@ -356,6 +385,32 @@ class formFrontend {
     elseif (is_registered_droplet_css('kit_form', PAGE_ID)) {
       unregister_droplet_css('kit_form', PAGE_ID);
     }
+
+    // check dependency
+    $this->checkDependency();
+
+    if ($this->isError())
+      return sprintf('<a name="%s"></a><div class="error">%s</div>', self::FORM_ANCHOR, $this->getError());
+
+    /**
+     * to prevent cross site scripting XSS it is important to look also to
+     * $_REQUESTs which are needed by other KIT addons. Addons which need
+     * a $_REQUEST with HTML should set a key in $_SESSION['KIT_HTML_REQUEST']
+     */
+    $html_allowed = array();
+    if (isset($_SESSION['KIT_HTML_REQUEST']))
+      $html_allowed = $_SESSION['KIT_HTML_REQUEST'];
+    $html = array();
+    foreach ($html as $key)
+      $html_allowed[] = $key;
+    $_SESSION['KIT_HTML_REQUEST'] = $html_allowed;
+    foreach ($_REQUEST as $key => $value) {
+      if (!in_array($key, $html_allowed)) {
+        $_REQUEST[$key] = $this->xssPrevent($value);
+      }
+    }
+
+    isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
 
     switch ($action) :
       case self::action_feedback_unsubscribe:
@@ -399,8 +454,7 @@ class formFrontend {
     global $dbCfg;
 
     if (empty($this->params)) {
-      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
-      		$this->lang->translate('The form name is empty, please check the parameters for the droplet!')));
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The form name is empty, please check the parameters for the droplet!')));
       return false;
     }
 
@@ -442,8 +496,7 @@ class formFrontend {
     $form_id = $fdata[dbKITform::field_id];
 
     if ($fdata[dbKITform::field_action] == dbKITform::action_logout) {
-      // Sonderfall: beim LOGOUT wird direkt der Bestaetigungsdialog
-      // angezeigt
+      // Sonderfall: beim LOGOUT wird direkt der Bestaetigungsdialog angezeigt
       if ($kitContactInterface->isAuthenticated()) {
         // Abmelden und Verabschieden...
         return $this->Logout();
@@ -455,8 +508,7 @@ class formFrontend {
         return $this->getTemplate('prompt.htt', $data);
       }
     }
-    elseif (($fdata[dbKITform::field_action] == dbKITform::action_account) ||
-    		($fdata[dbKITform::field_action] == dbKITform::action_change_password)) {
+    elseif (($fdata[dbKITform::field_action] == dbKITform::action_account) || ($fdata[dbKITform::field_action] == dbKITform::action_change_password)) {
       // Das Benutzerkonto zum Bearbeiten anzeigen
       if ($kitContactInterface->isAuthenticated()) {
         // ok - User ist angemeldet
@@ -471,8 +523,7 @@ class formFrontend {
         }
       }
       else {
-        // Dialog kann nicht angezeigt werden, Benutzer ist nicht
-        // angemeldet!
+        // Dialog kann nicht angezeigt werden, Benutzer ist nicht angemeldet!
         $data = array(
             'message' => $this->lang->translate('<p>You are not authenticated, please login first!</p>'));
         return $this->getTemplate('prompt.htt', $data);
@@ -666,7 +717,7 @@ class formFrontend {
               $new_array = array();
               foreach ($newsletter_array as $newsletter) {
                 $newsletter['checked'] = (in_array($newsletter['value'], $select_array)) ? 1 : 0;
-                $new_array[] = $newsletter;
+                $new_array[$newsletter['value']] = $newsletter;
               }
               $newsletter_array = $new_array;
             }
@@ -701,6 +752,18 @@ class formFrontend {
                 'label' => $kitContactInterface->field_array[$field_name],
                 'hint' => $this->lang->translate('hint_'.$field_name),
                 'countries' => $country_array);
+            break;
+          case kitContactInterface::kit_contact_language:
+            $lg = $kitContactInterface->getConfigurationValue(dbKITcfg::cfgContactLanguageDefault);
+            $lg = strtolower(trim($lg));
+            $form_fields[$field_name] = array(
+                'id' => $field_id,
+                'type' => $field_name,
+                'name' => $field_name,
+                'value' => $lg,
+                'must' => (in_array($field_id, $must_array)) ? 1 : 0,
+                'label' => $kitContactInterface->field_array[$field_name],
+                'hint' => $this->lang->translate('hint_'.$field_name));
             break;
           default:
           // Datentyp nicht definiert - Fehler ausgeben
@@ -744,6 +807,12 @@ class formFrontend {
                 $checked_boxes[$checkbox['name']] = $checkbox;
               }
               $checkboxes = $checked_boxes;
+            }
+            else {
+              $cbs = array();
+              foreach ($checkboxes as $checkbox)
+                $cbs[$checkbox['name']] = $checkbox;
+              $checkboxes = $cbs;
             }
             $form_fields[$field[dbKITformFields::field_name]] = array(
                 'id' => $field[dbKITformFields::field_id],
@@ -826,6 +895,12 @@ class formFrontend {
               }
               $radios = $checked_radios;
             }
+            else {
+              $rbs = array();
+              foreach ($radios as $radio)
+                $rbs[$radio['name']] = $radio;
+              $radios = $rbs;
+            }
             $form_fields[$field[dbKITformFields::field_name]] = array(
                 'id' => $field[dbKITformFields::field_id],
                 'type' => $field[dbKITformFields::field_type],
@@ -876,7 +951,6 @@ class formFrontend {
         endswitch;
       }
     }
-
     if ($is_feedback_form) {
       return $this->showFeedbackForm($form_id, $form_data, $form_fields);
     }
@@ -934,15 +1008,14 @@ class formFrontend {
       case dbKITform::action_send_password:
         return $this->sendNewPassword($form);
       case dbKITform::action_change_password:
-      	return $this->changePassword($form);
+        return $this->changePassword($form);
       case dbKITform::action_newsletter:
         // return $this->subscribeNewsletter ( $form );
       case dbKITform::action_register:
-      case dbKITform::action_account:
-        /*
-         * Diese speziellen Aktionen werden erst durchgefuehrt, wenn die
-         * allgemeinen Daten bereits geprueft sind
-         */
+      case dbKITform::action_account: /*
+                                       * Diese speziellen Aktionen werden erst durchgefuehrt, wenn die
+                                       * allgemeinen Daten bereits geprueft sind
+                                       */
       default:
         // nothing to do - go ahead...
     endswitch;
@@ -1340,10 +1413,8 @@ class formFrontend {
       $password = '';
       $contact_array = array();
       $field_array = $kitContactInterface->field_array;
-      $field_array[kitContactInterface::kit_intern] = ''; // Feld fuer
-      // internen
-      // Verteiler
-      // hinzufuegen
+      // Feld fuer internen Verteiler hinzufuegen
+      $field_array[kitContactInterface::kit_intern] = '';
       foreach ($field_array as $key => $value) {
         switch ($key) :
           case kitContactInterface::kit_free_field_1:
@@ -1371,8 +1442,7 @@ class formFrontend {
             break;
           case kitContactInterface::kit_password_retype:
             if ((isset($_REQUEST[$key]) && !empty($_REQUEST[$key])) && (isset($_REQUEST[kitContactInterface::kit_password]) && !empty($_REQUEST[kitContactInterface::kit_password]))) {
-              // nur pruefen, wenn beide Passwortfelder gesetzt
-              // sind
+              // nur pruefen, wenn beide Passwortfelder gesetzt sind
               if (!$kitContactInterface->changePassword($_SESSION[kitContactInterface::session_kit_register_id], $_SESSION[kitContactInterface::session_kit_contact_id], $_REQUEST[kitContactInterface::kit_password], $_REQUEST[kitContactInterface::kit_password_retype])) {
                 // Fehler beim Aendern des Passwortes
                 unset($_REQUEST[kitContactInterface::kit_password]);
@@ -1401,6 +1471,11 @@ class formFrontend {
               $contact_array[$key] = date('Y-m-d H:i:s', $kit_birthday);
             }
             break;
+          case kitContactInterface::kit_contact_language:
+          // check contact language
+            if (isset($_REQUEST[kitContactInterface::kit_contact_language]) && ($_REQUEST[kitContactInterface::kit_contact_language] !== strtolower(LANGUAGE))) {
+              $contact_array[$key] = strtolower(LANGUAGE);
+            }
           default:
             if (isset($_REQUEST[$key]))
               $contact_array[$key] = $_REQUEST[$key];
@@ -1409,9 +1484,7 @@ class formFrontend {
       }
 
       if ($form[dbKITform::field_action] == dbKITform::action_register) {
-        // es handelt sich um einen Registrierdialog, die weitere
-        // Bearbeitung an
-        // $this->registerAccount() uebergeben
+        // es handelt sich um einen Registrierdialog, die weitere Bearbeitung an $this->registerAccount() uebergeben
         return $this->registerAccount($form, $contact_array);
       }
       elseif ($form[dbKITform::field_action] == dbKITform::action_account) {
@@ -1506,8 +1579,7 @@ class formFrontend {
 
           $fid = $field_array[$kitContactInterface->field_assign[$check_field]];
           if (($fid < 1) && (!empty($_REQUEST[$check_field]))) {
-            // field is not empty and does not exists in in
-            // dbKITmemo
+            // field is not empty and does not exists in in dbKITmemo
             $data = array(
                 dbKITmemos::field_contact_id => $contact_id,
                 dbKITmemos::field_memo => trim($_REQUEST[$check_field]),
@@ -1528,8 +1600,7 @@ class formFrontend {
             }
           }
           elseif ($fid > 0) {
-            // field already exists in dbKITmemo - get the data
-            // field
+            // field already exists in dbKITmemo - get the data field
             $where = array(dbKITmemos::field_id => $fid);
             $memo = array();
             if (!$dbMemos->sqlSelectRecord($where, $memo)) {
@@ -1694,8 +1765,6 @@ class formFrontend {
           case dbKITformFields::data_type_text:
           default:
             $value = (is_array($values[$fid])) ? implode(', ', $values[$fid]) : $values[$fid];
-          // $items = (is_array($values[$fid])) ? $values[$fid] :
-          // array();
         endswitch;
         $items[$field[dbKITformFields::field_name]] = array(
             'label' => $field[dbKITformFields::field_title],
@@ -1939,8 +2008,7 @@ class formFrontend {
     global $kitLibrary;
 
     if (!isset($_REQUEST[kitContactInterface::kit_email]) || !isset($_REQUEST[kitContactInterface::kit_password])) {
-      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
-      		$this->lang->translate('The datafields for the email address and/or the password are empty, please check!')));
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The datafields for the email address and/or the password are empty, please check!')));
       return false;
     }
     if (!$kitLibrary->validateEMail($_REQUEST[kitContactInterface::kit_email])) {
@@ -1951,23 +2019,22 @@ class formFrontend {
     }
     $contact = array();
     $must_change_password = false;
-    if ($kitContactInterface->checkLogin($_REQUEST[kitContactInterface::kit_email],
-    		$_REQUEST[kitContactInterface::kit_password], $contact, $must_change_password)) {
-    	if ($must_change_password) {
-    		// the user must change his password!
-    		unset($_REQUEST[kitContactInterface::kit_password]);
-    		if (isset($form_data[dbKITform::field_links])) {
-    			parse_str($form_data[dbKITform::field_links], $links);
-    			if (isset($links[dbKITform::action_change_password]) && ($links[dbKITform::action_change_password] != dbKITform::action_none)) {
-    				// load the desired form
-    				unset($_REQUEST[self::request_link]);
-    				unset($_REQUEST[dbKITform::field_id]);
-    				$this->params[self::PARAM_FORM] = $links[dbKITform::action_change_password];
-    				$this->setMessage($this->lang->translate('<p>Your password is not secure, please choose a new password!</p>'));
-    				return $this->showForm();
-    			}
-    		}
-    	}
+    if ($kitContactInterface->checkLogin($_REQUEST[kitContactInterface::kit_email], $_REQUEST[kitContactInterface::kit_password], $contact, $must_change_password)) {
+      if ($must_change_password) {
+        // the user must change his password!
+        unset($_REQUEST[kitContactInterface::kit_password]);
+        if (isset($form_data[dbKITform::field_links])) {
+          parse_str($form_data[dbKITform::field_links], $links);
+          if (isset($links[dbKITform::action_change_password]) && ($links[dbKITform::action_change_password] != dbKITform::action_none)) {
+            // load the desired form
+            unset($_REQUEST[self::request_link]);
+            unset($_REQUEST[dbKITform::field_id]);
+            $this->params[self::PARAM_FORM] = $links[dbKITform::action_change_password];
+            $this->setMessage($this->lang->translate('<p>Your password is not secure, please choose a new password!</p>'));
+            return $this->showForm();
+          }
+        }
+      }
       // Login erfolgreich
       $this->setContact($contact);
       return true;
@@ -2789,87 +2856,85 @@ class formFrontend {
   } // checkCommand()
 
   protected function changePassword($form_data = array()) {
-  	global $kitContactInterface;
+    global $kitContactInterface;
 
-  	if (!isset($_REQUEST[kitContactInterface::kit_email])) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Missing the datafield <b>{{ field }}</b>!',
-  				array('field' => kitContactInterface::kit_email))));
-  		// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return false;
-  	}
-  	$contact_id = -1;
-  	$status = dbKITcontact::status_active;
-  	if (!$kitContactInterface->isEMailRegistered($_REQUEST[kitContactInterface::kit_email], $contact_id, $status)) {
-  		// E-Mail Adresse ist nicht registriert
-  		$this->setMessage($this->lang->translate('<p>The email address <b>{{ email }}</b> is not registered.</p>',
-  				array('email' => $_REQUEST[kitContactInterface::kit_email])));
-  		// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return $this->showForm();
-  	}
-  	if ($status != dbKITcontact::status_active) {
-  		// Der Kontakt ist NICHT AKTIV!
-  		$this->setMessage($this->lang->translate('<p>The account for the email address <b>{{ email }}</b> is not active, please contact the service!</p>',
-  				array('email' => $_REQUEST[kitContactInterface::kit_email])));
-  		// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return $this->showForm();
-  	}
-  	// CAPTCHA pruefen?
-  	if ($form_data[dbKITform::field_captcha] == dbKITform::captcha_on) {
-  		unset($_SESSION['kf_captcha']);
-  		if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
-  			$this->setMessage($this->lang->translate('<p>The CAPTCHA code is not correct, please try again!</p>'));
-  			// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return $this->showForm();
-  		}
-  	}
+    if (!isset($_REQUEST[kitContactInterface::kit_email])) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Missing the datafield <b>{{ field }}</b>!', array(
+          'field' => kitContactInterface::kit_email))));
+      // reset the passwords!
+      unset($_REQUEST[kitContactInterface::kit_password]);
+      unset($_REQUEST[kitContactInterface::kit_password_retype]);
+      return false;
+    }
+    $contact_id = -1;
+    $status = dbKITcontact::status_active;
+    if (!$kitContactInterface->isEMailRegistered($_REQUEST[kitContactInterface::kit_email], $contact_id, $status)) {
+      // E-Mail Adresse ist nicht registriert
+      $this->setMessage($this->lang->translate('<p>The email address <b>{{ email }}</b> is not registered.</p>', array(
+          'email' => $_REQUEST[kitContactInterface::kit_email])));
+      // reset the passwords!
+      unset($_REQUEST[kitContactInterface::kit_password]);
+      unset($_REQUEST[kitContactInterface::kit_password_retype]);
+      return $this->showForm();
+    }
+    if ($status != dbKITcontact::status_active) {
+      // Der Kontakt ist NICHT AKTIV!
+      $this->setMessage($this->lang->translate('<p>The account for the email address <b>{{ email }}</b> is not active, please contact the service!</p>', array(
+          'email' => $_REQUEST[kitContactInterface::kit_email])));
+      // reset the passwords!
+      unset($_REQUEST[kitContactInterface::kit_password]);
+      unset($_REQUEST[kitContactInterface::kit_password_retype]);
+      return $this->showForm();
+    }
+    // CAPTCHA pruefen?
+    if ($form_data[dbKITform::field_captcha] == dbKITform::captcha_on) {
+      unset($_SESSION['kf_captcha']);
+      if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
+        $this->setMessage($this->lang->translate('<p>The CAPTCHA code is not correct, please try again!</p>'));
+        // reset the passwords!
+        unset($_REQUEST[kitContactInterface::kit_password]);
+        unset($_REQUEST[kitContactInterface::kit_password_retype]);
+        return $this->showForm();
+      }
+    }
 
-  	// check if the passwords are valid
-  	if (!isset($_REQUEST[kitContactInterface::kit_password]) || !isset($_REQUEST[kitContactInterface::kit_password_retype]) ||
-  			($_REQUEST[kitContactInterface::kit_password] != $_REQUEST[kitContactInterface::kit_password_retype]) ||
-  			(empty($_REQUEST[kitContactInterface::kit_password]))) {
-  		$password = trim($_REQUEST[kitContactInterface::kit_password]);
-  		$retype = trim($_REQUEST[kitContactInterface::kit_password_retype]);
-  		if (empty($password) || (empty($retype))) {
-  			$this->setMessage($this->lang->translate('<p>The password is empty!</p>'));
-  		}
-  		elseif (strlen($password) <	$kitContactInterface->getConfigurationValue(kitContactInterface::CONFIG_PASSWORD_MINIMUM_LENGHT)) {
-  			$this->setMessage($this->lang->translate('<p>The password needs at least a length of {{ lenght }} characters!</p>',
-  					array('lenght' => $kitContactInterface->getConfigurationValue(kitContactInterface::CONFIG_PASSWORD_MINIMUM_LENGHT))));
-  		}
-  		else {
-  		  $this->setMessage($this->lang->translate('<p>The both passwords does not match, please check your input!</p>'));
-  		}
-  		// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return $this->showForm();
-  	}
+    // check if the passwords are valid
+    if (!isset($_REQUEST[kitContactInterface::kit_password]) || !isset($_REQUEST[kitContactInterface::kit_password_retype]) || ($_REQUEST[kitContactInterface::kit_password] != $_REQUEST[kitContactInterface::kit_password_retype]) || (empty($_REQUEST[kitContactInterface::kit_password]))) {
+      $password = trim($_REQUEST[kitContactInterface::kit_password]);
+      $retype = trim($_REQUEST[kitContactInterface::kit_password_retype]);
+      if (empty($password) || (empty($retype))) {
+        $this->setMessage($this->lang->translate('<p>The password is empty!</p>'));
+      }
+      elseif (strlen($password) < $kitContactInterface->getConfigurationValue(kitContactInterface::CONFIG_PASSWORD_MINIMUM_LENGHT)) {
+        $this->setMessage($this->lang->translate('<p>The password needs at least a length of {{ lenght }} characters!</p>', array(
+            'lenght' => $kitContactInterface->getConfigurationValue(kitContactInterface::CONFIG_PASSWORD_MINIMUM_LENGHT))));
+      }
+      else {
+        $this->setMessage($this->lang->translate('<p>The both passwords does not match, please check your input!</p>'));
+      }
+      // reset the passwords!
+      unset($_REQUEST[kitContactInterface::kit_password]);
+      unset($_REQUEST[kitContactInterface::kit_password_retype]);
+      return $this->showForm();
+    }
 
-  	$password = trim($_REQUEST[kitContactInterface::kit_password]);
-  	$retype = trim($_REQUEST[kitContactInterface::kit_password_retype]);
+    $password = trim($_REQUEST[kitContactInterface::kit_password]);
+    $retype = trim($_REQUEST[kitContactInterface::kit_password_retype]);
 
-  	if (!$kitContactInterface->isAuthenticated() || ($_SESSION[kitContactInterface::session_kit_contact_id] != $contact_id)) {
-  		$this->setMessage($this->lang->translate('<p>Please log in to change your password!</p>'));
-  		// reset the passwords!
-  		unset($_REQUEST[kitContactInterface::kit_password]);
-  		unset($_REQUEST[kitContactInterface::kit_password_retype]);
-  		return $this->showForm();
-  	}
+    if (!$kitContactInterface->isAuthenticated() || ($_SESSION[kitContactInterface::session_kit_contact_id] != $contact_id)) {
+      $this->setMessage($this->lang->translate('<p>Please log in to change your password!</p>'));
+      // reset the passwords!
+      unset($_REQUEST[kitContactInterface::kit_password]);
+      unset($_REQUEST[kitContactInterface::kit_password_retype]);
+      return $this->showForm();
+    }
 
-  	if (!$kitContactInterface->changePassword($_SESSION[kitContactInterface::session_kit_register_id], $contact_id, $password, $retype)) {
-  		$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
-  		return false;
-  	}
+    if (!$kitContactInterface->changePassword($_SESSION[kitContactInterface::session_kit_register_id], $contact_id, $password, $retype)) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+      return false;
+    }
 
-  	$contact = array();
+    $contact = array();
     if (!$kitContactInterface->getContact($contact_id, $contact)) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
       return false;
@@ -3372,6 +3437,17 @@ class formFrontend {
       return $this->showForm();
     }
     $message = $kitContactInterface->getMessage();
+
+    // special: check contact language
+    if (isset($_REQUEST[kitContactInterface::kit_contact_language]) && ($_REQUEST[kitContactInterface::kit_contact_language] !== strtolower(LANGUAGE))) {
+      $update = array();
+      $update[kitContactInterface::kit_contact_language] = strtolower(LANGUAGE);
+      if (!$kitContactInterface->updateContact($register[dbKITregister::field_contact_id], $update)) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+        return false;
+      }
+    }
+
     if ($send_activation == false) {
       $message .= sprintf($this->lang->translate('<p>The newsletter abonnement for the email address <b>{{ email }}</b> was updated.</p>', array(
           'email' => $email)));
