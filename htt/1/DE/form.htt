@@ -39,7 +39,15 @@
           <div class="kf_value">
             <select name="{$field.name}" size="1">
               {foreach $field.titles title}
-              <option value="{$title.value}"{if $title.checked == 1} selected="selected"{/if}>{$title.text}</option>
+              <option value="{$title.value}"{if $title.checked == 1} selected="selected"{/if}>
+                {if $title.value == 'titleMister'}Herr
+                {elseif $title.value == 'titleLady'}Frau
+                {elseif $title.value == 'academicNone'}
+                {elseif $title.value == 'academicDr'}Dr.
+                {elseif $title.value == 'academicProf'}Prof.
+                {else}{$title.text}
+                {/if}
+              </option>
             {/foreach}
             </select>
           </div>
