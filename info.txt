@@ -8,6 +8,13 @@
  * @version $Id$
  */
 
+Release 0.33
+2012-02-29
+added: additional information which newsletter was registered for the forms
+  mail.client.register.newsletter.htt and mail.provider.register.newsletter.htt
+  please read /kit_form/htt/changes.txt for more informations
+added: kitForm checks the KIT option cfgNewsletterAccountInfo
+
 Release 0.32
 2012-02-19
 added: new KIT datafield "Contact language" enables to automatically set the

@@ -3329,7 +3329,8 @@ class formFrontend {
       $this->setMessage($this->lang->translate('<p>Welcome!<br />we have send you the username and password by email.</p>'));
       return $this->showForm();
     }
-    $data = array('contact' => $contact, 'password' => $password);
+    $newsletter_account_info = $kitContactInterface->getConfigurationValue(dbKITcfg::cfgNewsletterAccountInfo);
+    $data = array('contact' => $contact, 'password' => $password, 'newsletter_account_info' => (int) $newsletter_account_info);
 
     $activation_type = (isset($_REQUEST[self::request_activation_type])) ? $_REQUEST[self::request_activation_type] : self::activation_type_account;
 
@@ -3345,29 +3346,32 @@ class formFrontend {
         break;
     endswitch;
 
-    $client_mail = strip_tags($this->getTemplate($mail_template, $data));
-    $provider_id = (isset($_REQUEST[self::request_provider_id])) ? $_REQUEST[self::request_provider_id] : -1;
+    if (($activation_type == self::activation_type_account) ||
+        (($activation_type == self::activation_type_newsletter) && $newsletter_account_info)) {
+      $client_mail = strip_tags($this->getTemplate($mail_template, $data));
+      $provider_id = (isset($_REQUEST[self::request_provider_id])) ? $_REQUEST[self::request_provider_id] : -1;
 
-    $provider_data = array();
-    if (!$kitContactInterface->getServiceProviderByID($provider_id, $provider_data)) {
-      if ($kitContactInterface->isError()) {
-        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+      $provider_data = array();
+      if (!$kitContactInterface->getServiceProviderByID($provider_id, $provider_data)) {
+        if ($kitContactInterface->isError()) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
+        }
+        else {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
+        }
+        return false;
       }
-      else {
-        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getMessage()));
-      }
-      return false;
-    }
-    $provider_email = $provider_data['email'];
-    $provider_name = $provider_data['name'];
+      $provider_email = $provider_data['email'];
+      $provider_name = $provider_data['name'];
 
-    // Standard E-Mail Routine verwenden
-    $mail = new kitMail($provider_id);
-    if (!$mail->mail($this->lang->translate('Your account data'), $client_mail, $provider_email, $provider_name, array(
-        $contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
-      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Can\'t send the email to <b>{{ email }}</b>!', array(
-          'email' => $contact[kitContactInterface::kit_email]))));
-      return false;
+      // Standard E-Mail Routine verwenden
+      $mail = new kitMail($provider_id);
+      if (!$mail->mail($this->lang->translate('Your account data'), $client_mail, $provider_email, $provider_name, array(
+          $contact[kitContactInterface::kit_email] => $contact[kitContactInterface::kit_email]), false)) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Can\'t send the email to <b>{{ email }}</b>!', array(
+            'email' => $contact[kitContactInterface::kit_email]))));
+        return false;
+      }
     }
     return $this->getTemplate($prompt_template, $data);
   } // checkActivationKey()
@@ -3398,6 +3402,7 @@ class formFrontend {
    */
   protected function subscribeNewsletter($form_data = array()) {
     global $kitContactInterface;
+    global $dbContactArrayCfg;
 
     $use_subscribe = false;
     $subscribe = false;
@@ -3422,7 +3427,6 @@ class formFrontend {
     elseif (isset($_REQUEST[kitContactInterface::kit_newsletter])) {
       $newsletter = $_REQUEST[kitContactInterface::kit_newsletter];
     }
-
     $email = $_REQUEST[kitContactInterface::kit_email];
 
     $register = array();
@@ -3465,7 +3469,28 @@ class formFrontend {
               self::request_activation_type => self::activation_type_newsletter))),
           'datetime' => date(cfg_datetime_str),
           'subject' => $form_data[dbKITform::field_title]);
-      $data = array('form' => $form, 'contact' => $contact);
+      $newsletter_array = array();
+      $na = explode(',', $newsletter);
+      foreach ($na as $nl) {
+        $SQL = sprintf("SELECT %s FROM %s WHERE %s='%s'",
+            dbKITcontactArrayCfg::field_value,
+            $dbContactArrayCfg->getTableName(),
+            dbKITcontactArrayCfg::field_identifier,
+            $nl);
+        $result = array();
+        if (!$dbContactArrayCfg->sqlExec($SQL, $result)) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbContactArrayCfg->getError()));
+          return false;
+        }
+        if (count($result) > 0) {
+          $newsletter_array[] = array(
+              'name' => $nl,
+              'value' => $result[0][dbKITcontactArrayCfg::field_value]
+              );
+        }
+      }
+
+      $data = array('form' => $form, 'contact' => $contact, 'newsletter' => $newsletter_array);
       $provider_data = array();
       if (!$kitContactInterface->getServiceProviderByID($form_data[dbKITform::field_provider_id], $provider_data)) {
         if ($kitContactInterface->isError()) {

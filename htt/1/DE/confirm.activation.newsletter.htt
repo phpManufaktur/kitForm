@@ -20,13 +20,16 @@
   {$template_path}
   {dump()}
 {/if}
- <div class="kit_confirm">
-   <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
-   <p>wir haben Ihr Benutzerkonto jetzt aktiviert.</p>
-   <p>Ihre Zugangsdaten lauten:</p>
-   <p>Benutzer: {$contact.kit_email}<br />
-   Passwort: {$password}</p>
-   <p>Wir haben Ihnen ihre Zugangsdaten zusätzlich per E-Mail zugesendet.</p>
-   <p><i>Bitte kontrollieren Sie Ihr Postfach.</i></p>
-   <p>Sie wurden diesmal automatisch angemeldet und haben bereits Zugriff auf den geschützten Bereich.</p>
- </div>
+<div class="kit_confirm">
+  <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
+  <p>vielen Dank für Ihr Newsletter Abonnement!</p>
+  {if $newsletter_account_info == 1}
+    <p>Zusammen mit dem Newsletter Abonnement wurde für Sie ein Benutzerkonto angelegt.</p>
+    <p>Ihre Zugangsdaten lauten:</p>
+    <p>Benutzer: {$contact.kit_email}<br />
+    Passwort: {$password}</p>
+    <p>Wir haben Ihnen ihre Zugangsdaten zusätzlich per E-Mail zugesendet.</p>
+    <p><i>Bitte kontrollieren Sie Ihr Postfach.</i></p>
+    <p>Sie wurden diesmal automatisch angemeldet und haben bereits Zugriff auf den geschützten Bereich.</p>
+  {/if}
+</div>

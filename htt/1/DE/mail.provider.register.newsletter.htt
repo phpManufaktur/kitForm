@@ -27,6 +27,10 @@ Der Kontakt:
 
 {$contact.kit_email}
 
-hat sich am {$form.datetime} Uhr für den NEWSLETTER VERSAND registrieren lassen. Es wurde ein Aktivierungslink versendet.
+hat sich am {$form.datetime} Uhr für die Newsletter:
+
+{$i=0}{foreach $newsletter nl}{if $i > 0}, {/if}{$nl.value}{$i=$i+1}{/foreach}
+
+registrieren lassen. Es wurde ein Aktivierungslink versendet.
 
 +++++ AUTOMATISCHE BENACHRICHTIGUNG DURCH kitForm +++++

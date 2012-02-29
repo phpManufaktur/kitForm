@@ -8,6 +8,19 @@ IF YOU ARE USING YOUR OWN TEMPLATES (PRESETS) PLEASE CHECK THE CHANGES AND
 ADAPT YOUR TEMPLATES IF NECESSARY.
 
 ___________________
+Release 0.33
+2012-02-29
+
+Changed the behaviour of the templates:
+
+/modules/kit_form/1/confirm.activation.newsletter.htt
+/modules/kit_form/1/mail.client.register.newsletter.htt
+/modules/kit_form/1/mail.provider.register.newsletter.htt
+/modules/kit_form/1/mail.client.activation.newsletter.htt
+
+please check these files and compare them with your adaption.
+
+___________________
 Release 0.32
 2012-02-19
 

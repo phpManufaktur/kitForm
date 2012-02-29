@@ -47,7 +47,7 @@ $PRECHECK['WB_ADDONS'] = array(
 );
 // SPECIAL: check dependencies at runtime but not at installation!
 $PRECHECK['KIT'] = array(
-	'kit' => array('VERSION' => '0.54', 'OPERATOR' => '>='),
+	'kit' => array('VERSION' => '0.55', 'OPERATOR' => '>='),
 	'kit_dirlist' => array('VERSION' => '0.28', 'OPERATOR' => '>=')
 );
 
