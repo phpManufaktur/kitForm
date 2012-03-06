@@ -1033,6 +1033,13 @@ class formFrontend {
 
     // zuerst die Pflichtfelder pruefen
     $must_array = explode(',', $form[dbKITform::field_must_fields]);
+    if (in_array('20', $must_array)) {
+      // special: key must transformed!
+      $key = array_search('20', $must_array);
+      unset($must_array[$key]);
+      $must_array[] = 18;
+      $must_array[] = 19;
+    }
     foreach ($must_array as $must_id) {
       if ($must_id < 100) {
         // IDs 1-99 sind fuer KIT reserviert
@@ -1115,7 +1122,7 @@ class formFrontend {
     // special: check if kit_birthday is valid
     $kit_birthday = '';
     if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
-      if ((strpos($_REQUEST[kitContactInterface::kit_birthday], kit_cfg_date_separator) == false) && (in_array($kitContactInterface->index_array[kitContactInterface::kit_birthday], $must_array))) {
+      if ((strpos($_REQUEST[kitContactInterface::kit_birthday], cfg_date_separator) == false) && (in_array($kitContactInterface->index_array[kitContactInterface::kit_birthday], $must_array))) {
         $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>', array(
             'date_str' => cfg_date_str));
         $checked = false;
@@ -1127,19 +1134,20 @@ class formFrontend {
           $da = array();
           for ($i = 0; $i < 3; $i++)
             $da[$df[$i]] = $barray[$i];
-          if ($da['Y'] < 100)
-            $da['Y'] = 1900 + $da['Y'];
-          if (($da['Y'] < 1900) || ($da['Y'] > date('Y')) || ($da['m'] < 1) || ($da['m'] > 12) || ($da['d'] < 1) || ($da['d'] > 31))
+          if ($da['Y'] < 100) $da['Y'] = 1900 + $da['Y'];
+          if (($da['Y'] < 1900) || ($da['Y'] > date('Y')) || ($da['m'] < 1) || ($da['m'] > 12) || ($da['d'] < 1) || ($da['d'] > 31)) {
             $checked = false;
+            $message .= $this->lang->translate('<p>The date <b>{{ date }}</b> is invalid!</p>', array(
+                'date' => $_REQUEST[kitContactInterface::kit_birthday]));
+          }
           if ($checked && (false !== ($date = mktime(0, 0, 0, $da['m'], $da['d'], $da['Y'])))) {
             $kit_birthday = $date;
           }
-          else {
+          elseif ($checked) {
             $checked = false;
-          }
-          if (!$checked)
             $message .= $this->lang->translate('<p>The date <b>{{ date }}</b> is invalid!</p>', array(
                 'date' => $_REQUEST[kitContactInterface::kit_birthday]));
+          }
         }
         else {
           // date is invalid
@@ -2371,9 +2379,12 @@ class formFrontend {
         if (isset($values[$fb_subscription][0]) && ($values[$fb_subscription][0] == self::SUBSCRIPE_YES)) {
           $cont = array();
           if (!$kitContactInterface->getContact($sub[dbKITformData::field_kit_id], $cont)) {
+            /* it is possible that an ID is deleted, so dont prompt a error, still continue ...
             $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The ID {{ id }} is invalid!', array(
                 'id' => $sub[dbKITformData::field_kit_id]))));
             return false;
+            */
+            continue;
           }
           if (!in_array($cont[kitContactInterface::kit_email], $subscriber_emails) && ($cont[kitContactInterface::kit_email] != $contact_data[kitContactInterface::kit_email])) {
             $subscriber_emails[] = $cont[kitContactInterface::kit_email];
