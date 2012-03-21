@@ -208,8 +208,7 @@ class formFrontend {
    */
   public function setParams($params = array()) {
     $this->params = $params;
-    // check only the preset path but not the subdirectories with the
-    // languages!
+    // check only the preset path but not the subdirectories with the languages!
     if (!file_exists($this->template_path.$this->params[self::PARAM_PRESET])) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The preset directory <b>{{ directory }}</b> does not exists, can\'t load any template!', array(
           'directory' => '/modules/kit_form/htt/'.$this->params[self::PARAM_PRESET].'/'))));
