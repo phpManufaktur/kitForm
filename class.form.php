@@ -193,6 +193,7 @@ class dbKITform extends dbConnectLE {
       return false;
     }
     $form_data = array();
+    $import = str_replace('&amp;', '&', $import);
     parse_str($import, $form_data);
 
     if (empty($form_data)) {
