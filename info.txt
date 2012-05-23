@@ -12,6 +12,7 @@ Release 0.34
 
 fixed: the kit_feedback form may prompt an error while sending status mails if 
   an user account is inactive or deleted - now still continue.
+fixed: using parse_str() in class.backend.php for additional fields may ignore &amp;
 
 Release 0.33
 2012-02-29

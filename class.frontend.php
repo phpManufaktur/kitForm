@@ -535,7 +535,8 @@ class formFrontend {
     ob_end_clean();
 
     // Links auslesen
-    parse_str($fdata[dbKITform::field_links], $links);
+    $parse = str_replace('&amp;', '&', $fdata[dbKITform::field_links]);
+    parse_str($parse, $links);
     $links['command'] = sprintf('%s%s%s', $this->page_link, (strpos($this->page_link, '?') === false) ? '?' : '&', self::request_link);
     // Formulardaten
     $form_data = array(
@@ -797,7 +798,8 @@ class formFrontend {
         switch ($field[dbKITformFields::field_type]) :
           case dbKITformFields::type_checkbox:
           // CHECKBOX
-            parse_str($field[dbKITformFields::field_type_add], $checkboxes);
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $checkboxes);
             if (isset($_REQUEST[$field[dbKITformFields::field_name]])) {
               $checked_array = $_REQUEST[$field[dbKITformFields::field_name]];
               $checked_boxes = array();
@@ -825,7 +827,8 @@ class formFrontend {
             break;
           case dbKITformFields::type_delayed:
           // DELAYED transmission
-            parse_str($field[dbKITformFields::field_type_add], $type_add);
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $type_add);
             $form_fields[$field[dbKITformFields::field_name]] = array(
                 'id' => $field[dbKITformFields::field_id],
                 'type' => $field[dbKITformFields::field_type],
@@ -848,7 +851,8 @@ class formFrontend {
                 'value' => $field[dbKITformFields::field_value]);
             break;
           case dbKITformFields::type_file:
-            parse_str($field[dbKITformFields::field_type_add], $settings);
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $settings);
             $ext_array = explode(',', $settings['file_types']['value']);
             $file_ext = '';
             $file_desc = '';
@@ -884,7 +888,8 @@ class formFrontend {
                 'value' => $field[dbKITformFields::field_value]);
             break;
           case dbKITformFields::type_radio:
-            parse_str($field[dbKITformFields::field_type_add], $radios);
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $radios);
             if (isset($_REQUEST[$field[dbKITformFields::field_name]])) {
               $checked = $_REQUEST[$field[dbKITformFields::field_name]];
               $checked_radios = array();
@@ -911,7 +916,8 @@ class formFrontend {
                 'radio' => $radios);
             break;
           case dbKITformFields::type_select:
-            parse_str($field[dbKITformFields::field_type_add], $options);
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $options);
             if (isset($_REQUEST[$field[dbKITformFields::field_name]])) {
               $checked = $_REQUEST[$field[dbKITformFields::field_name]];
               $checked_options = array();
@@ -1195,7 +1201,8 @@ class formFrontend {
       }
 
       foreach ($file_array as $file) {
-        parse_str($file[dbKITformFields::field_type_add], $settings);
+        $parse = str_replace('&amp;', '&', $file[dbKITformFields::field_type_add]);
+        parse_str($parse, $settings);
         $method = $settings['upload_method']['value'];
         if ($method == 'standard') {
           // method: standard - check the file uploads
@@ -1223,7 +1230,8 @@ class formFrontend {
                   $checked = false;
                 }
                 // get the settings for this file
-                parse_str($file[dbKITformFields::field_type_add], $settings);
+                $parse = str_replace('&amp;', '&', $file[dbKITformFields::field_type_add]);
+                parse_str($parse, $settings);
                 if (!empty($settings['file_types'])) {
                   $ext_array = explode(',', $settings['file_types']['value']);
                   if (!in_array($ext, $ext_array)) {
@@ -1235,7 +1243,7 @@ class formFrontend {
                 }
                 if ($_FILES[$file[dbKITformFields::field_name]]['size'] > ($settings['max_file_size']['value'] * 1024 * 1024)) {
                   $message .= $this->lang->translate('<p>The file size exceeds the limit of {{ size }} MB.</p>', array(
-                      'size' => $settings['max_file_size']));
+                      'size' => $settings['max_file_size']['value']));
                   $checked = false;
                 }
               }
@@ -2031,7 +2039,8 @@ class formFrontend {
         // the user must change his password!
         unset($_REQUEST[kitContactInterface::kit_password]);
         if (isset($form_data[dbKITform::field_links])) {
-          parse_str($form_data[dbKITform::field_links], $links);
+          $parse = str_replace('&amp;', '&', $form_data[dbKITform::field_links]);
+          parse_str($parse, $links);
           if (isset($links[dbKITform::action_change_password]) && ($links[dbKITform::action_change_password] != dbKITform::action_none)) {
             // load the desired form
             unset($_REQUEST[self::request_link]);
@@ -2134,7 +2143,8 @@ class formFrontend {
 
     $feedback_array = array();
     foreach ($feedbacks as $feedback) {
-      parse_str($feedback[dbKITformData::field_values], $fields);
+      $parse = str_replace('&amp;', '&', $feedback[dbKITformData::field_values]);
+      parse_str($parse, $fields);
       $publish = true;
       if (isset($fields[$fb_publish]) && ($fields[$fb_publish] != self::PUBLISH_IMMEDIATE))
         $publish = false;
@@ -2233,7 +2243,8 @@ class formFrontend {
       return false;
     }
     $f_data = $f_data[0];
-    parse_str($f_data[dbKITformData::field_values], $values);
+    $parse = str_replace('&amp;', '&', $f_data[dbKITformData::field_values]);
+    parse_str($parse, $values);
     $feedback_array = array(
         self::FIELD_FEEDBACK_HOMEPAGE => isset($fb_homepage) ? $values[$fb_homepage] : '',
         self::FIELD_FEEDBACK_NICKNAME => isset($fb_nickname) ? $values[$fb_nickname] : '',
@@ -2374,7 +2385,8 @@ class formFrontend {
         return false;
       }
       foreach ($sub_data as $sub) {
-        parse_str($sub[dbKITformData::field_values], $values);
+        $parse = str_replace('&amp;', '&', $sub[dbKITformData::field_values]);
+        parse_str($parse, $values);
         if (isset($values[$fb_subscription][0]) && ($values[$fb_subscription][0] == self::SUBSCRIPE_YES)) {
           $cont = array();
           if (!$kitContactInterface->getContact($sub[dbKITformData::field_kit_id], $cont)) {
@@ -2550,7 +2562,8 @@ class formFrontend {
 
     $unsubscribed = false;
     foreach ($form_data as $data) {
-      parse_str($data[dbKITformData::field_values], $values);
+      $parse = str_replace('&amp;', '&', $data[dbKITformData::field_values]);
+      parse_str($parse, $values);
       if (isset($values[$fb_subscription][0]) && isset($values[$fb_url])) {
         if (($values[$fb_subscription][0] == self::SUBSCRIPE_YES) && ($values[$fb_url] == $url)) {
           // update record
@@ -2601,7 +2614,8 @@ class formFrontend {
       $command = $command[0];
       if (($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_PUBLISH) || ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_REFUSE)) {
         // Feedback zurueckweisen
-        parse_str($command[dbKITformCommands::FIELD_PARAMS], $params);
+        $parse = str_replace('&amp;', '&', $command[dbKITformCommands::FIELD_PARAMS]);
+        parse_str($parse, $params);
         if (isset($params['data_id'])) {
           $form_data = array();
           $where = array(dbKITformData::field_id => $params['data_id']);
@@ -2645,7 +2659,8 @@ class formFrontend {
               endswitch;
             }
             if (isset($fb_publish)) {
-              parse_str($form_data[dbKITformData::field_values], $values);
+              $parse = str_replace('&amp;', '&', $form_data[dbKITformData::field_values]);
+              parse_str($parse, $values);
               if (isset($values[$fb_publish])) {
                 if ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_FEEDBACK_REFUSE) {
                   $values[$fb_publish] = self::PUBLISH_FORBIDDEN;
@@ -2684,7 +2699,8 @@ class formFrontend {
                     return false;
                   }
                   foreach ($sub_data as $sub) {
-                    parse_str($sub[dbKITformData::field_values], $values);
+                    $parse = str_replace('&amp;', '&', $sub[dbKITformData::field_values]);
+                    parse_str($parse, $values);
                     if (isset($values[$fb_subscription][0]) && ($values[$fb_subscription][0] == self::SUBSCRIPE_YES)) {
                       $cont = array();
                       if (!$kitContactInterface->getContact($sub[dbKITformData::field_kit_id], $cont)) {
@@ -2778,7 +2794,8 @@ class formFrontend {
       elseif ($command[dbKITformCommands::FIELD_TYPE] == dbKITformCommands::TYPE_DELAYED_TRANSMISSION) {
         // DELAYED TRANSMISSION - load the form data and show the form
         // again
-        parse_str($command[dbKITformCommands::FIELD_PARAMS], $params);
+        $parse = str_replace('&amp;', '&', $command[dbKITformCommands::FIELD_PARAMS]);
+        parse_str($parse, $params);
         if (isset($params[dbKITformData::field_id])) {
           // read the transmitted data for this form
           $form_data = array();
@@ -2796,7 +2813,8 @@ class formFrontend {
           }
           $form_data = $form_data[0];
           $fields = array();
-          parse_str($form_data[dbKITformData::field_values], $fields);
+          $parse = str_replace('&amp;', '&', $form_data[dbKITformData::field_values]);
+          parse_str($parse, $fields);
           foreach ($fields as $key => $value) {
             // set $_REQUESTs for each free field
             $where = array(dbKITformFields::field_id => $key);
