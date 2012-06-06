@@ -404,6 +404,11 @@ class formFrontend {
       $html_allowed[] = $key;
     $_SESSION['KIT_HTML_REQUEST'] = $html_allowed;
     foreach ($_REQUEST as $key => $value) {
+      if (stripos($key, 'amp;') == 0) {
+        $key = substr($key, 4);
+        $_REQUEST[$key] = $value;
+        unset($_REQUEST['amp;'.$key]);
+      }
       if (!in_array($key, $html_allowed)) {
         $_REQUEST[$key] = $this->xssPrevent($value);
       }
