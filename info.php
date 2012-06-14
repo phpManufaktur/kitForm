@@ -34,7 +34,7 @@ else {
 $module_directory = 'kit_form';
 $module_name = 'kitForm';
 $module_function = 'tool';
-$module_version = '0.34';
+$module_version = '0.35';
 $module_status = 'Stable';
 $module_platform = '2.8';
 $module_author = 'Ralf Hertsch, Berlin (Germany)';
