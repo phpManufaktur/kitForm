@@ -149,3 +149,14 @@ input[name=kit_city] {
   float: left;
   width: 63%;
 }
+.textarea_info_warning,
+.textarea_info_default {
+  text-align: right;
+  font-size: 9px;
+  color: #000;
+  background-color: transparent;
+}
+.textarea_info_warning {
+  color: #da251d;
+  background-color: transparent;
+}

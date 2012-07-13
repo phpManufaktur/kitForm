@@ -9,9 +9,10 @@
  * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
  */
 
+global $database;
+
 if (file_exists(WB_PATH.'/modules/kit_uploader/info.php') && isset($form)) {
     // load the jQuery preset for uploadify if needed
-    global $database;
     $SQL = "SELECT form_id FROM ".TABLE_PREFIX."mod_kit_form WHERE form_name = '$form'";
     $fid = $database->get_one($SQL);
     $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='file'";
@@ -22,6 +23,27 @@ if (file_exists(WB_PATH.'/modules/kit_uploader/info.php') && isset($form)) {
                 // load jQuery preset for uploadify
                 include_once WB_PATH.'/modules/libraryadmin/include.php';
                 $new_page = includePreset($wb_page_data, 'lib_jquery', 'kit_uploadify', 'kit_uploader', NULL, false, NULL, NULL );
+                if (!empty($new_page)) {
+                    $wb_page_data = $new_page;
+                }
+                break;
+            }
+        }
+    }
+}
+
+if (isset($form)) {
+    // load the jQuery preset for count and limit characters if needed
+    $SQL = "SELECT form_id FROM ".TABLE_PREFIX."mod_kit_form WHERE form_name = '$form'";
+    $fid = $database->get_one($SQL);
+    $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='text_area'";
+    if (false !== ($query = $database->query($SQL))) {
+        while (false !== ($add = $query->fetchRow(MYSQL_ASSOC))) {
+            parse_str($add['field_type_add'], $settings);
+            if (isset($settings['count_chars']) && ($settings['count_chars'] == 1)) {
+                // load jQuery preset
+                include_once WB_PATH.'/modules/libraryadmin/include.php';
+                $new_page = includePreset($wb_page_data, 'lib_jquery', 'kit_textarea', 'kit_form', NULL, false, NULL, NULL );
                 if (!empty($new_page)) {
                     $wb_page_data = $new_page;
                 }

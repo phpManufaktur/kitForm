@@ -85,6 +85,8 @@ $LANG = array(
       => 'Die E-Mail an <b>{{ email }}</b> konnte nicht versendet werden!',
   'Change password'
     => 'Passwort ändern',
+  'Chars'
+    => 'Zeichen',
   'Checkbox'
       => 'Checkbox',
 
@@ -276,6 +278,8 @@ $LANG = array(
   'kitForm can\'t determine the URL of the calling page.'
       => 'kitForm konnte die URL der aufrufenden Seite nicht ermitteln!',
 
+  'label_count_chars'
+    => 'Zeichen zählen',
   'label_data_type_label'
       => 'Datentyp',
   'label_default_label'
@@ -322,6 +326,8 @@ $LANG = array(
       => '{{ name }} <i style="font-weight:normal;">(KIT)</i>',
   'label_kit_link'
       => '<i>KIT LINK</i>: {{ text }}',
+  'label_limit_chars'
+    => 'Zeichen begrenzen',
   'label_name_label'
       => 'Feld Bezeichner',
   'label_size_label'
@@ -580,6 +586,8 @@ $LANG = array(
       => '<p>Herzlich willkommen!<br />Ihre Benutzerdaten haben Sie per E-Mail erhalten.</p>',
   'With this dialog you can create and edit general forms and special forms for KeepInTouch (KIT).'
       => '<p>Mit diesem Dialog erstellen und bearbeiten Sie Formulare für KeepInTouch (KIT)</p>',
+  'Words'
+    => 'Worte',
 
 	'<p>Your password is not secure, please choose a new password!</p>'
 		 => '<p>Ihr Passwort ist nicht sicher, bitte legen Sie ein neues Passwort fest!</p>',

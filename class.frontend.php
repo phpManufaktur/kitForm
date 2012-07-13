@@ -940,6 +940,20 @@ class formFrontend {
                 'option' => $options);
             break;
           case dbKITformFields::type_text_area:
+            $parse = str_replace('&amp;', '&', $field[dbKITformFields::field_type_add]);
+            parse_str($parse, $additional);
+            $form_fields[$field[dbKITformFields::field_name]] = array(
+                'id' => $field[dbKITformFields::field_id],
+                'type' => $field[dbKITformFields::field_type],
+                'name' => $field[dbKITformFields::field_name],
+                'hint' => $field[dbKITformFields::field_hint],
+                'label' => $field[dbKITformFields::field_title],
+                'must' => (in_array($field_id, $must_array)) ? 1 : 0,
+                'value' => isset($_REQUEST[$field[dbKITformFields::field_name]]) ? $_REQUEST[$field[dbKITformFields::field_name]] : $field[dbKITformFields::field_value],
+                'count_chars' => isset($additional['count_chars']) ? $additional['count_chars'] : 0,
+                'limit_chars' => isset($additional['limit_chars']) ? $additional['limit_chars'] : -1
+                );
+            break;
           case dbKITformFields::type_text:
             $form_fields[$field[dbKITformFields::field_name]] = array(
                 'id' => $field[dbKITformFields::field_id],

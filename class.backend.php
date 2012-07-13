@@ -595,12 +595,30 @@ class formBackend {
               break;
             case dbKITformFields::type_text_area :
               // textarea pruefen
+              // first we have to check the additional settings for count and limit characters
+              $additional = array();
+              if (isset($_REQUEST["limit_chars_$field_name"])) {
+                if (intval($_REQUEST["limit_chars_$field_name"]) > 65534)
+                  $additional['limit_chars'] = 65534;
+                elseif (intval($_REQUEST["limit_chars_$field_name"]) < 1)
+                  $additional['limit_chars'] = -1;
+                else
+                  $additional['limit_chars'] = intval($_REQUEST["limit_chars_$field_name"]);
+              }
+              else {
+                $additional['limit_chars'] = -1;
+              }
+              if (($additional['limit_chars'] > -1) || isset($_REQUEST["count_chars_$field_name"]))
+                $additional['count_chars'] = 1;
+              else
+                $additional['count_chars'] = 0;
               $field_data = array(
                 dbKITformFields::field_name => (isset($_REQUEST['name_' . $field_name])) ? $_REQUEST['name_' . $field_name] : 'free_' . $field_id,
                 dbKITformFields::field_title => (isset($_REQUEST['title_' . $field_name])) ? $_REQUEST['title_' . $field_name] : 'title_' . $field_id,
                 dbKITformFields::field_value => (isset($_REQUEST['default_' . $field_name])) ? $_REQUEST['default_' . $field_name] : '',
                 dbKITformFields::field_data_type => dbKITformFields::data_type_text,
-                dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : ''
+                dbKITformFields::field_hint => (isset($_REQUEST['hint_' . $field_name])) ? $_REQUEST['hint_' . $field_name] : '',
+                dbKITformFields::field_type_add => http_build_query($additional)
               );
               $where = array(
                 dbKITformFields::field_id => $field_id
@@ -1488,6 +1506,10 @@ class formBackend {
             break;
           case dbKITformFields::type_text_area :
             // TEXTAREA
+            // zusaetzliche Felder auslesen
+            $additional = array();
+            $parse = str_replace('&amp;', '&', $data[dbKITformFields::field_type_add]);
+            parse_str($parse, $additional);
             $form_fields[$field_name] = array(
               'id' => $field_id,
               'label' => $this->lang->translate('label_free_label_marker', array(
@@ -1525,7 +1547,18 @@ class formBackend {
                 'name' => "type_$field_name",
                 'value' => $dbKITformFields->type_array[$data[dbKITformFields::field_type]],
                 'label' => $this->lang->translate('label_type_label')
-              )
+              ),
+              'count_chars' => array(
+                'name' => "count_chars_$field_name",
+                'value' => 1,
+                'checked' => (isset($additional['count_chars'])) ? $additional['count_chars'] : 0,
+                'label' => $this->lang->translate('label_count_chars')
+              ),
+              'limit_chars' => array(
+                  'name' => "limit_chars_$field_name",
+                  'value' => (isset($additional['limit_chars'])) ? $additional['limit_chars'] : -1,
+                  'label' => $this->lang->translate('label_limit_chars')
+                  )
             );
             break;
           case dbKITformFields::type_checkbox :
@@ -2130,6 +2163,8 @@ class formBackend {
     );
     return $this->getTemplate('backend.form.edit.htt', $data);
   } // dlgFormEdit()
+
+
   protected function checkMove() {
     global $dbKITformFields;
 

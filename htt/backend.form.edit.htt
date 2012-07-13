@@ -317,6 +317,14 @@
                   <td class="sub_value_free_field"><input type="text" name="{$field.default.name}" value="{$field.default.value}" /></td>
                 </tr>
                 <tr>
+                  <td class="sub_label_free_field">{$field.count_chars.label}</td>
+                  <td class="sub_value_free_field"><input type="checkbox" name="{$field.count_chars.name}" value="1"{if $field.count_chars.checked == 1} checked="checked"{/if} /></td>
+                </tr>
+                <tr>
+                  <td class="sub_label_free_field">{$field.limit_chars.label}</td>
+                  <td class="sub_value_free_field"><input type="text" name="{$field.limit_chars.name}" value="{$field.limit_chars.value}" /></td>
+                </tr>
+                <tr>
                   <td class="sub_label_free_field_hint">{$field.hint.label}</td>
                   <td class="sub_value_free_field"><textarea name="{$field.hint.name}">{$field.hint.value}</textarea></td>
                 </tr>

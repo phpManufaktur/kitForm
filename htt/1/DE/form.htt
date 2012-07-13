@@ -168,8 +168,23 @@
           <div class="kf_hint">{$field.hint}</div> 
           <div class="kf_clear"></div>
         {elseif $field.type == 'text_area'}
+          {if $field.count_chars == 1}
+          <script type="text/javascript">
+            var info;
+            $(document).ready(function(){
+              var options = {
+                'maxCharacterSize': {$field.limit_chars},
+                'originalStyle': 'textarea_info_default',
+                'warningStyle' : 'textarea_info_warning',
+                'warningNumber': 30,
+                'displayFormat' : '#input{if $field.limit_chars > 0}:#max{/if} {translate("Chars")} | #words {translate("Words")}'
+              };
+              $('#{$field.name}').textareaCount(options);
+            });
+          </script>
+          {/if}
           <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
-          <div class="kf_value"><textarea name="{$field.name}">{$field.value}</textarea></div>
+          <div class="kf_value"><textarea id="{$field.name}" name="{$field.name}">{$field.value}</textarea></div>
           <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
         {elseif $field.type == 'file'}

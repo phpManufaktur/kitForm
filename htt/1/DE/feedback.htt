@@ -77,8 +77,23 @@
           <td class="form_hint">{$fields.feedback_subject.hint}</td>
         </tr>
         <tr>
+          {if $fields.feedback_text.count_chars == 1}
+          <script type="text/javascript">
+            var info;
+            $(document).ready(function(){
+              var options = {
+                'maxCharacterSize': {$fields.feedback_text.limit_chars},
+                'originalStyle': 'textarea_info_default',
+                'warningStyle' : 'textarea_info_warning',
+                'warningNumber': 30,
+                'displayFormat' : '#input{if $fields.feedback_text.limit_chars > 0}:#max{/if} {translate("Chars")} | #words {translate("Words")}'
+              };
+              $('#{$fields.feedback_text.name}').textareaCount(options);
+            });
+          </script>
+          {/if}
           <td class="form_label">{$fields.feedback_text.label}{if $fields.feedback_text.must == 1}<span class="form_must_indicator">*</span>{/if}</td>
-          <td class="form_value"><textarea name="{$fields.feedback_text.name}">{$fields.feedback_text.value}</textarea></td>
+          <td class="form_value"><textarea id="{$fields.feedback_text.name}" name="{$fields.feedback_text.name}">{$fields.feedback_text.value}</textarea></td>
           <td class="form_hint">{$fields.feedback_text.hint}</td>
         </tr>
         <tr>
