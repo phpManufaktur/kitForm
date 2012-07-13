@@ -4,7 +4,7 @@
  * kitForm
  *
  * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
- * @link http://phpmanufaktur.de
+ * @link https://addons.phpmanufaktur.de/kitForm
  * @copyright 2011 - 2012
  * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
  */
