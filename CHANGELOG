@@ -4,6 +4,10 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
 (c) 2011-2012 - phpManufaktur by Ralf Hertsch
 
+Release 0.36
+
+* changed initializing of the Dwoo template engine
+* added a Dwoo plugin for formatting Markdown text
 
 Release 0.35 - 2012-06-14
 
