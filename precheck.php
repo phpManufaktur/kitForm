@@ -41,7 +41,10 @@ $PRECHECK['WB_ADDONS'] = array(
 	'droplets_extension' => array('VERSION' => '0.18', 'OPERATOR' => '>='),
 	// check only if KIT exists but not the actual release to avoid recursive dependencies!
 	'kit' => array('VERSION' => '0.10', 'OPERATOR' => '>='),
-	'kit_tools' => array('VERSION' => '0.16', 'OPERATOR' => '>=')
+	'kit_tools' => array('VERSION' => '0.16', 'OPERATOR' => '>='),
+  'wblib' => array('VERSION' => '0.65', 'OPERATOR' => '>='),
+  'libraryadmin' => array('VERSION' => '1.9', 'OPERATOR' => '>='),
+  'lib_jquery' => array('VERSION' => '1.25', 'OPERATOR' => '>='),
 );
 // SPECIAL: check dependencies at runtime but not at installation!
 $PRECHECK['KIT'] = array(
@@ -50,18 +53,23 @@ $PRECHECK['KIT'] = array(
 );
 
 global $database;
-$sql = "SELECT `value` FROM `".TABLE_PREFIX."settings` WHERE `name`='default_charset'";
-$result = $database->query($sql);
-if ($result) {
-	$data = $result->fetchRow(MYSQL_ASSOC);
-	$PRECHECK['CUSTOM_CHECKS'] = array(
-		'Default Charset' => array(
-			'REQUIRED' => 'utf-8',
-			'ACTUAL' => $data['value'],
-			'STATUS' => ($data['value'] === 'utf-8')
-		)
-	);
-}
 
+// check default charset
+$SQL = "SELECT `value` FROM `".TABLE_PREFIX."settings` WHERE `name`='default_charset'";
+$charset = $database->get_one($SQL, MYSQL_ASSOC);
 
-?>
+// jQueryAdmin should be uninstalled
+$jqa = (file_exists(WB_PATH . '/modules/jqueryadmin/tool.php')) ? 'INSTALLED' : 'REMOVED';
+
+$PRECHECK['CUSTOM_CHECKS'] = array(
+	'Default Charset' => array(
+		'REQUIRED' => 'utf-8',
+		'ACTUAL' => $charset,
+		'STATUS' => ($charset === 'utf-8')
+	),
+  'jQueryAdmin (replaced by LibraryAdmin)' => array(
+      'REQUIRED' => 'REMOVED',
+      'ACTUAL' => $jqa,
+      'STATUS' => ($jqa === 'REMOVED')
+  )
+);
