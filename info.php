@@ -34,13 +34,13 @@ else {
 $module_directory = 'kit_form';
 $module_name = 'kitForm';
 $module_function = 'tool';
-$module_version = '0.35';
+$module_version = '0.36';
 $module_status = 'Stable';
 $module_platform = '2.8';
 $module_author = 'Ralf Hertsch, Berlin (Germany)';
 $module_license = 'MIT License (MIT)';
 $module_description = 'Form and dialog generator for KeepInTouch (KIT)';
-$module_home = 'http://phpmanufaktur.de';
+$module_home = 'https://addons.phpmanufaktur.de/kitForm';
 $module_guid = 'F66B6CFC-FA47-4F67-81F2-D4159B65A9E1';
 
 ?>

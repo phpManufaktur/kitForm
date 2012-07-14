@@ -1,13 +1,16 @@
-### kitForm
-
-Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
-http://phpmanufaktur.de
-(c) 2011-2012 - phpManufaktur by Ralf Hertsch
-
-Release 0.36
+### kitForm CHANGELOG
+  
+Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>  
+http://phpmanufaktur.de  
+(c) 2011-2012 - phpManufaktur by Ralf Hertsch  
+  
+Release 0.36 - 2012-07-13
 
 * changed initializing of the Dwoo template engine
 * added a Dwoo plugin for formatting Markdown text
+* added jQuery plugin for character count and limit in textareas
+* removed redirecting to about dialog from upgrade.php
+* added a Dwoo plugin for I18n support
 
 Release 0.35 - 2012-06-14
 

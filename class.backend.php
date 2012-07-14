@@ -31,8 +31,12 @@ else {
 }
 // end include class.secure.php
 
-require_once (WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/initialize.php');
-require_once (WB_PATH . '/framework/functions.php');
+if (!defined('LEPTON_PATH'))
+  require_once WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/wb2lepton.php';
+
+require_once (LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/initialize.php');
+require_once (LEPTON_PATH . '/framework/functions.php');
+
 class formBackend {
   const request_action = 'act';
   const request_add_free_field = 'aff';
@@ -56,6 +60,7 @@ class formBackend {
   const action_up = 'up';
   const action_down = 'down';
   const action_move = 'mov';
+
   private $page_link = '';
   private $img_url = '';
   private $template_path = '';
@@ -63,11 +68,12 @@ class formBackend {
   private $message = '';
   protected $lang = null;
   protected $file_allowed_filetypes = 'jpg,gif,png,pdf,zip';
+
   public function __construct() {
     global $I18n;
     $this->page_link = ADMIN_URL . '/admintools/tool.php?tool=kit_form';
-    $this->template_path = WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/htt/';
-    $this->img_url = WB_URL . '/modules/' . basename(dirname(__FILE__)) . '/images/';
+    $this->template_path = LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/htt/';
+    $this->img_url = LEPTON_URL . '/modules/' . basename(dirname(__FILE__)) . '/images/';
     date_default_timezone_set(cfg_time_zone);
     $this->lang = $I18n;
   } // __construct()
@@ -83,7 +89,7 @@ class formBackend {
     global $database;
 
     // need the precheck.php
-    require_once (WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/precheck.php');
+    require_once (LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/precheck.php');
 
     if (isset($PRECHECK['KIT']['kit'])) {
       $table = TABLE_PREFIX . 'addons';
@@ -97,7 +103,7 @@ class formBackend {
         return false;
       }
     }
-    if (file_exists(WB_PATH . '/modules/kit_dirlist/info.php')) {
+    if (file_exists(LEPTON_PATH . '/modules/kit_dirlist/info.php')) {
       // check only if kitDirList is installed
       if (isset($PRECHECK['KIT']['kit_dirlist'])) {
         $table = TABLE_PREFIX . 'addons';
@@ -188,7 +194,7 @@ class formBackend {
    */
   public function getVersion() {
     // read info.php into array
-    $info_text = file(WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/info.php');
+    $info_text = file(LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/info.php');
     if ($info_text == false) {
       return -1;
     }
@@ -351,7 +357,7 @@ class formBackend {
       );
     }
     $data = array(
-      'WB_URL' => WB_URL,
+      'WB_URL' => LEPTON_URL,
       'navigation' => $navigation,
       'error' => ($this->isError()) ? 1 : 0,
       'content' => ($this->isError()) ? $this->getError() : $content
@@ -653,7 +659,7 @@ class formBackend {
                     $settings['upload_method']['value'] = 'standard';
                     break;
                   case 'uploadify' :
-                    if (!file_exists(WB_PATH . '/modules/kit_uploader/info.php')) {
+                    if (!file_exists(LEPTON_PATH . '/modules/kit_uploader/info.php')) {
                       // missing kitUploader
                       $message .= $this->lang->translate('<p>To use the upload method <b>uploadify</b> kitUploader must be installed!</p>');
                       $settings['upload_method']['value'] = 'standard';
@@ -2309,10 +2315,20 @@ class formBackend {
    * @return string dialog
    */
   protected function dlgAbout() {
+    $notes = file_get_contents(LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/CHANGELOG');
+    $use_markdown = 0;
+    if (file_exists(LEPTON_PATH.'/modules/lib_markdown/standard/markdown.php')) {
+      require_once LEPTON_PATH.'/modules/lib_markdown/standard/markdown.php';
+      $notes = Markdown($notes);
+      $use_markdown = 1;
+    }
     $data = array(
       'version' => sprintf('%01.2f', $this->getVersion()),
       'img_url' => $this->img_url . '/kit_form_logo_400_267.jpg',
-      'release_notes' => file_get_contents(WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/CHANGELOG')
+      'release' => array(
+          'use_markdown' => $use_markdown,
+          'notes' => $notes
+          )
     );
     return $this->getTemplate('backend.about.htt', $data);
   } // dlgAbout()
@@ -2547,7 +2563,7 @@ class formBackend {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Error writing the file <b>{{ file }}</b>.')));
       return false;
     }
-    $file_url = str_replace(WB_PATH, WB_URL, $file);
+    $file_url = str_replace(LEPTON_PATH, LEPTON_URL, $file);
     $this->setMessage($this->lang->translate('<p>The form was successfully exported as <b><a href="{{ url }}">{{ name }}</a></b>.</p>', array(
       'url' => $file_url,
       'name' => basename($file_url)

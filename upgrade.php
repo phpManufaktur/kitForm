@@ -147,10 +147,5 @@ if ($message != "") {
 
 
 // Prompt Errors
-if (!empty($error)) {
+if (!empty($error))
 	$admin->print_error($error);
-}
-else {
-    $admin->print_success('Thank you for using kitForm!', ADMIN_URL.'/admintools/tool.php?tool=kit_form&act=abt');
-}
-?>

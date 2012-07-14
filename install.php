@@ -97,8 +97,5 @@ if ($message != "") {
 }
 
 // Prompt Errors
-if (!empty($error)) {
+if (!empty($error))
 	$admin->print_error($error);
-}
-
-?>
