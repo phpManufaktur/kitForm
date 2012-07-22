@@ -31,65 +31,64 @@ else {
 }
 // end include class.secure.php
 
+if (!defined('LEPTON_PATH'))
+  require_once WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/wb2lepton.php';
 
 // for extended error reporting set to true!
 if (!defined('KIT_DEBUG')) define('KIT_DEBUG', true);
-require_once (WB_PATH . '/modules/kit_tools/debug.php');
+require_once (LEPTON_PATH . '/modules/kit_tools/debug.php');
 
 // use LEPTON 2.x I18n for access to language files
-if (!class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('LEPTON_Helper_I18n')) require_once LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
 
 global $I18n;
 if (!is_object($I18n)) {
     $I18n = new LEPTON_Helper_I18n();
 }
 else {
-    $I18n->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
+    $I18n->addFile('DE.php', LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
 }
 
-if (! file_exists(WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.php')) {
+if (! file_exists(LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.php')) {
     if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', 'DE'); // important: language flag is used by template selection
 } else {
     if (! defined('KIT_FORM_LANGUAGE')) define('KIT_FORM_LANGUAGE', LANGUAGE);
 }
 // load language depending onfiguration
-if (!file_exists(WB_PATH.'/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.cfg.php')) {
-    require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.cfg.php');
+if (!file_exists(LEPTON_PATH.'/modules/' . basename(dirname(__FILE__)) . '/languages/' . LANGUAGE . '.cfg.php')) {
+    require_once(LEPTON_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/DE.cfg.php');
 } else {
-    require_once(WB_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.cfg.php');
+    require_once(LEPTON_PATH .'/modules/'.basename(dirname(__FILE__)).'/languages/' .LANGUAGE .'.cfg.php');
 }
 
-if (! class_exists('kitContactInterface')) require_once (WB_PATH . '/modules/kit/class.interface.php');
-if (! class_exists('kitToolsLibrary')) require_once (WB_PATH . '/modules/kit_tools/class.tools.php');
+if (! class_exists('kitContactInterface')) require_once (LEPTON_PATH . '/modules/kit/class.interface.php');
+if (! class_exists('kitToolsLibrary')) require_once (LEPTON_PATH . '/modules/kit_tools/class.tools.php');
 
-require_once (WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/class.form.php');
+require_once (LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/class.form.php');
 
 if (!class_exists('Dwoo'))
-  require_once WB_PATH.'/modules/dwoo/include.php';
+  require_once LEPTON_PATH.'/modules/dwoo/include.php';
 
 // initialize the template engine
 global $parser;
 if (!is_object($parser)) {
-  $cache_path = WB_PATH.'/temp/cache';
+  $cache_path = LEPTON_PATH.'/temp/cache';
   if (!file_exists($cache_path)) mkdir($cache_path, 0755, true);
-  $compiled_path = WB_PATH.'/temp/compiled';
+  $compiled_path = LEPTON_PATH.'/temp/compiled';
   if (!file_exists($compiled_path)) mkdir($compiled_path, 0755, true);
   $parser = new Dwoo($compiled_path, $cache_path);
 }
-// load extensions for the template engine
-$loader = $parser->getLoader();
-$loader->addDirectory(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/htt/plugins/');
 
 global $kitLibrary;
 if (! is_object($kitLibrary)) $kitLibrary = new kitToolsLibrary();
 
 // if kitDirList is not installed use framework and create table if needed
 global $dbKITdirList;
-if (file_exists(WB_PATH.'/modules/kit_dirlist/class.link.php')) {
-    require_once WB_PATH.'/modules/kit_dirlist/class.link.php';
+if (file_exists(LEPTON_PATH.'/modules/kit_dirlist/class.link.php')) {
+    require_once LEPTON_PATH.'/modules/kit_dirlist/class.link.php';
 }
 else {
-    require_once WB_PATH.'/modules/kit_form/framework/KIT/kit_dirlist/class.link.php';
+    require_once LEPTON_PATH.'/modules/kit_form/framework/KIT/kit_dirlist/class.link.php';
 }
 if (!is_object($dbKITdirList)) {
     $dbKITdirList = new dbKITdirList();
