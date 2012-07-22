@@ -32,8 +32,9 @@ else {
 // end include class.secure.php
 
 require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/initialize.php');
+
 if (!class_exists('dbconnectle'))
-  require_once(WB_PATH.'/modules/dbconnect_le/include.php');
+  require_once(LEPTON_PATH.'/modules/dbconnect_le/include.php');
 
 global $dbKITform;
 global $dbKITformFields;
@@ -87,9 +88,20 @@ class dbKITform extends dbConnectLE {
 
   private $createTables = false;
 
+  protected static $config_file = 'config.json';
+  protected static $table_prefix = TABLE_PREFIX;
+
   public function __construct($createTables = false) {
+    // create table?
     $this->createTables = $createTables;
+    // use another table prefix?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
     parent::__construct();
+    $this->setTablePrefix(self::$table_prefix);
     $this->setTableName('mod_kit_form');
     $this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true);
     $this->addFieldDefinition(self::field_name, "VARCHAR(80) NOT NULL DEFAULT ''");
@@ -141,7 +153,7 @@ class dbKITform extends dbConnectLE {
   } // __construct()
 
   public function installStandardForms(&$message) {
-    $dir_name = WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/forms/';
+    $dir_name = LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/forms/';
     $folder = opendir($dir_name);
     $names = array();
     while (false !== ($file = readdir($folder))) {
@@ -336,9 +348,19 @@ class dbKITformFields extends dbConnectLE {
 
   private $createTables = false;
 
+  protected static $config_file = 'config.json';
+  protected static $table_prefix = TABLE_PREFIX;
+
   public function __construct($createTables = false) {
     $this->createTables = $createTables;
+    // use another table prefix?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
     parent::__construct();
+    $this->setTablePrefix(self::$table_prefix);
     $this->setTableName('mod_kit_form_fields');
     $this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true); // WICHTIG: Zaehler 1-200 sind fuer KIT reserviert!!!
     $this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
@@ -400,9 +422,19 @@ class dbKITformTableSort extends dbConnectLE {
 
   private $create_tables = false;
 
+  protected static $config_file = 'config.json';
+  protected static $table_prefix = TABLE_PREFIX;
+
   public function __construct($create_tables = false) {
     $this->create_tables = $create_tables;
+    // use another table prefix?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
     parent::__construct();
+    $this->setTablePrefix(self::$table_prefix);
     $this->setTableName('mod_kit_form_table_sort');
     $this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true);
     $this->addFieldDefinition(self::field_table, "VARCHAR(64) NOT NULL DEFAULT ''");
@@ -441,9 +473,19 @@ class dbKITformData extends dbConnectLE {
 
   public $create_tables = false;
 
+  protected static $config_file = 'config.json';
+  protected static $table_prefix = TABLE_PREFIX;
+
   public function __construct($create_tables = false) {
     $this->create_tables = $create_tables;
+  // use another table prefix?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
     parent::__construct();
+    $this->setTablePrefix(self::$table_prefix);
     $this->setTableName('mod_kit_form_data');
     $this->addFieldDefinition(self::field_id, "INT(11) NOT NULL AUTO_INCREMENT", true);
     $this->addFieldDefinition(self::field_form_id, "INT(11) NOT NULL DEFAULT '-1'");
@@ -489,9 +531,19 @@ class dbKITformCommands extends dbConnectLE {
 
   private $createTable = false;
 
+  protected static $config_file = 'config.json';
+  protected static $table_prefix = TABLE_PREFIX;
+
   public function __construct($create_table = false) {
     $this->setCreateTable($create_table);
+    // use another table prefix?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
     parent::__construct();
+    $this->setTablePrefix(self::$table_prefix);
     $this->setTableName('mod_kit_form_command');
     $this->addFieldDefinition(self::FIELD_ID, "INT(11) NOT NULL AUTO_INCREMENT", true);
     $this->addFieldDefinition(self::FIELD_COMMAND, "VARCHAR(80) NOT NULL DEFAULT ''");
