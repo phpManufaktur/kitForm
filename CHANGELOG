@@ -4,6 +4,13 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de  
 (c) 2011-2012 - phpManufaktur by Ralf Hertsch  
   
+Release 0.37 - 2012-07-22
+
+* added ability to change the table prefix easy via config.json, please read
+  <http://yals.de/OQRv0Y> for more informations
+* moved template plugin use_markdown() to Dwoo
+* moved template plugin translate() to Dwoo  
+  
 Release 0.36 - 2012-07-13
 
 * changed initializing of the Dwoo template engine
