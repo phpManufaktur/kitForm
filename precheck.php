@@ -57,7 +57,7 @@ $check = array(
         ),
     'Dwoo' => array(
         'directory' => 'dwoo',
-        'version' => '0.13',
+        'version' => '0.14',
         'problem' => 'Dwoo => <b><a href="https://addons.phpmanufaktur.de/download.php?file=Dwoo" target="_blank">Download actual version</a></b>'
         ),
     'dropletsExtension' => array(
