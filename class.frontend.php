@@ -1676,10 +1676,8 @@ class formFrontend {
           $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
           return false;
         }
-        if (count($field) < 1) {
-          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformFields->getError()));
-          return false;
-        }
+        // if no valid record still continue to the next
+        if (count($field) < 1) continue;
         $field = $field[0];
         switch ($field[dbKITformFields::field_data_type]) :
           case dbKITformFields::data_type_date:
@@ -1695,7 +1693,8 @@ class formFrontend {
             $values[$fid] = (isset($_REQUEST[$field[dbKITformFields::field_name]])) ? $_REQUEST[$field[dbKITformFields::field_name]] : '';
             break;
         endswitch;
-      }
+      } // foreach
+
       $form_data = array(
           dbKITformData::field_form_id => $form_id,
           dbKITformData::field_kit_id => $contact_id,

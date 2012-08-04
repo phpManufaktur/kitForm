@@ -37,7 +37,7 @@
         {else}{$feedback.nickname}{/if}
       </div>
       <div class="feedback_subject">{$feedback.subject}</div>
-      <div class="feedback_text">{$feedback.text}</div>
+      <div class="feedback_text">{use_markdown($feedback.text)}</div>
       <div class="feedback_date">{$feedback.date.formatted}</div>
     </div>
     {/foreach}

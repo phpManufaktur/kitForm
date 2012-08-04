@@ -49,6 +49,7 @@ class formBackend {
   const request_export = 'exp';
   const request_move = 'mov';
   const request_position = 'pos';
+
   const action_about = 'abt';
   const action_default = 'def';
   const action_edit = 'edt';
@@ -211,32 +212,34 @@ class formBackend {
   } // getVersion()
 
   /**
-   * Load the desired template, execute the template engine and returns the
-   * resulting template
+   * Return the needed template
    *
    * @param $template string
-   *          - the file name of the template
    * @param $template_data array
-   *          - the data for the template
    */
-  protected function getTemplate($template, $template_data) {
+  protected function getTemplate($template, $template_data, $trigger_error=false) {
     global $parser;
-    $result = '';
+
+    $template_path = LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/htt/';
+
+    // check if a custom template exists ...
+    $load_template = (file_exists($template_path.'custom.'.$template)) ? $template_path.'custom.'.$template : $template_path.$template;
     try {
-      $result = $parser->get($this->template_path . $template, $template_data);
+      $result = $parser->get($load_template, $template_data);
     } catch (Exception $e) {
-      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('<p>Error executing template <b>{{ template }}</b>:</p><p>{{ error }}</p>', array(
-        'template' => $template,
-        'error' => $e->getMessage()
-      ))));
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate(
+          'Error executing the template <b>{{ template }}</b>: {{ error }}', array(
+              'template' => basename($load_template),
+              'error' => $e->getMessage()))));
+      if ($trigger_error)
+        trigger_error($this->getError(), E_USER_ERROR);
       return false;
     }
     return $result;
   } // getTemplate()
 
   /**
-   * Converts a byte string from PHP.INI (i.e.
-   * 15M) into a integer byte value
+   * Converts a byte string from PHP.INI (i.e. 15M) into a integer byte value
    *
    * @param $value string
    * @return integer - byte value

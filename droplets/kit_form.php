@@ -18,7 +18,8 @@ if (file_exists(WB_PATH.'/modules/kit_uploader/info.php') && isset($form)) {
     $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='file'";
     if (false !== ($query = $database->query($SQL))) {
         while (false !== ($add = $query->fetchRow(MYSQL_ASSOC))) {
-            parse_str($add['field_type_add'], $settings);
+            $parse = str_replace('&amp;','&', $add['field_type_add']);
+            parse_str($parse, $settings);
             if (isset($settings['upload_method']['value']) && ($settings['upload_method']['value'] == 'uploadify')) {
                 // load jQuery preset for uploadify
                 include_once WB_PATH.'/modules/libraryadmin/include.php';
@@ -39,7 +40,8 @@ if (isset($form)) {
     $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='text_area'";
     if (false !== ($query = $database->query($SQL))) {
         while (false !== ($add = $query->fetchRow(MYSQL_ASSOC))) {
-            parse_str($add['field_type_add'], $settings);
+            $parse = str_replace('&amp;','&', $add['field_type_add']);
+            parse_str($parse, $settings);
             if (isset($settings['count_chars']) && ($settings['count_chars'] == 1)) {
                 // load jQuery preset
                 include_once WB_PATH.'/modules/libraryadmin/include.php';

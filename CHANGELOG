@@ -4,6 +4,13 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de  
 (c) 2011-2012 - phpManufaktur by Ralf Hertsch  
   
+Release 0.38 - 2012-08-04
+
+* the prefix "custom." enables custom templates for class.backend.php 
+* fixed: to strong field validation in class.frontend.php, please read
+  <http://yals.de/QoSbQ5> for more informations 
+* fixed a problem reading markdown formatted texts in feedback.htt
+  
 Release 0.37 - 2012-07-22
 
 * added ability to change the table prefix easy via config.json, please read
