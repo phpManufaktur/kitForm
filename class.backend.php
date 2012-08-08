@@ -2346,6 +2346,8 @@ class formBackend {
     global $dbKITformData;
     global $kitContactInterface;
 
+    $message = '';
+
     $SQL = sprintf("SELECT * FROM %s WHERE %s='%s' ORDER BY %s DESC LIMIT 100", $dbKITformData->getTableName(), dbKITformData::field_status, dbKITformData::status_active, dbKITformData::field_date);
     $items = array();
     if (!$dbKITformData->sqlExec($SQL, $items)) {
@@ -2356,8 +2358,10 @@ class formBackend {
     foreach ($items as $item) {
       $contact = array();
       if (!$kitContactInterface->getContact($item[dbKITformData::field_kit_id], $contact)) {
-        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
-        return false;
+        // on invalid ID still continue ...
+        $message .= $this->lang->translate('<p>The KIT ID {{ kit_id }} in the form data record id {{ record_id }} is invalid, skipped this entry!</p>',
+            array('kit_id' => $item[dbKITformData::field_kit_id], 'record_id' => $item[dbKITformData::field_id]));
+        continue;
       }
       $contact['link'] = sprintf('%s&%s=%s', ADMIN_URL . '/admintools/tool.php?tool=kit&act=con', dbKITcontact::field_id, $item[dbKITformData::field_kit_id]);
       $where = array(
@@ -2384,9 +2388,12 @@ class formBackend {
       );
     } // foreach
 
+    // set messages
+    $this->setMessage($message);
+
     $data = array(
       'head' => $this->lang->translate('Protocol List'),
-      'intro' => $this->lang->translate('Protocol of the submitted forms.<br />Click at the <b>ID</b> or the submission date to get details of the submitted form.<br />Click at contact to switch to KeepInTouch (KIT) and get details of the contact.'),
+      'intro' => $this->isMessage() ? $this->getMessage() : $this->lang->translate('Protocol of the submitted forms.<br />Click at the <b>ID</b> or the submission date to get details of the submitted form.<br />Click at contact to switch to KeepInTouch (KIT) and get details of the contact.'),
       'header' => array(
         'id' => $this->lang->translate('th_id'),
         'form_name' => $this->lang->translate('th_form_name'),
