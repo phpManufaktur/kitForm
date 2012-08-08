@@ -2357,7 +2357,7 @@ class formBackend {
     $list = array();
     foreach ($items as $item) {
       $contact = array();
-      if (!$kitContactInterface->getContact($item[dbKITformData::field_kit_id], $contact)) {
+      if (!$kitContactInterface->getContact($item[dbKITformData::field_kit_id], $contact, true)) {
         // on invalid ID still continue ...
         $message .= $this->lang->translate('<p>The KIT ID {{ kit_id }} in the form data record id {{ record_id }} is invalid, skipped this entry!</p>',
             array('kit_id' => $item[dbKITformData::field_kit_id], 'record_id' => $item[dbKITformData::field_id]));
@@ -2436,7 +2436,7 @@ class formBackend {
     $protocol['datetime'] = date(cfg_datetime_str, strtotime($protocol[dbKITformData::field_date]));
 
     $contact = array();
-    if (!$kitContactInterface->getContact($protocol[dbKITformData::field_kit_id], $contact)) {
+    if (!$kitContactInterface->getContact($protocol[dbKITformData::field_kit_id], $contact, true)) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
       return false;
     }
