@@ -44,7 +44,7 @@ $PRECHECK['PHP_VERSION'] = array(
 
 // check dependencies for KIT at runtime but not at installation!
 $PRECHECK['KIT'] = array(
-    'kit' => array('VERSION' => '0.55', 'OPERATOR' => '>='),
+    'kit' => array('VERSION' => '0.61', 'OPERATOR' => '>='),
     'kit_dirlist' => array('VERSION' => '0.28', 'OPERATOR' => '>=')
 );
 
