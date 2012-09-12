@@ -401,11 +401,13 @@ class formFrontend {
       $html_allowed[] = $key;
     $_SESSION['KIT_HTML_REQUEST'] = $html_allowed;
     foreach ($_REQUEST as $key => $value) {
+
       if (stripos($key, 'amp;') == 0) {
         $key = substr($key, 4);
         $_REQUEST[$key] = $value;
         unset($_REQUEST['amp;'.$key]);
       }
+
       if (!in_array($key, $html_allowed)) {
         $_REQUEST[$key] = $this->xssPrevent($value);
       }
@@ -446,7 +448,7 @@ class formFrontend {
    *
    * @return string form or boolean false on error
    */
-  protected function showForm() {
+  protected function showForm($clear_fields=false) {
     global $dbKITform;
     global $dbKITformFields;
     global $kitContactInterface;
@@ -973,7 +975,7 @@ class formFrontend {
       }
     }
     if ($is_feedback_form) {
-      return $this->showFeedbackForm($form_id, $form_data, $form_fields);
+      return $this->showFeedbackForm($form_id, $form_data, $form_fields, $clear_fields);
     }
     else {
       $data = array(
@@ -2098,7 +2100,7 @@ class formFrontend {
    *       	 - field data, ready for parser
    * @return string feedback form on success or boolean false on error
    */
-  protected function showFeedbackForm($form_id, $form_data, $form_fields) {
+  protected function showFeedbackForm($form_id, $form_data, $form_fields, $clear_fields) {
     global $dbKITform;
     global $dbKITformData;
     global $dbKITformFields;
@@ -2143,6 +2145,16 @@ class formFrontend {
           $fb_url = $ff[dbKITformFields::field_id];
           break;
       endswitch;
+    }
+
+    if ($clear_fields) {
+      // the feedback was just submitted - clear the fields of the form!
+      $rewrite = array();
+      foreach ($form_fields as $key => $ff) {
+        $ff['value'] = '';
+        $rewrite[$key] = $ff;
+      }
+      $form_fields = $rewrite;
     }
 
     $url = '';
@@ -2443,17 +2455,10 @@ class formFrontend {
       }
 
     }
-
-    // unset all $_REQUESTs for data fields to show an empty form
-    foreach ($form_fields as $ffield)
-      unset($_REQUEST[$ffield[dbKITformFields::field_name]]);
-    // unset all contact fields
-    foreach ($contact_data as $key => $value)
-      unset($_REQUEST[$key]);
     // set messages for the feedback author
     $this->setMessage($message);
-    // show the feedback form again
-    return $this->showForm();
+    // show the feedback form again, set the switch to clear the form fields
+    return $this->showForm(true);
   } // checkFeedback()
 
   /**
@@ -2894,8 +2899,11 @@ class formFrontend {
         return false;
       }
     }
+    return $this->showForm();
+    /*
     $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('This command does not exists or was already executed!')));
     return false;
+    */
   } // checkCommand()
 
   protected function changePassword($form_data = array()) {
