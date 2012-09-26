@@ -312,12 +312,10 @@ class formFrontend {
         // template does not exists - fallback to the default preset!
         $template_path = $this->template_path.$this->params[self::PARAM_FALLBACK_PRESET].'/'.$this->params[self::PARAM_LANGUAGE].'/'.$template;
         if (!file_exists($template_path)) {
-          // template does not exists - fallback to the default preset
-          // and the default language
+          // template does not exists - fallback to the default preset and the default language
           $template_path = $this->template_path.$this->params[self::PARAM_FALLBACK_PRESET].'/'.$this->params[self::PARAM_FALLBACK_LANGUAGE].'/'.$template;
           if (!file_exists($template_path)) {
-            // template does not exists in any possible path - give
-            // up!
+            // template does not exists in any possible path - give up!
             $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Error: The template {{ template }} does not exists in any of the possible paths!', array(
                 'template',
                 $template))));
