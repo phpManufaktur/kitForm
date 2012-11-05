@@ -11,11 +11,19 @@
 
 global $database;
 
+$table_prefix = TABLE_PREFIX;
+// use another table prefix?
+if (file_exists(WB_PATH.'/modules/kit_form/config.json')) {
+  $config = json_decode(file_get_contents(WB_PATH.'/modules/kit_form/config.json'), true);
+  if (isset($config['table_prefix']))
+    $table_prefix = $config['table_prefix'];
+}
+
 if (file_exists(WB_PATH.'/modules/kit_uploader/info.php') && isset($form)) {
     // load the jQuery preset for uploadify if needed
-    $SQL = "SELECT form_id FROM ".TABLE_PREFIX."mod_kit_form WHERE form_name = '$form'";
+    $SQL = "SELECT form_id FROM ".$table_prefix."mod_kit_form WHERE form_name = '$form'";
     $fid = $database->get_one($SQL);
-    $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='file'";
+    $SQL = "SELECT field_type_add FROM ".$table_prefix."mod_kit_form_fields WHERE form_id='$fid' AND field_type='file'";
     if (false !== ($query = $database->query($SQL))) {
         while (false !== ($add = $query->fetchRow(MYSQL_ASSOC))) {
             $parse = str_replace('&amp;','&', $add['field_type_add']);
@@ -35,9 +43,9 @@ if (file_exists(WB_PATH.'/modules/kit_uploader/info.php') && isset($form)) {
 
 if (isset($form)) {
     // load the jQuery preset for count and limit characters if needed
-    $SQL = "SELECT form_id FROM ".TABLE_PREFIX."mod_kit_form WHERE form_name = '$form'";
+    $SQL = "SELECT form_id FROM ".$table_prefix."mod_kit_form WHERE form_name = '$form'";
     $fid = $database->get_one($SQL);
-    $SQL = "SELECT field_type_add FROM ".TABLE_PREFIX."mod_kit_form_fields WHERE form_id='$fid' AND field_type='text_area'";
+    $SQL = "SELECT field_type_add FROM ".$table_prefix."mod_kit_form_fields WHERE form_id='$fid' AND field_type='text_area'";
     if (false !== ($query = $database->query($SQL))) {
         while (false !== ($add = $query->fetchRow(MYSQL_ASSOC))) {
             $parse = str_replace('&amp;','&', $add['field_type_add']);
@@ -55,27 +63,40 @@ if (isset($form)) {
     }
 }
 
+// check for parameter $delay - set 20 as default
+$delay = (isset($delay)) ? (int) $delay : 20;
+
+if (isset($form) && ($delay > 0)) {
+    // load the jqTimer
+    include_once WB_PATH.'/modules/libraryadmin/include.php';
+    $new_page = includePreset($wb_page_data, 'lib_jquery', 'jqtimer', 'kit_form', NULL, false, NULL, NULL );
+    if (!empty($new_page)) {
+      $wb_page_data = $new_page;
+    }
+}
+
 if (file_exists(WB_PATH.'/modules/kit_form/class.frontend.php')) {
-	require_once(WB_PATH.'/modules/kit_form/class.frontend.php');
-	$formular = new formFrontend();
-	$params = $formular->getParams();
-	$params[formFrontend::PARAM_FORM] = (isset($form)) ? strtolower(trim($form)) : '';
-	$params[formFrontend::PARAM_PRESET] = (isset($preset)) ? (int) $preset : 1;
-	$params[formFrontend::PARAM_CSS] = (isset($css) && (strtolower($css) == 'false')) ? false : true;
-	if (isset($auto_login_wb)) {
-	    // for downwards compatibility only
-	    $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (strtolower($auto_login_wb) == 'true') ? true : false;
-	}
-	else {
-	    $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (isset($auto_login_lepton) && (strtolower($auto_login_lepton) == 'true')) ? true : false;
-	}
-	$params[formFrontend::PARAM_LANGUAGE] = (isset($language)) ? strtoupper($language) : LANGUAGE;
-	$params[formFrontend::PARAM_FALLBACK_LANGUAGE] = (isset($fallback_language)) ? strtoupper($fallback_language) : 'DE';
-	$params[formFrontend::PARAM_FALLBACK_PRESET] = (isset($fallback_preset)) ? (int) $fallback_preset : 1;
-	$params[formFrontend::PARAM_DEBUG] = (isset($debug) && (strtolower($debug) == 'true')) ? true : false;
-	if (!$formular->setParams($params)) return $formular->getError();
-	return $formular->action();
+  require_once(WB_PATH.'/modules/kit_form/class.frontend.php');
+  $formular = new formFrontend();
+  $params = $formular->getParams();
+  $params[formFrontend::PARAM_FORM] = (isset($form)) ? strtolower(trim($form)) : '';
+  $params[formFrontend::PARAM_PRESET] = (isset($preset)) ? (int) $preset : 1;
+  $params[formFrontend::PARAM_CSS] = (isset($css) && (strtolower($css) == 'false')) ? false : true;
+  if (isset($auto_login_wb)) {
+      // for downwards compatibility only
+      $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (strtolower($auto_login_wb) == 'true') ? true : false;
+  }
+  else {
+      $params[formFrontend::PARAM_AUTO_LOGIN_LEPTON] = (isset($auto_login_lepton) && (strtolower($auto_login_lepton) == 'true')) ? true : false;
+  }
+  $params[formFrontend::PARAM_LANGUAGE] = (isset($language)) ? strtoupper($language) : LANGUAGE;
+  $params[formFrontend::PARAM_FALLBACK_LANGUAGE] = (isset($fallback_language)) ? strtoupper($fallback_language) : 'DE';
+  $params[formFrontend::PARAM_FALLBACK_PRESET] = (isset($fallback_preset)) ? (int) $fallback_preset : 1;
+  $params[formFrontend::PARAM_DEBUG] = (isset($debug) && (strtolower($debug) == 'true')) ? true : false;
+  $params[formFrontend::PARAM_DELAY_SECONDS] = $delay;
+  if (!$formular->setParams($params)) return $formular->getError();
+  return $formular->action();
 }
 else {
-	return "kitForm is not installed!";
+  return "kitForm is not installed!";
 }

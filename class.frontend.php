@@ -74,16 +74,6 @@ class formFrontend {
   private $message = '';
   private $contact = array();
 
-  const PARAM_PRESET = 'kf_preset';
-  const PARAM_FORM = 'form';
-  const PARAM_RETURN = 'return';
-  const PARAM_CSS = 'css';
-  const PARAM_AUTO_LOGIN_LEPTON = 'auto_login_lepton';
-  const PARAM_FALLBACK_PRESET = 'fallback_preset';
-  const PARAM_FALLBACK_LANGUAGE = 'fallback_language';
-  const PARAM_LANGUAGE = 'language';
-  const PARAM_DEBUG = 'debug';
-
   const FIELD_FEEDBACK_TEXT = 'feedback_text';
   const FIELD_FEEDBACK_URL = 'feedback_url';
   const FIELD_FEEDBACK_PUBLISH = 'feedback_publish';
@@ -101,16 +91,29 @@ class formFrontend {
 
   const FORM_ANCHOR = 'kf';
 
+  const PARAM_AUTO_LOGIN_LEPTON = 'auto_login_lepton';
+  const PARAM_CSS = 'css';
+  const PARAM_DEBUG = 'debug';
+  const PARAM_DELAY_SECONDS = 'delay';
+  const PARAM_FALLBACK_LANGUAGE = 'fallback_language';
+  const PARAM_FALLBACK_PRESET = 'fallback_preset';
+  const PARAM_FORM = 'form';
+  const PARAM_LANGUAGE = 'language';
+  const PARAM_PRESET = 'kf_preset';
+  const PARAM_RETURN = 'return';
+
   private $params = array(
-      self::PARAM_PRESET => 1,
-      self::PARAM_FORM => '',
-      self::PARAM_RETURN => false,
-      self::PARAM_CSS => true,
       self::PARAM_AUTO_LOGIN_LEPTON => false,
-      self::PARAM_LANGUAGE => KIT_FORM_LANGUAGE,
+      self::PARAM_CSS => true,
+      self::PARAM_DEBUG => false,
+      self::PARAM_DELAY_SECONDS => 20,
       self::PARAM_FALLBACK_LANGUAGE => 'DE',
       self::PARAM_FALLBACK_PRESET => 1,
-      self::PARAM_DEBUG => false);
+      self::PARAM_FORM => '',
+      self::PARAM_LANGUAGE => KIT_FORM_LANGUAGE,
+      self::PARAM_PRESET => 1,
+      self::PARAM_RETURN => false,
+      );
 
   protected $lang;
 
@@ -154,37 +157,37 @@ class formFrontend {
    * @return boolean true on success
    */
   public function checkDependency() {
-  	// check dependency for KIT
-  	global $PRECHECK;
-  	global $database;
+    // check dependency for KIT
+    global $PRECHECK;
+    global $database;
 
-  	// need the precheck.php
-  	require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/precheck.php');
+    // need the precheck.php
+    require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/precheck.php');
 
-		if (isset($PRECHECK['KIT']['kit'])) {
-			$table = TABLE_PREFIX.'addons';
-			$version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit'", MYSQL_ASSOC);
-			if (!version_compare($version, $PRECHECK['KIT']['kit']['VERSION'], $PRECHECK['KIT']['kit']['OPERATOR'])) {
-				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
-						$this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
-								array('addon' => 'KeepInTouch', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit']['VERSION']))));
-				return false;
-			}
-		}
-		if (file_exists(WB_PATH.'/modules/kit_dirlist/info.php')) {
-			// check only if kitDirList is installed
-  		if (isset($PRECHECK['KIT']['kit_dirlist'])) {
-  			$table = TABLE_PREFIX.'addons';
-  			$version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit_dirlist'", MYSQL_ASSOC);
-  			if (!version_compare($version, $PRECHECK['KIT']['kit_dirlist']['VERSION'], $PRECHECK['KIT']['kit_dirlist']['OPERATOR'])) {
-  				$this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
-						$this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
-								array('addon' => 'kitDirList', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit_dirlist']['VERSION']))));
-  				return false;
-  			}
-  		}
-  	} // if file_exists()
-  	return true;
+    if (isset($PRECHECK['KIT']['kit'])) {
+      $table = TABLE_PREFIX.'addons';
+      $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit'", MYSQL_ASSOC);
+      if (!version_compare($version, $PRECHECK['KIT']['kit']['VERSION'], $PRECHECK['KIT']['kit']['OPERATOR'])) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+            $this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
+                array('addon' => 'KeepInTouch', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit']['VERSION']))));
+        return false;
+      }
+    }
+    if (file_exists(WB_PATH.'/modules/kit_dirlist/info.php')) {
+      // check only if kitDirList is installed
+      if (isset($PRECHECK['KIT']['kit_dirlist'])) {
+        $table = TABLE_PREFIX.'addons';
+        $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit_dirlist'", MYSQL_ASSOC);
+        if (!version_compare($version, $PRECHECK['KIT']['kit_dirlist']['VERSION'], $PRECHECK['KIT']['kit_dirlist']['OPERATOR'])) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
+            $this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.',
+                array('addon' => 'kitDirList', 'release' => $version, 'needed' => $PRECHECK['KIT']['kit_dirlist']['VERSION']))));
+          return false;
+        }
+      }
+    } // if file_exists()
+    return true;
   } // checkDependency()
 
   /**
@@ -530,6 +533,7 @@ class formFrontend {
         return $this->getTemplate('prompt.htt', $data);
       }
     }
+
     // CAPTCHA
     ob_start();
     call_captcha();
@@ -562,7 +566,19 @@ class formFrontend {
         'kit_action' => array(
             'name' => dbKITform::field_action,
             'value' => $fdata[dbKITform::field_action]),
-        'links' => $links);
+        'links' => $links,
+        'wait' => array(
+            'seconds' => array(
+                'name' => 'wait_seconds',
+                // we need milliseconds!
+                'value' => $this->params[self::PARAM_DELAY_SECONDS]*100
+            ),
+            'start' => array(
+                'name' => 'wait_start',
+                'value' => time()
+            )
+        )
+    );
 
     // Felder auslesen und Array aufbauen
     $fields_array = explode(',', $fdata[dbKITform::field_fields]);
@@ -1048,6 +1064,17 @@ class formFrontend {
       unset($_SESSION['kf_captcha']);
       if (!isset($_REQUEST['captcha']) || ($_REQUEST['captcha'] != $_SESSION['captcha'])) {
         $message .= $this->lang->translate('<p>The CAPTCHA code is not correct, please try again!</p>');
+        $checked = false;
+      }
+    }
+
+    // check wait for seconds
+    if (isset($_REQUEST['wait_seconds']) && ((int) $_REQUEST['wait_seconds'] > 0) && isset($_REQUEST['wait_start'])) {
+      $start = (int) $_REQUEST['wait_start'];
+      $seconds = (int) ($_REQUEST['wait_seconds']/100);
+      $stop = mktime(date('H', $start), date('i', $start), date('s', $start)+$seconds, date('m', $start), date('d', $start), date('Y', $start));
+      if ($stop > time()) {
+        $message .= $this->lang->translate('<p>You have submitted the form to early, please wait for the specified seconds (SPAM protection).</p>');
         $checked = false;
       }
     }
@@ -1759,13 +1786,11 @@ class formFrontend {
         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $kitContactInterface->getError()));
         return false;
       }
-
       if ($this->params[self::PARAM_RETURN] == true) {
         // direkt zum aufrufenden Programm zurueckkehren
         $result = array('contact' => $contact, 'result' => true);
         return $result;
       }
-
       // Feedback Form? Leave here...
       if ($is_feedback_form)
         return $this->checkFeedbackForm($form_data, $contact, $data_id);
@@ -1826,7 +1851,6 @@ class formFrontend {
           'contact' => $contact,
           'items' => $items,
           'files' => $uploaded_files);
-
       $client_mail = $this->getTemplate('mail.client.htt', $data);
       if ($form[dbKITform::field_email_html] == dbKITform::html_off)
         $client_mail = strip_tags($client_mail);
@@ -2474,6 +2498,7 @@ class formFrontend {
       return false;
     }
 
+
     // CAPTCHA
     ob_start();
     call_captcha();
@@ -2499,7 +2524,9 @@ class formFrontend {
             'btn' => array(
                 'ok' => $this->lang->translate('OK'),
                 'abort' => $this->lang->translate('Abort')),
-            'captcha' => array('code' => $call_captcha)));
+            'captcha' => array('code' => $call_captcha)
+            )
+        );
     return $this->getTemplate('feedback.unsubscribe.htt', $data);
   } // showFeedbackUnsubscribe()
 

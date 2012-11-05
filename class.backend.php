@@ -2092,11 +2092,12 @@ class formBackend {
     }
     asort($field_array);
     foreach ($field_array as $field => $text) {
-      if (in_array($kitContactInterface->index_array[$field], $fields)) continue;
-      $form['kit_field']['value'][] = array(
-        'value' => $field,
-        'text' => $text
-      );
+        if (isset($kitContactInterface->index_array[$field]) &&
+            in_array($kitContactInterface->index_array[$field], $fields)) continue;
+        $form['kit_field']['value'][] = array(
+            'value' => $field,
+            'text' => $text
+        );
     }
 
     // Allgemeine Felder hinzufuegen

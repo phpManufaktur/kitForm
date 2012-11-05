@@ -1,28 +1,34 @@
 ### kitForm CHANGELOG
-  
-Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>  
-http://phpmanufaktur.de  
-(c) 2011-2012 - phpManufaktur by Ralf Hertsch  
-  
-Release 0.39 - IN PROGRESS
 
-* fixed: if missing an KIT ID in the kitForm protocol it will now prompt the 
-  missing ID but still continue with the protocol   
-  
+Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
+http://phpmanufaktur.de
+(c) 2011-2012 - phpManufaktur by Ralf Hertsch
+
+Release 0.40 - NOT PUBLISHED
+
+* fixed: the kit_form droplet does not check if the TABLE_PREFIX has changed
+
+Release 0.39 - 2012-10-30
+
+* fixed: if missing an KIT ID in the kitForm protocol it will now prompt the
+  missing ID but still continue with the protocol
+* fixed: check if key exists before access value (class.backend.php)
+* added: wait the specified seconds before the form submission is accepted
+
 Release 0.38 - 2012-08-04
 
-* the prefix "custom." enables custom templates for class.backend.php 
+* the prefix "custom." enables custom templates for class.backend.php
 * fixed: to strong field validation in class.frontend.php, please read
-  <http://yals.de/QoSbQ5> for more informations 
+  <http://yals.de/QoSbQ5> for more informations
 * fixed a problem reading markdown formatted texts in feedback.htt
-  
+
 Release 0.37 - 2012-07-22
 
 * added ability to change the table prefix easy via config.json, please read
   <http://yals.de/OQRv0Y> for more informations
 * moved template plugin use_markdown() to Dwoo
-* moved template plugin translate() to Dwoo  
-  
+* moved template plugin translate() to Dwoo
+
 Release 0.36 - 2012-07-13
 
 * changed initializing of the Dwoo template engine
@@ -44,11 +50,11 @@ Release 0.34 - 2012-06-07
 * removed info.txt
 * added README.md
 * changed all header and archive informations
-* fixed: the kit_feedback form may prompt an error while sending status mails if 
+* fixed: the kit_feedback form may prompt an error while sending status mails if
   an user account is inactive or deleted - now still continue.
-* fixed: using parse_str() in class.backend.php for additional fields may 
+* fixed: using parse_str() in class.backend.php for additional fields may
   ignore &amp;
-* fixed a redirection problem after successfull installation of kitForm  
+* fixed a redirection problem after successfull installation of kitForm
 
 Release 0.33 - 2012-02-29
 
@@ -63,7 +69,7 @@ Release 0.32 - 2012-02-19
   contact language of the form sender
 * changed: standard template form.htt, please read /kit_form/htt/changes.txt for
   more informations
-* changed: introduce $_SESSION['KIT_HTML_REQUEST'] to mark fields which should 
+* changed: introduce $_SESSION['KIT_HTML_REQUEST'] to mark fields which should
   not processed by xssPrevent()
 
 Release 0.31 - 2012-02-16
@@ -82,10 +88,10 @@ Release 0.30 - 2012-02-04
   preset in /kit_form/htt/1 in three steps.
 * added: switches in the Droplet [[kit_form]] for language, fallback_language,
   fallback_preset and debug (see also Droplet hints)
-* removed the default preset in /kit_form/htt/2 because it is to much work to 
+* removed the default preset in /kit_form/htt/2 because it is to much work to
   keep this nearly with preset 1 identical preset up-to-date
-* added: debug switch in all templates, please read /kit_form/htt/changes.txt 
-  for more informations 
+* added: debug switch in all templates, please read /kit_form/htt/changes.txt
+  for more informations
 
 Release 0.29 - 2012-02-03
 
@@ -94,7 +100,7 @@ Release 0.29 - 2012-02-03
 
 Release 0.28 - 2012-02-03
 
-* added: check of option 'relaying' for email providers, handle emails in a 
+* added: check of option 'relaying' for email providers, handle emails in a
   different way and use the reply-to header
 
 Release 0.27 - 2011-12-19
@@ -106,7 +112,7 @@ Release 0.27 - 2011-12-19
 Release 0.26 - 2011-12-17
 
 * fixed: problem with invalid ID's in the kitForm protocol
-* changed: increased fault tolerance if kitForm detect no longer existing form 
+* changed: increased fault tolerance if kitForm detect no longer existing form
   fields it does no longer throw an error
 * added: status field for the form datas (active, locked, deleted, delayed)
 * added: new field type "delayed transmission" enables the user to save the form
@@ -115,7 +121,7 @@ Release 0.26 - 2011-12-17
   mail.client.delayed.transmission.htt
 * changed: template form.htt
 * changed: template backend.form.htt
-* added: optional field type "retype email address" add a second field for 
+* added: optional field type "retype email address" add a second field for
   retyping the email address to avoid typing errors
 
 Release 0.25 - 2011-12-08
@@ -130,13 +136,13 @@ Release 0.24 - 2011-11-30
 
 Releasse 0.23 - 2011-11-29
 
-* changed: kitForm uses now the I18n translation function of LEPTON 2.x for its 
+* changed: kitForm uses now the I18n translation function of LEPTON 2.x for its
   language files
 * added: english translation EN.php is around 80% complete and available
-* changed: configuration depending on locales is now separated from the language 
+* changed: configuration depending on locales is now separated from the language
   files
-* changed: error prompting method  
-* added: kitForm is now testing if a provider is defined for all forms 
+* changed: error prompting method
+* added: kitForm is now testing if a provider is defined for all forms
 
 Release 0.22 - 2011-11-14
 
@@ -145,8 +151,8 @@ Release 0.22 - 2011-11-14
 
 Release 0.21 - 2011-11-01
 
-* added: with the new standard form kit_feedback you can realize a comfortable 
-  feedback function for your website: visit http://phpmanufaktur.de for more 
+* added: with the new standard form kit_feedback you can realize a comfortable
+  feedback function for your website: visit http://phpmanufaktur.de for more
   informations and hints
 * added: additional template directory /htt/2/DE with a variation of the
   standard form and email templates: many thanks to "Projekt EM"
@@ -155,7 +161,7 @@ Release 0.20 - 2011-10-05
 
 * fixed: bug in subscribing routine in KIT & kitForm changed the password after
   subscribing for a KIT category
-* added: new switch "auto_login_wb=true" for the [[kit_form]] droplet forces 
+* added: new switch "auto_login_wb=true" for the [[kit_form]] droplet forces
   kitForm to login the user automatically to his WB/LEPTON account when the
   activation key for subscribing to a KIT category is checked successful
   (needed by kitIdea and other KIT extensions)
@@ -163,32 +169,32 @@ Release 0.20 - 2011-10-05
 
 Release 0.19 - 2011-08-13
 
-* fixed: confirm activation key for newsletter uses the template for accounts 
+* fixed: confirm activation key for newsletter uses the template for accounts
   instead the template for newsletters
-* fixed: no proper HTML/TEXT handling for the email routines  
+* fixed: no proper HTML/TEXT handling for the email routines
 
 Release 0.18 - 2011-08-12
 
-* fixed: data precheck and sending emails at subscribe/unsubscribe newsletters 
+* fixed: data precheck and sending emails at subscribe/unsubscribe newsletters
   works not proper
-* fixed: problem creating activation in registerAccount() function 
+* fixed: problem creating activation in registerAccount() function
 * changed: for the email subjects are now used templates mail.client.subject.htt
   and mail.provider.subject.htt, setting by default the form title as subject
-* fixed: some smaller problems, code cleanup in class.frontend.php 
+* fixed: some smaller problems, code cleanup in class.frontend.php
 
 Release 0.17 - 2011-08-05
 
-* added: service provider is now for all mails active and not only for the main 
+* added: service provider is now for all mails active and not only for the main
   form
 * added: activation link also contain used service provider
 
 Release 0.16 - 2011-08-04
 
-* fixed: missing parameter if sending activation link for KeepInTouch (KIT) 
+* fixed: missing parameter if sending activation link for KeepInTouch (KIT)
 
 Release 0.15 - 2011-07-21
 
-* added: options in each form to select service provider, define cc emails and 
+* added: options in each form to select service provider, define cc emails and
   send emails in text or html
 * fixed: some smaller problems and cleanup code
 * added: grant compatibillity for LEPTON CMS
@@ -200,14 +206,14 @@ Release 0.14 - 2011-06-05
 Release 0.13 - 2011-05-20
 
 * fixed: import does not change the field id for must fields
-* extended: added some smaller functions for interoperation with other KIT 
+* extended: added some smaller functions for interoperation with other KIT
   extensions
 
 Release 0.12 - 2011-05-11
 
 * fixed: checkbox definition was not complete and causes an error
 * extended: additional data fields in dbKITform
-* new: added KIT Actions for creation of own KIT Standard dialogs (Register, 
+* new: added KIT Actions for creation of own KIT Standard dialogs (Register,
   Login, Logout, Newsletter, Account...)
 * new: added KIT Response Links within forms
 * new: added export and import of forms
@@ -215,9 +221,9 @@ Release 0.12 - 2011-05-11
 Release 0.11 - 2011-04-13
 
 * fixed: droplet code for kit_form was invalid
-* changed: prompt debugging informations only on demand (set KIT_DEBUG in 
+* changed: prompt debugging informations only on demand (set KIT_DEBUG in
   initialize.php to TRUE)
- 
+
 Release 0.10 - 2011-04-01
 
 * First Beta Release

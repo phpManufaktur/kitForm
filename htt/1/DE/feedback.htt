@@ -22,11 +22,15 @@
   {$template_path}
   {dump()}
 {/if}
- <div id="feedback_body"><a name="{$form.anchor}"></a> 
+<script type="text/javascript">
+  var waitSeconds = {$form.wait.seconds.value};
+  var waitMessage = "{translate('Please wait <strong>{{ seconds }}</strong> seconds before submitting the the form!')}"; 
+</script>
+<div id="feedback_body"><a name="{$form.anchor}"></a> 
   <h2>{$form.title}</h2>
   {if isset($form.response)}
     {* DON'T REMOVE THE RESPONSE BLOCK !!! *}
-    <div class="message">{$form.response}</div>
+    <div class="message">{$form.response}</div> 
   {/if}
   {if $feedback.count > 0}
   <div id="feedback_container">
@@ -44,15 +48,17 @@
   </div>
   {/if}
   <div class="kit_form">
-     <form name="{$form.name}" action="{$form.action.link}#{$form.anchor}" method="post">
+    <form name="{$form.name}" action="{$form.action.link}#{$form.anchor}" method="post">
       <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
       <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
       <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
       <input type="hidden" name="{$fields.feedback_url.name}" value="{$fields.feedback_url.value}" />
       <input type="hidden" name="{$fields.feedback_publish.name}" value="{$fields.feedback_publish.value}" />
+      <input type="hidden" name="{$form.wait.seconds.name}" value="{$form.wait.seconds.value}" />
+      <input type="hidden" name="{$form.wait.start.name}" value="{$form.wait.start.value}" />
       <table width="100%">
         <colgroup>
-          <col width="20%" />
+          <col width="15%" />
           <col width="*" />
           <col width="30%" />
         </colgroup>
@@ -115,11 +121,15 @@
         {/if}
         <tr>
           <td>&nbsp;</td>
+          <td colspan="2"><span class="wait_seconds"></span></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
           <td colspan="2">
             <input type="submit" value="{$form.btn.ok}" />
           </td>
         </tr>
       </table>
-     </form>
+    </form>
   </div>
 </div>

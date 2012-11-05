@@ -6,7 +6,7 @@
  * @copyright 2011 - 2012
  * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
  *
- * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * Please consult the Dwoo Documentation & WIKI to get further informations
  * and hints for the usage of the Dwoo template engine.
  *
  * @link http://wiki.dwoo.org/
@@ -17,11 +17,17 @@
   {$template_path}
   {dump()}
 {/if}
+<script type="text/javascript">
+  var waitSeconds = {$form.wait.seconds.value};
+  var waitMessage = "{translate('Please wait <strong>{{ seconds }}</strong> seconds before submitting the the form!')}"; 
+</script>
 <div id="kit_form">
   <form name="{$form.name}" action="{$form.action.link}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="{$form.action.name}" value="{$form.action.value}" />
     <input type="hidden" name="{$form.id.name}" value="{$form.id.value}" />
     <input type="hidden" name="{$form.kit_action.name}" value="{$form.kit_action.value}" />
+    <input type="hidden" name="{$form.wait.seconds.name}" value="{$form.wait.seconds.value}" />
+    <input type="hidden" name="{$form.wait.start.name}" value="{$form.wait.start.value}" />
     <h2>{$form.title}</h2>
     {if isset($form.response)}
       {*entfernen Sie den Block $form.response nicht, er ermoeglicht es dem Programm
@@ -74,7 +80,7 @@
         {elseif ($field.type == 'kit_first_name' || $field.type == 'kit_last_name' || $field.type == 'kit_company' ||
                  $field.type == 'kit_department' || $field.type == 'kit_street' || $field.type == 'kit_zip' || $field.type == 'kit_city' ||
                  $field.type == 'kit_fax' || $field.type == 'kit_phone' || $field.type == 'kit_phone_mobile' || $field.type == 'kit_email_retype' ||
-                 $field.type == 'kit_birthday' || $field.type == 'kit_free_field_1' || $field.type == 'kit_free_field_2' || 
+                 $field.type == 'kit_birthday' || $field.type == 'kit_free_field_1' || $field.type == 'kit_free_field_2' ||
                  $field.type == 'kit_free_field_3' || $field.type == 'kit_free_field_4' || $field.type == 'kit_free_field_5')}
           <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
           <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" /></div>
@@ -87,8 +93,8 @@
           </div>
           <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
-        {elseif $field.type == 'kit_email'} 
-          {* 
+        {elseif $field.type == 'kit_email'}
+          {*
             Es ist wichtig das E-Mail Feld auf DISABLED zu setzen, wenn das Formular das KONTO (ACCOUNT) des Kunden anzeigt!
             Die E-Mail Adresse darf in diesem Fall nicht veraendert werden! Zur Uebermittlung der E-Mail Adresse wird
             ein zusaetzliches HIDDEN Feld eingefuegt.
@@ -159,13 +165,13 @@
               <option value="{$option.value}"{if $option.checked == 1} selected="selected"{/if}>{$option.text}</option>
               {/foreach}
             </select>
-          </div> 
+          </div>
           <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
         {elseif $field.type == 'text'}
           <div class="kf_label">{$field.label}{if $field.must == 1}<span class="form_must_indicator">*</span>{/if}</div>
           <div class="kf_value"><input type="text" name="{$field.name}" value="{$field.value}" /></div>
-          <div class="kf_hint">{$field.hint}</div> 
+          <div class="kf_hint">{$field.hint}</div>
           <div class="kf_clear"></div>
         {elseif $field.type == 'text_area'}
           {if $field.count_chars == 1}
@@ -209,10 +215,10 @@
                     'folder'    : '/temp/kit_form/{$field.upload_id}',
                     'buttonImg'  : '/modules/kit_uploader/plugins/uploadify-2/folder.png',
                     'width'     : 28,
-                    'height'    : 25, 
+                    'height'    : 25,
                     'multi' : false,
                     'auto'           : true,
-                    'fileExt'        : '{$field.file_ext}', 
+                    'fileExt'        : '{$field.file_ext}',
                     'fileDesc'       : '{$field.file_desc}',
                     'queueID'        : 'queue_{$field.name}',
                     'scriptData' : {
@@ -225,7 +231,7 @@
                   });
                 });
               </script>
-            </div> 
+            </div>
             <div class="kf_hint">max. {$field.settings.max_file_size.value} MB</div>
             <div class="kf_clear"></div>
           {else}
@@ -235,6 +241,7 @@
         {else}
           <div class="kf_message">[form.htt] Unbekannter Feld Typ: {$field.type}</div>
           <div class="kf_clear"></div>
+        {/if}
       {/if}
     {/foreach}
     {if ($form.captcha.active == 1) && ($form.kit_action.value != 'act_login')}
@@ -254,6 +261,11 @@
     {if (isset($form.links.act_logout) && ($form.links.act_logout != 'act_none'))}
       {* Link zum Abmelden anzeigen *}
       <div class="logout"><a href="{$form.links.command}={$form.links.act_logout}">Abmelden ...</a></div>
+    {/if}
+    {if (($form.kit_action.value != 'act_login') && ($form.kit_action.value != 'act_logout'))}
+    <div class="kf_label">&nbsp;</div>
+    <div class="kf_wait"><span class="wait_seconds"></span></div>
+    <div class="kf_clear"></div>
     {/if}
     <div class="kf_label">&nbsp;</div>
     <div class="kf_buttons">

@@ -42,7 +42,6 @@ td {
 }
 input {
   width: 98%;
-  background-color: transparent;
 }
 input[type=submit],
 input[type=button] {
@@ -129,6 +128,14 @@ input[name=kit_city] {
   float:left;
   width: 78%;
   text-align: left;
+}
+.kf_wait {
+  float:left;
+  width: 78%;
+  text-align: left;
+  font-size: 8pt;
+  color: #800000;
+  background-color: transparent;
 }
 .kf_captcha {
   float: left;

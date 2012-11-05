@@ -1,0 +1,25 @@
+<!-- position: head -->
+<script type="text/javascript" src="{LIB_URL}/kit_form/presets/jqTimer/jquery.timer.js"></script>
+<!-- position: body -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    if ((waitSeconds !== undefined) && (waitMessage !== undefined)) {
+      var countdownTimer = $.timer(function() {
+      // we check only the seconds
+        var sec = parseInt(waitSeconds/100);
+        // update i.e. span with class .wait_seconds
+        var msg = waitMessage.replace("{{ seconds }}", sec);
+        $('.wait_seconds').html(msg);
+        if (waitSeconds == 0) {
+          $('.wait_seconds').html('');
+          countdownTimer.stop();
+        } else {
+          waitSeconds-=7;
+          if (waitSeconds < 0) {
+            waitSeconds = 0;
+          }
+        }
+      }, 70, true);
+    }
+  });
+</script>

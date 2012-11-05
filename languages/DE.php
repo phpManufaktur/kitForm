@@ -32,8 +32,8 @@ else {
 // end include class.secure.php
 
 if ('á' != "\xc3\xa1") {
-	// important: language files must be saved as UTF-8 (without BOM)
-	trigger_error('The language file <b>'.basename(__FILE__).'</b> is damaged, it must be saved <b>UTF-8</b> encoded!', E_USER_ERROR);
+  // important: language files must be saved as UTF-8 (without BOM)
+  trigger_error('The language file <b>'.basename(__FILE__).'</b> is damaged, it must be saved <b>UTF-8</b> encoded!', E_USER_ERROR);
 }
 
 $LANG = array(
@@ -105,8 +105,8 @@ $LANG = array(
       => 'Formular bearbeiten',
   'Enter title ...'
       => 'Titel eingeben ...',
-	'Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.'
-		=> '<p>Bitte aktualisieren Sie <b>{{ addon }}</b>. Installiert ist die Release <b>{{ release }}</b>, benötigt wird die Release <b>{{ needed }}</b>.</p>',
+  'Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.'
+    => '<p>Bitte aktualisieren Sie <b>{{ addon }}</b>. Installiert ist die Release <b>{{ release }}</b>, benötigt wird die Release <b>{{ needed }}</b>.</p>',
   'Error: The <b>ID {{ id }}</b> is invalid.'
       => 'Fehler: Die <b>ID {{ id }}</b> ist ungültig.',
   'Error creating the directory <b>{{ directory }}</b>.'
@@ -208,7 +208,7 @@ $LANG = array(
   'hint_kit_company'
       => '',
   'hint_kit_contact_language'
-		  => 'Dieses versteckte Datenfeld hält die Sprache der Seite fest, in der das Formular angezeigt wird und übernimmt diese als "Kontakt Sprache" nach KIT.',
+      => 'Dieses versteckte Datenfeld hält die Sprache der Seite fest, in der das Formular angezeigt wird und übernimmt diese als "Kontakt Sprache" nach KIT.',
   'hint_kit_country'
       => '',
   'hint_kit_department'
@@ -376,9 +376,9 @@ $LANG = array(
   'Please check the forms <b>{{ ids }}</b>.<br />For these forms is no <b>provider</b> defined and they will not work proper!'
       => '<p>Bitte überprüfen Sie die Formulare <b>{{ ids }}</b>!</p><p>Bei diesen Formularen ist <b>kein Dienstleister festgelegt</b> und sie können nicht fehlerfrei ausgeführt werden!</p>',
   'Please enter your email address to unsubscribe from automatical reports at new feedbacks of this site.'
-	    => '<p>Bitte tragen Sie Ihre E-Mail Adresse ein, um sich von den automatischen Benachrichtigungen bei neuen Kommentaren zu dieser Seite abzumelden.</p>',
+      => '<p>Bitte tragen Sie Ihre E-Mail Adresse ein, um sich von den automatischen Benachrichtigungen bei neuen Kommentaren zu dieser Seite abzumelden.</p>',
   '<p>Please log in to change your password!</p>'
-	  => '<p>Sie müssen angemeldet sein um Ihr Passwort zu ändern!</p>',
+    => '<p>Sie müssen angemeldet sein um Ihr Passwort zu ändern!</p>',
   '<p>Please save the new form before you insert the datafield <b>{{ field }}</b>!</p>'
       => '<p>Das KIT Datenfeld <b>{{ field }}</b> kann erst eingefügt werden, wenn der Datensatz für das Formular erfolgreich angelegt ist.</p>',
   '<p>Please select a datafield <b>and</b> specify a title for the new field!</p>'
@@ -389,6 +389,8 @@ $LANG = array(
       => '<p>Bitte geben Sie Ihren Geburtstag in der Form <b>{{ date_str }}</b> an.</p>',
   '<p>Please upload only files with the extension <b>{{ extensions }}</b>, the file {{ file }} is refused.</p>'
       => '<p>Bitte übertragen Sie nur Dateien mit den Endungen <b>{{ extensions }}</b>, die Datei <b>{{ file }}</b> wird zurückgewiesen.</p>',
+  'Please wait <strong>{{ seconds }}</strong> seconds before submitting the the form!'
+    => 'Bitte warten Sie noch <strong>{{ seconds }}</strong> Sekunden bis Sie das Formular abschicken!',
   'Protocol Details'
       => 'Protokoll, Details',
   'Protocol List'
@@ -448,8 +450,8 @@ $LANG = array(
       => '<p>Das Benutzerkonto für die E-Mail Adresse <b>{{ email }}</b> ist zur Zeit gesperrt. Bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>',
   '<p>The account for the email address <b>{{ email }}</b> is not active, please contact the service!</p>'
       => '<p>Das Benutzerkonto für die E-Mail Adresse <b>%s</b> ist nicht aktiv, bitte setzen Sie sich mit dem Kundenservice in Verbindung!</p>',
-	'<p>The both passwords does not match, please check your input!</p>'
-		  => '<p>Die beiden Passwörter stimmen nicht überein, bitte wiederholen Sie Ihre Eingabe!</p>',
+  '<p>The both passwords does not match, please check your input!</p>'
+      => '<p>Die beiden Passwörter stimmen nicht überein, bitte wiederholen Sie Ihre Eingabe!</p>',
   '<p>The CAPTCHA code is not correct, please try again!</p>'
       => '<p>Der übermittelte CAPTCHA Code ist nicht korrekt, bitte prüfen Sie Ihre Eingabe!</p>',
   'The command is not complete, missing parameters!'
@@ -544,10 +546,10 @@ $LANG = array(
       => '<p>Der Formular Bezeichner <b>{{ name }}</b> wird bereits von dem Formular mit der <b>ID {{ id }}</b> verwendet, bitte suchen Sie einen anderen Bezeichner.</p>',
   '<p>The newsletter abonnement for the email address <b>{{ email }}</b> was updated.</p>'
       => '<p>Das Newsletter Abonnement für die E-Mail Adresse <b>{{ email }}</b> wurde aktualisiert.</p>',
-	'<p>The password is empty!</p>'
-		  => '<p>Das Passwort darf nicht leer sein!</p>',
-	'<p>The password needs at least a length of {{ lenght }} characters!</p>'
-		  => '<p>Das Passwort muss mindestens {{ lenght }} Zeichen lang sein!</p>',
+  '<p>The password is empty!</p>'
+      => '<p>Das Passwort darf nicht leer sein!</p>',
+  '<p>The password needs at least a length of {{ lenght }} characters!</p>'
+      => '<p>Das Passwort muss mindestens {{ lenght }} Zeichen lang sein!</p>',
   'The preset directory <b>{{ directory }}</b> does not exists, can\'t load any template!'
       => 'Das Presetverzeichnis <b>{{ directory }}</b> existiert nicht, die erforderlichen Templates können nicht geladen werden!',
   'The uploaded file exceeds the directive MAX_FILE_SIZE'
@@ -581,6 +583,8 @@ $LANG = array(
       => 'Ihre Zugangsdaten',
   '<p>You are not authenticated, please login first!</p>'
       => '<p>Sie sind nicht angemeldet, bitte melden Sie sich an!</p>',
+  '<p>You have submitted the form to early, please wait for the specified seconds (SPAM protection).</p>'
+      => '<p>Sie haben das Formular zu früh übermittelt, bitte warten Sie die angegebene Zeit in Sekunden ab bevor Sie das Formular abschicken (SPAM Schutz).</p>',
 
   '<p>Welcome!<br />we have send you the username and password by email.</p>'
       => '<p>Herzlich willkommen!<br />Ihre Benutzerdaten haben Sie per E-Mail erhalten.</p>',
@@ -589,7 +593,7 @@ $LANG = array(
   'Words'
     => 'Worte',
 
-	'<p>Your password is not secure, please choose a new password!</p>'
-		 => '<p>Ihr Passwort ist nicht sicher, bitte legen Sie ein neues Passwort fest!</p>',
+  '<p>Your password is not secure, please choose a new password!</p>'
+     => '<p>Ihr Passwort ist nicht sicher, bitte legen Sie ein neues Passwort fest!</p>',
 
 );
