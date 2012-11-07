@@ -95,7 +95,16 @@ if (file_exists(WB_PATH.'/modules/kit_form/class.frontend.php')) {
   $params[formFrontend::PARAM_DEBUG] = (isset($debug) && (strtolower($debug) == 'true')) ? true : false;
   $params[formFrontend::PARAM_DELAY_SECONDS] = $delay;
   if (!$formular->setParams($params)) return $formular->getError();
-  return $formular->action();
+  $result = $formular->action();
+  if (is_bool($result) && ($result == true) && (isset($redirect))) {
+    // special case: redirect the user after a login
+    require_once WB_PATH.'/modules/kit/class.interface.php';
+    $kitInterface = new kitContactInterface();
+    // redirect only if the user is authenticated!
+    if ($kitInterface->isAuthenticated())
+      header("Location: $redirect");
+  }
+  return $result;
 }
 else {
   return "kitForm is not installed!";

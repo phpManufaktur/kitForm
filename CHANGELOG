@@ -7,6 +7,8 @@ http://phpmanufaktur.de
 Release 0.40 - NOT PUBLISHED
 
 * fixed: the kit_form droplet does not check if the TABLE_PREFIX has changed
+* added: kit_form droplet can now redirect the user after a successful login 
+  (http://yals.de/SM25dY)
 
 Release 0.39 - 2012-10-30
 
