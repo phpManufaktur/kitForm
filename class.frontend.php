@@ -373,6 +373,9 @@ class formFrontend {
    * @return string result
    */
   public function action() {
+    // we can ignore calls by DropletsExtions...
+    if (isset($_SESSION['DROPLET_EXECUTED_BY_DROPLETS_EXTENSION'])) return '- passed call by DropletsExtension -';
+
     // CSS laden?
     if ($this->params[self::PARAM_CSS]) {
       if (!is_registered_droplet_css('kit_form', PAGE_ID)) {
@@ -415,7 +418,6 @@ class formFrontend {
     }
 
     isset($_REQUEST[self::request_action]) ? $action = $_REQUEST[self::request_action] : $action = self::action_default;
-
     switch ($action) :
       case self::action_feedback_unsubscribe:
         $result = $this->showFeedbackUnsubscribe();
@@ -1035,7 +1037,6 @@ class formFrontend {
       return false;
     }
     $form = $form[0];
-
     // pruefen, ob eine Aktion ausgefuehrt werden soll
     switch ($form[dbKITform::field_action]) :
       case dbKITform::action_login:
@@ -1826,7 +1827,6 @@ class formFrontend {
             'value' => $value,
             'type' => $field[dbKITformFields::field_type]);
       }
-
       // E-Mail Versand vorbereiten
       $provider_data = array();
       if (!$kitContactInterface->getServiceProviderByID($form[dbKITform::field_provider_id], $provider_data)) {
