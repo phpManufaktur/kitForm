@@ -18,7 +18,7 @@
   {dump()}
 {/if}
 <div class="kit_confirm">
-  <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
+  <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_title} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
   <p>vielen Dank für Ihr Newsletter Abonnement!</p>
   {if $newsletter_account_info == 1}
     <p>Zusammen mit dem Newsletter Abonnement wurde für Sie ein Benutzerkonto angelegt.</p>

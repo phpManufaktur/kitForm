@@ -18,7 +18,7 @@
   {dump()}
 {/if}
  <div class="kit_confirm">
-   <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else}Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
+   <h2>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_title} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</h2>
    <p>Das Formular {$form.title} wurde entsprechend Ihrem Wunsch zwischengespeichert.</p>
    <p>Zum jetzigen Zeitpunkt haben wir als Betreiber der Website <b>keine Kenntnis</b> über die zwischengespeicherten Daten, diese werden uns erst mitgeteilt, wenn Sie das Formular tatsächlich übermitteln. Entsprechend werden wir auch nicht mit Ihnen in Verbindung treten.</p>
    <p>Wir haben Ihnen per E-Mail einen Link an Ihre E-Mail Adresse <b>{$contact.kit_email}</b> gesendet. Mit diesem Link können Sie das Formular erneut aufrufen, bearbeiten und absenden.</p>

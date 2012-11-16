@@ -18,6 +18,6 @@
   {dump()}
 {/if}
  <div class="kit_confirm">
-   <h2>Auf Wiedersehen {if count_characters($contact.kit_last_name) > 0}{if $contact.kit_title == 'titleMister'}Herr{else}Frau{/if} {$contact.kit_last_name}!{else}!{/if}</h2>
+   <h2>Auf Wiedersehen {if count_characters($contact.kit_last_name) > 0}{$contact.kit_title} {$contact.kit_last_name}!{else}!{/if}</h2>
    <p><i>Wir freuen uns schon auf Ihren nächsten Besuch!</i></p>
  </div>

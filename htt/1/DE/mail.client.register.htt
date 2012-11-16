@@ -17,7 +17,7 @@
   {$template_path}
   {dump()}
 {/if}
-<p>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'titleMister'}r Herr{else} Frau{/if} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</p>
+<p>{if count_characters($contact.kit_last_name) > 0}Sehr geehrte{if $contact.kit_title == 'Herr'}r{/if} {$contact.kit_title} {$contact.kit_last_name},{else}Sehr geehrte Besucherin, sehr geehrter Besucher,{/if}</p>
 <p><b>Bitte bestätigen Sie Ihre Anmeldung in dem Sie den folgenden Link in Ihrem Browser öffnen:</b></p>
 <p>--> {$form.activation_link}</p>
 <p>Sollten Sie sich nicht auf unserer Website angemeldet haben, ignorieren Sie diese E-Mail bitte.</p>
