@@ -57,12 +57,12 @@ $check = array(
         ),
     'Dwoo' => array(
         'directory' => 'dwoo',
-        'version' => '0.14',
+        'version' => '0.16',
         'problem' => 'Dwoo => <b><a href="https://addons.phpmanufaktur.de/download.php?file=Dwoo" target="_blank">Download actual version</a></b>'
         ),
     'dropletsExtension' => array(
         'directory' => 'droplets_extension',
-        'version' => '0.18',
+        'version' => '0.24',
         'problem' => 'dropletsExtension => <b><a href="https://addons.phpmanufaktur.de/download.php?file=dropletsExtension" target="_blank">Download actual version</a></b>'
         ),
     'KeepInTouch' => array(
