@@ -385,7 +385,7 @@ $LANG = array(
       => '<p>Bitte wählen Sie ein Datenfeld aus <b>und</b> geben Sie einen Titel für das neue Datenfeld an.</p>',
   '<p>Please select a service provider for this form!</p>'
       => '<p>Sie haben noch keinen E-Mail Dienstleister für dieses Formular ausgewählt!</p>',
-  '<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>'
+  '<p>Please type in the birthday like <b>{{ date_str }}</b>.</p>'
       => '<p>Bitte geben Sie Ihren Geburtstag in der Form <b>{{ date_str }}</b> an.</p>',
   '<p>Please upload only files with the extension <b>{{ extensions }}</b>, the file {{ file }} is refused.</p>'
       => '<p>Bitte übertragen Sie nur Dateien mit den Endungen <b>{{ extensions }}</b>, die Datei <b>{{ file }}</b> wird zurückgewiesen.</p>',
