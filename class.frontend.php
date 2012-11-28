@@ -1172,7 +1172,7 @@ class formFrontend {
     $kit_birthday = '';
     if (isset($_REQUEST[kitContactInterface::kit_birthday])) {
       if ((strpos($_REQUEST[kitContactInterface::kit_birthday], cfg_date_separator) == false) && (in_array($kitContactInterface->index_array[kitContactInterface::kit_birthday], $must_array))) {
-        $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}<b>.</p>', array(
+        $message .= $this->lang->translate('<p>Please type in the birthday like <b>{{ date_str }}</b>.</p>', array(
             'date_str' => cfg_date_str));
         $checked = false;
       }
@@ -1617,15 +1617,16 @@ class formFrontend {
 
       // special: check additional fields and notes
       $check_array = array(
-          kitContactInterface::kit_free_field_1,
-          kitContactInterface::kit_free_field_2,
-          kitContactInterface::kit_free_field_3,
-          kitContactInterface::kit_free_field_4,
-          kitContactInterface::kit_free_field_5,
-          kitContactInterface::kit_free_note_1,
-          kitContactInterface::kit_free_note_2);
+          kitContactInterface::kit_free_field_1 => dbKITcontact::field_free_1,
+          kitContactInterface::kit_free_field_2 => dbKITcontact::field_free_2,
+          kitContactInterface::kit_free_field_3 => dbKITcontact::field_free_3,
+          kitContactInterface::kit_free_field_4 => dbKITcontact::field_free_4,
+          kitContactInterface::kit_free_field_5 => dbKITcontact::field_free_5,
+          kitContactInterface::kit_free_note_1 => dbKITcontact::field_free_note_1,
+          kitContactInterface::kit_free_note_2 => dbKITcontact::field_free_note_2
+          );
 
-      foreach ($check_array as $check_field) {
+      foreach ($check_array as $check_field => $replace_field) {
         if (isset($_REQUEST[$check_field])) {
           // get the old user defined fields for compare
           $SQL = sprintf("SELECT %s,%s,%s,%s,%s,%s,%s FROM %s WHERE %s='%s'", dbKITcontact::field_free_1, dbKITcontact::field_free_2, dbKITcontact::field_free_3, dbKITcontact::field_free_4, dbKITcontact::field_free_5, dbKITcontact::field_free_note_1, dbKITcontact::field_free_note_2, $dbContact->getTableName(), dbKITcontact::field_id, $contact_id);
@@ -1652,7 +1653,7 @@ class formFrontend {
             }
             // update contact record!
             $where = array(dbKITcontact::field_id => $contact_id);
-            $data = array($check_field => $mid);
+            $data = array($replace_field => $mid);
             if (!$dbContact->sqlUpdateRecord($data, $where)) {
               $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbContact->getError()));
               return false;
@@ -1823,6 +1824,7 @@ class formFrontend {
             $value = (is_array($values[$fid])) ? implode(', ', $values[$fid]) : $values[$fid];
         endswitch;
         $items[$field[dbKITformFields::field_name]] = array(
+            'name' => $field[dbKITformFields::field_name],
             'label' => $field[dbKITformFields::field_title],
             'value' => $value,
             'type' => $field[dbKITformFields::field_type]);

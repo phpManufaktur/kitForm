@@ -4,6 +4,11 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
 (c) 2011-2012 - phpManufaktur by Ralf Hertsch
 
+Release 0.40 - NOT PUBLISHED
+
+* fixed: free fields and notes are mapped in the wrong way by kitForm
+* added: added field names in the response array of the forms
+
 Release 0.39 - 2012-11-16
 
 * fixed: the kit_form droplet does not check if the TABLE_PREFIX has changed
