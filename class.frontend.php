@@ -55,6 +55,9 @@ class formFrontend {
   const request_provider_id = 'pid';
   const request_command = 'kfc';
   const request_form_id = 'fid';
+  const REQUEST_SPECIAL_LINK = 'ksl'; // KIT Special Link = KSL
+
+  const SESSION_SPECIAL_LINK = 'KIT_SPECIAL_LINK';
 
   const action_default = 'def';
   const action_check_form = 'acf';
@@ -446,6 +449,96 @@ class formFrontend {
   } // action
 
   /**
+   * Check for KIT Special Links
+   *
+   * @return boolean
+   */
+  private function checkSpecialLink() {
+    global $database;
+
+    if (isset($_GET[self::REQUEST_SPECIAL_LINK]) || isset($_SESSION[self::SESSION_SPECIAL_LINK])) {
+      $guid = (isset($_GET[self::REQUEST_SPECIAL_LINK])) ? $_GET[self::REQUEST_SPECIAL_LINK] : $_SESSION[self::SESSION_SPECIAL_LINK];
+      $SQL = "SELECT * FROM `".TABLE_PREFIX."mod_kit_links` WHERE `guid`='$guid'";
+      $query = $database->query($SQL);
+      if ($database->is_error()) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      if ($query->numRows() == 1) {
+        $link = $query->fetchRow(MYSQL_ASSOC);
+        if ($link['type'] == 'UPLOAD') {
+          // handle an upload link
+          if (($link['status'] != 'ACTIVE') || (($link['option'] == 'THROW-AWAY') && ($link['count'] > 0))) {
+            // throw away link was already used!
+            $this->setMessage($this->lang->translate('<p>The link <b>{{ guid }}</b> was already used and is no longer valid! Please contact the support.</p>', array('guid' => $guid)));
+            return false;
+          }
+          $SQL = "SELECT `contact_email`, `contact_email_standard` FROM `".TABLE_PREFIX."mod_kit_contact` WHERE `contact_id`='{$link['kit_id']}'";
+          $query = $database->query($SQL);
+          if ($database->is_error()) {
+            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+            return false;
+          }
+          $contact = $query->fetchRow(MYSQL_ASSOC);
+          $email_array = explode(';', $contact['contact_email']);
+          if (!isset($email_array[$contact['contact_email_standard']])) {
+            // no valid email address
+            $this->setMessage($this->lang->translate('<p>Sorry, got no valid email address for the GUID <b>{{ guid }}</b>! Please contact the support!</p>',
+                array('guid' => $guid)));
+            return false;
+          }
+          list($email_type, $email) = explode('|', $email_array[$contact[dbKITcontact::field_email_standard]]);
+          // set the email address as _$_REQUEST
+          $_REQUEST[kitContactInterface::kit_email] = $email;
+          // set a session var to indicate the special link
+          $_SESSION[self::SESSION_SPECIAL_LINK] = $guid;
+          $this->setMessage($this->lang->translate('<p>Please start the file upload for the GUID <b>{{ guid }}</b>.</p>', array('guid' => $guid)));
+        }
+      }
+    }
+    return true;
+  } // checkSpecialLink()
+
+  /**
+   * Process a KIT special link
+   *
+   * @return boolean
+   */
+  private function processSpecialLink($message) {
+    global $database;
+
+    if (!isset($_SESSION[self::SESSION_SPECIAL_LINK]))
+      return false;
+
+    $SQL = "SELECT * FROM `".TABLE_PREFIX."mod_kit_links` WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+    $query = $database->query($SQL);
+    if ($database->is_error()) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    if ($query->numRows() == 1) {
+      $link = $query->fetchRow(MYSQL_ASSOC);
+      $count = $link['count']+1;
+      $last_call = date('Y-m-d H:i:s');
+      if ($link['option'] == 'THROW-AWAY') {
+        $SQL = "UPDATE `".TABLE_PREFIX."mod_kit_links` SET `status`='LOCKED', `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+      }
+      else {
+        $SQL = "UPDATE `".TABLE_PREFIX."mod_kit_links` SET `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+      }
+      $query = $database->query($SQL);
+      if ($database->is_error()) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      unset($_SESSION[self::SESSION_SPECIAL_LINK]);
+      return true;
+    }
+    unset($_SESSION[self::SESSION_SPECIAL_LINK]);
+    return false;
+  } // processSpecialLink()
+
+  /**
    * This master function collects all datas of a form, prepare and return
    * the complete form
    *
@@ -463,6 +556,9 @@ class formFrontend {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('The form name is empty, please check the parameters for the droplet!')));
       return false;
     }
+
+    // check for special links
+    $this->checkSpecialLink();
 
     $form_id = -1;
     $form_name = 'none';
@@ -1344,11 +1440,13 @@ class formFrontend {
                   return false;
                 }
               }
+              /*
+               * see setting notice for uploads below! no longer needed!
               // add notice to KIT
               $kitContactInterface->addNotice($contact_id, $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.', array(
                   'link' => WB_URL.'/modules/kit/kdl.php?id='.$file_id,
                   'file' => $mf)));
-
+              */
             }
             else {
               // handling upload errors
@@ -1780,6 +1878,9 @@ class formFrontend {
           $kitContactInterface->addNotice($contact_id, $this->lang->translate('[kitForm] File <a href="{{ link }}">{{ file }}</a> uploaded.', array(
               'link' => WB_URL.'/modules/kit/kdl.php?id='.$file['id'],
               'file' => $file['name'])));
+          // check for special links
+          if (isset($_SESSION[self::SESSION_SPECIAL_LINK]))
+            $this->processSpecialLink($message);
         }
       }
 

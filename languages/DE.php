@@ -385,6 +385,8 @@ $LANG = array(
       => '<p>Bitte wählen Sie ein Datenfeld aus <b>und</b> geben Sie einen Titel für das neue Datenfeld an.</p>',
   '<p>Please select a service provider for this form!</p>'
       => '<p>Sie haben noch keinen E-Mail Dienstleister für dieses Formular ausgewählt!</p>',
+  '<p>Please start the file upload for the GUID <b>{{ guid }}</b>.</p>'
+    => '<p>Bitte starten Sie die Datenübertragung für die GUID <b>{{ guid }}</b>.</p>',
   '<p>Please type in the birthday like <b>{{ date_str }}</b>.</p>'
       => '<p>Bitte geben Sie Ihren Geburtstag in der Form <b>{{ date_str }}</b> an.</p>',
   '<p>Please upload only files with the extension <b>{{ extensions }}</b>, the file {{ file }} is refused.</p>'
@@ -540,6 +542,8 @@ $LANG = array(
       => 'Das Element wurde verschoben.',
   '<p>The KIT datafield <b>{{ field }}</b> was added to the form.</p>'
       => '<p>Das KIT Datenfeld <b>{{ field }}</b> wurde dem Formular hinzugefügt.</p>',
+  '<p>The link <b>{{ guid }}</b> was already used and is no longer valid! Please contact the support.</p>'
+      => '<p>Der Link <b>{{ guid }}</b> wurde bereits verwendet und ist nicht länger gültig! Bitte nehmen Sie Kontakt mit dem Support auf.</p>',
   '<p>The link to access this form is no longer valid and the temporary saved form data are now deleted.</p><p>Please submit the form or use again the option for a delayed transmission to create a new access link.</p>'
       => '<p><b>Dieses zwischengespeicherte Formular wurde noch nicht übermittelt!</b></p><p>Der Link zum Bearbeiten dieses Formulars ist nicht mehr gültig. Die temporär gespeicherten Formulardaten wurden gelöscht.</p><p>Übermitteln Sie das Formular nach der Bearbeitung oder nutzen Sie die Möglichkeit einer verzögerten Übermittlung damit ein neuer Link für den Zugriff auf dieses Formular erzeugt wird.</p>',
   '<p>The name <b>{{ name }}</b> is already in use by the form with the <b>ID {{ id }}</b>, please use another name!</p>'

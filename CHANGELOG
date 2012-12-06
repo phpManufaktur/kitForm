@@ -8,6 +8,7 @@ Release 0.40 - NOT PUBLISHED
 
 * fixed: free fields and notes are mapped in the wrong way by kitForm
 * added: added field names in the response array of the forms
+* fixed: standard file uploads are added twice to the protocol
 
 Release 0.39 - 2012-11-16
 
