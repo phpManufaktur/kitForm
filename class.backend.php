@@ -49,8 +49,18 @@ class formBackend {
   const request_export = 'exp';
   const request_move = 'mov';
   const request_position = 'pos';
+  const request_sub_action = 'sub';
 
   const action_about = 'abt';
+  const action_admin = 'adm';
+  const action_admin_check_duplicates = 'acd';
+  const action_admin_check_unpublished_feedback = 'acuf';
+  const action_admin_delete_protocol_id = 'adpi';
+  const action_admin_delete_unpublished = 'aduf';
+  const action_admin_delete_unpublished_kit = 'adufk';
+  const action_admin_exec_export_form_data = 'aeefd';
+  const action_admin_remove_duplicates = 'ard';
+  const action_admin_select_export_form_data = 'asefd';
   const action_default = 'def';
   const action_edit = 'edt';
   const action_edit_check = 'edtc';
@@ -67,8 +77,12 @@ class formBackend {
   private $template_path = '';
   private $error = '';
   private $message = '';
+
   protected $lang = null;
   protected $file_allowed_filetypes = 'jpg,gif,png,pdf,zip';
+
+  protected static $table_prefix = TABLE_PREFIX;
+  protected static $protocol_limit = 100;
 
   public function __construct() {
     global $I18n;
@@ -77,6 +91,14 @@ class formBackend {
     $this->img_url = LEPTON_URL . '/modules/' . basename(dirname(__FILE__)) . '/images/';
     date_default_timezone_set(cfg_time_zone);
     $this->lang = $I18n;
+    // use another table prefix or change protocol limit?
+    if (file_exists(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+      if (isset($config['protocol_limit']))
+        self::$protocol_limit = (int) $config['protocol_limit'];
+     }
   } // __construct()
 
   /**
@@ -93,7 +115,7 @@ class formBackend {
     require_once (LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/precheck.php');
 
     if (isset($PRECHECK['KIT']['kit'])) {
-      $table = TABLE_PREFIX . 'addons';
+      $table = self::$table_prefix . 'addons';
       $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit'", MYSQL_ASSOC);
       if (!version_compare($version, $PRECHECK['KIT']['kit']['VERSION'], $PRECHECK['KIT']['kit']['OPERATOR'])) {
         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.', array(
@@ -107,7 +129,7 @@ class formBackend {
     if (file_exists(LEPTON_PATH . '/modules/kit_dirlist/info.php')) {
       // check only if kitDirList is installed
       if (isset($PRECHECK['KIT']['kit_dirlist'])) {
-        $table = TABLE_PREFIX . 'addons';
+        $table = self::$table_prefix . 'addons';
         $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit_dirlist'", MYSQL_ASSOC);
         if (!version_compare($version, $PRECHECK['KIT']['kit_dirlist']['VERSION'], $PRECHECK['KIT']['kit_dirlist']['OPERATOR'])) {
           $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $this->lang->translate('Error: Please upgrade <b>{{ addon }}</b>, installed is release <b>{{ release }}</b>, needed is release <b>{{ needed }}</b>.', array(
@@ -271,8 +293,7 @@ class formBackend {
   /**
    * Verhindert XSS Cross Site Scripting
    *
-   * @param $_REQUEST REFERENCE
-   *          Array
+   * @param $_REQUEST REFERENCE Array
    * @return $request
    */
   protected function xssPrevent(&$request) {
@@ -324,12 +345,43 @@ class formBackend {
       case self::action_move :
         $result = $this->show(self::action_edit, $this->checkMove());
         break;
+      case self::action_admin:
+        $sub_action = (isset($_REQUEST[self::request_sub_action])) ? $_REQUEST[self::request_sub_action] : self::action_default;
+        switch ($sub_action):
+          case self::action_admin_check_duplicates:
+            $result = $this->show(self::action_admin, $this->checkDuplicates());
+            break;
+          case self::action_admin_remove_duplicates:
+            $result = $this->show(self::action_admin, $this->removeDuplicates());
+            break;
+          case self::action_admin_delete_protocol_id:
+            $result = $this->show(self::action_protocol, $this->deleteProtocolID());
+            break;
+          case self::action_admin_check_unpublished_feedback:
+            $result = $this->show(self::action_admin, $this->checkUnpublishedFeedback());
+            break;
+          case self::action_admin_delete_unpublished:
+            $result = $this->show(self::action_admin, $this->deleteUnpublishedFeedback(false));
+            break;
+          case self::action_admin_delete_unpublished_kit:
+            $result = $this->show(self::action_admin, $this->deleteUnpublishedFeedback(true));
+            break;
+          case self::action_admin_select_export_form_data:
+            $result = $this->show(self::action_admin, $this->selectExportFormData());
+            break;
+          case self::action_admin_exec_export_form_data:
+            $result = $this->show(self::action_admin, $this->execExportFormData());
+            break;
+          default:
+            $result = $this->show(self::action_admin, $this->dlgAdmin());
+            break;
+        endswitch;
+        break;
       case self::action_list :
       default :
         $result = $this->show(self::action_list, $this->dlgFormList());
         break;
-    endswitch
-    ;
+    endswitch;
 
     echo $result;
   } // action
@@ -337,10 +389,8 @@ class formBackend {
   /**
    * Ausgabe des formatierten Ergebnis mit Navigationsleiste
    *
-   * @param $action -
-   *          aktives Navigationselement
-   * @param $content -
-   *          Inhalt
+   * @param $action - aktives Navigationselement
+   * @param $content - Inhalt
    * @return ECHO RESULT
    */
   protected function show($action, $content) {
@@ -348,6 +398,7 @@ class formBackend {
       self::action_list => $this->lang->translate('List'),
       self::action_edit => $this->lang->translate('Edit'),
       self::action_protocol => $this->lang->translate('Protocol'),
+      self::action_admin => $this->lang->translate('Admin'),
       self::action_about => $this->lang->translate('About')
     );
 
@@ -2347,9 +2398,14 @@ class formBackend {
     global $dbKITformData;
     global $kitContactInterface;
 
-    $message = '';
+    $message = $this->getMessage();
 
-    $SQL = sprintf("SELECT * FROM %s WHERE %s='%s' ORDER BY %s DESC LIMIT 100", $dbKITformData->getTableName(), dbKITformData::field_status, dbKITformData::status_active, dbKITformData::field_date);
+    $SQL = sprintf("SELECT * FROM %s WHERE %s='%s' ORDER BY %s DESC LIMIT %d",
+        $dbKITformData->getTableName(),
+        dbKITformData::field_status,
+        dbKITformData::status_active,
+        dbKITformData::field_date,
+        self::$protocol_limit);
     $items = array();
     if (!$dbKITformData->sqlExec($SQL, $items)) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $dbKITformData->getError()));
@@ -2395,6 +2451,7 @@ class formBackend {
     $data = array(
       'head' => $this->lang->translate('Protocol List'),
       'intro' => $this->isMessage() ? $this->getMessage() : $this->lang->translate('Protocol of the submitted forms.<br />Click at the <b>ID</b> or the submission date to get details of the submitted form.<br />Click at contact to switch to KeepInTouch (KIT) and get details of the contact.'),
+      'is_message' => $this->isMessage() ? 1 : 0,
       'header' => array(
         'id' => $this->lang->translate('th_id'),
         'form_name' => $this->lang->translate('th_form_name'),
@@ -2507,7 +2564,17 @@ class formBackend {
       'protocol' => $protocol,
       'contact' => $contact,
       'form' => $form,
-      'items' => $items
+      'items' => $items,
+      'link' => array(
+          'return' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_protocol
+              ))),
+          'delete' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_admin,
+              self::request_sub_action => self::action_admin_delete_protocol_id,
+              self::request_protocol_id => $protocol_id
+              )))
+          )
     );
     return $this->getTemplate('backend.protocol.detail.htt', $data);
   } // dlgProtocolItem()
@@ -2663,6 +2730,456 @@ class formBackend {
       return $this->dlgFormEdit();
     }
   } // importForm()
+
+  private function dlgAdmin() {
+    global $database;
+
+    $data = array(
+      'is_message' => $this->isMessage() ? 1 : 0,
+      'message' => $this->isMessage() ? $this->getMessage() : '',
+      'link' => array(
+          'check_duplicates' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_admin,
+              self::request_sub_action => self::action_admin_check_duplicates
+              ))),
+          'unpublished_feedback' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_admin,
+              self::request_sub_action => self::action_admin_check_unpublished_feedback
+              ))),
+          'select_export' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_admin,
+              self::request_sub_action => self::action_admin_select_export_form_data
+          ))),
+
+          ),
+    );
+    return $this->getTemplate('backend.admin.htt', $data);
+  } // dlgAdmin()
+
+  private function checkDuplicates() {
+    global $database;
+
+    $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` GROUP BY `data_date` HAVING COUNT(`data_date`) > 1";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    if ($query->numRows() < 1) {
+      // no duplicates, create message and return to the admin dialog
+      $this->setMessage($this->lang->translate('<p>Cannot detect any duplicate form data records!</p>'));
+      return $this->dlgAdmin();
+    }
+    $items = array();
+    while (false !== ($form = $query->fetchRow(MYSQL_ASSOC))) {
+      $SQL = "SELECT `contact_identifier` FROM `".self::$table_prefix."mod_kit_contact` WHERE `contact_id`='{$form['kit_id']}'";
+      if (null === ($identifier = $database->get_one($SQL, MYSQL_ASSOC))) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      $items[] = array(
+          'id' => $form['data_id'],
+          'date' => $form['data_date'],
+          'identifier' => $identifier,
+          'link' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+              self::request_action => self::action_protocol_id,
+              self::request_protocol_id => $form['data_id']
+              )))
+          );
+    }
+
+    $data = array(
+        'items' => $items,
+        'link' => array(
+            'remove_duplicates' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                self::request_action => self::action_admin,
+                self::request_sub_action => self::action_admin_remove_duplicates
+                ))),
+            'admin' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                self::request_action => self::action_admin
+                )))
+            )
+        );
+    return $this->getTemplate('backend.admin.check_duplicates.htt', $data);
+  } // checkDuplicates()
+
+  private function removeDuplicates() {
+    global $database;
+
+    // get field ID's for Feedbacks!
+    $SQL = "SELECT `field_id` FROM `".self::$table_prefix."mod_kit_form_fields` WHERE `field_name`='feedback_publish'";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    $feedback_publish = array();
+    while (false !== ($field = $query->fetchRow(MYSQL_ASSOC)))
+      $feedback_publish[] = $field['field_id'];
+
+    // get the duplicates
+    $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` GROUP BY `data_date` HAVING COUNT(`data_date`) > 1";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    $count = 0;
+    while (false !== ($form = $query->fetchRow(MYSQL_ASSOC))) {
+      $id = $form['data_id'];
+      // special case: if this is a feedback we have to check if a record is published and delete the other!
+      $fields = explode(',', $form['data_fields']);
+      foreach ($feedback_publish as $fb) {
+        if (in_array($fb, $fields)) {
+          // feedback form!
+          $parse = str_replace('&amp;', '&', $form['data_values']);
+          parse_str($parse, $values);
+          if ($values[$fb] == 1) {
+            // Problem: this feedback is activated - we must choose the other one!
+            $SQL = "SELECT `data_id` FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_date`='{$form['data_date']}' AND `data_id` != '$id' LIMIT 1";
+            if (null === ($id = $database->get_one($SQL, MYSQL_ASSOC))) {
+              $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+              return false;
+            }
+            break;
+          }
+        }
+      }
+      // first we delete the entry from the KIT protocol !!!
+      $SQL = "SELECT `protocol_id`, `protocol_memo` FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `contact_id`='{$form['kit_id']}'";
+      if (null === ($proto_query = $database->query($SQL))) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      $search = "/tool.php?tool=kit_form&act=pid&pid=".$id;
+      while (false !== ($protocol = $proto_query->fetchRow(MYSQL_ASSOC))) {
+        $memo = str_replace('&amp;', '&', $protocol['protocol_memo']);
+        if (false !== strpos($memo, $search)) {
+          // delete the KIT protocol entry
+          $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `protocol_id`='{$protocol['protocol_id']}'";
+          if (null === ($database->query($SQL))) {
+            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+            return false;
+          }
+        }
+      }
+      // delete duplicate from the mod_kit_form_data
+      $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_id`='$id'";
+      if (null === $database->query($SQL)) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      $count++;
+    }
+    $this->setMessage($this->lang->translate('<p>Deleted {{ count }} duplicate form data records!</p>', array('count' => $count)));
+    return $this->dlgAdmin();
+  } // removeDuplicates()
+
+  private function deleteProtocolID() {
+    global $database;
+
+    $protocol_id = (isset($_REQUEST[self::request_protocol_id])) ? (int) $_REQUEST[self::request_protocol_id] : -1;
+    if ($protocol_id < 1) {
+      $this->setMessage($this->lang->translate('<p>Invalid protocol ID!</p>'));
+      return $this->dlgProtocolList();
+    }
+
+    $SQL = "SELECT `kit_id` FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_id`='$protocol_id'";
+    if (null === ($kit_id = $database->get_one($SQL, MYSQL_ASSOC))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+
+    // first we delete the entry from the KIT protocol !!!
+    $SQL = "SELECT `protocol_id`, `protocol_memo` FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `contact_id`='$kit_id'";
+    if (null === ($proto_query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    $search = "/tool.php?tool=kit_form&act=pid&pid=".$protocol_id;
+    while (false !== ($protocol = $proto_query->fetchRow(MYSQL_ASSOC))) {
+      $memo = str_replace('&amp;', '&', $protocol['protocol_memo']);
+      if (false !== strpos($memo, $search)) {
+        // delete the KIT protocol entry
+        $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `protocol_id`='$protocol_id'";
+        if (null === ($database->query($SQL))) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+          return false;
+        }
+      }
+    }
+
+    // delete the form data record
+    $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_id`='$protocol_id'";
+    if (null === $database->query($SQL)) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+
+    $this->setMessage($this->lang->translate('<p>Delete the form data record <b>{{ id }}</b>.</p>', array('id' => $protocol_id)));
+    return $this->dlgProtocolList();
+  } // deleteProtocolID()
+
+  private function checkUnpublishedFeedback() {
+    global $database;
+
+    unset($_SESSION['UNPUBLISHED_FEEDBACK']);
+
+    // get field ID's for Feedbacks!
+    $SQL = "SELECT `field_id` FROM `".self::$table_prefix."mod_kit_form_fields` WHERE `field_name`='feedback_publish'";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    $feedback_publish = array();
+    while (false !== ($field = $query->fetchRow(MYSQL_ASSOC)))
+      $feedback_publish[] = $field['field_id'];
+
+    $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_status`='1'";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    $feedbacks = array();
+    $items = array();
+    while (false !== ($form = $query->fetchRow(MYSQL_ASSOC))) {
+      $fields = explode(',', $form['data_fields']);
+      foreach ($feedback_publish as $fb) {
+        if (in_array($fb, $fields)) {
+          // this is a feedback
+          $parse = str_replace('&amp;', '&', $form['data_values']);
+          parse_str($parse, $values);
+          if ($values[$fb] != 1) {
+            // this is a unpublished feedback!
+            $feedbacks[$form['data_id']] = $form;
+            // get the contact identifier
+            $SQL = "SELECT `contact_identifier` FROM `".self::$table_prefix."mod_kit_contact` WHERE `contact_id`='{$form['kit_id']}'";
+            if (null === ($identifier = $database->get_one($SQL, MYSQL_ASSOC))) {
+              $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+              return false;
+            }
+            $items[$form['data_id']] = array(
+                'id' => $form['data_id'],
+                'date' => $form['data_date'],
+                'identifier' => $identifier,
+                'link' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                    self::request_action => self::action_protocol_id,
+                    self::request_protocol_id => $form['data_id']
+                    )))
+            );
+          }
+        }
+      }
+    }
+    // check how many feedbacks are to process
+
+    if (count($feedbacks) < 1) {
+      // nothing to do, return to the admin dialog
+      $this->setMessage($this->lang->translate('<p>There are no unpublished feedback form data to process!</p>'));
+      return $this->dlgAdmin();
+    }
+
+    $_SESSION['UNPUBLISHED_FEEDBACK'] = $feedbacks;
+    $data = array(
+        'items' => $items,
+        'link' => array(
+            'delete_unpublished' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                self::request_action => self::action_admin,
+                self::request_sub_action => self::action_admin_delete_unpublished
+            ))),
+            'delete_unpublished_kit' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                self::request_action => self::action_admin,
+                self::request_sub_action => self::action_admin_delete_unpublished_kit
+            ))),
+            'admin' => sprintf('%s&%s', $this->page_link, http_build_query(array(
+                self::request_action => self::action_admin
+            )))
+        )
+    );
+    return $this->getTemplate('backend.admin.unpublished_feedback.htt', $data);
+  } // checkUnpublishedFeedback()
+
+  private function deleteUnpublishedFeedback($delete_kit = false) {
+    global $database;
+
+    $feedbacks = $_SESSION['UNPUBLISHED_FEEDBACK'];
+
+    foreach ($feedbacks as $form) {
+      // first we delete the entry from the KIT protocol !!!
+      $SQL = "SELECT `protocol_id`, `protocol_memo` FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `contact_id`='{$form['kit_id']}'";
+      if (null === ($proto_query = $database->query($SQL))) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      $search = "/tool.php?tool=kit_form&act=pid&pid=".$form['data_id'];
+      while (false !== ($protocol = $proto_query->fetchRow(MYSQL_ASSOC))) {
+        $memo = str_replace('&amp;', '&', $protocol['protocol_memo']);
+        if (false !== strpos($memo, $search)) {
+          // delete the KIT protocol entry
+          $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_contact_protocol` WHERE `protocol_id`='{$protocol['protocol_id']}'";
+          if (null === ($database->query($SQL))) {
+            $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+            return false;
+          }
+        }
+      }
+      // delete the feedback from the mod_kit_form_data
+      $SQL = "DELETE FROM `".self::$table_prefix."mod_kit_form_data` WHERE `data_id`='{$form['data_id']}'";
+      if (null === $database->query($SQL)) {
+        $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+        return false;
+      }
+      if ($delete_kit) {
+        // delete also the associated KIT ID
+        $SQL = "UPDATE `".self::$table_prefix."mod_kit_contact` SET `contact_status`='statusDeleted' WHERE `contact_id`='{$form['kit_id']}'";
+        if (null === ($database->query($SQL))) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+          return false;
+        }
+      }
+    }
+    unset($_SESSION['UNPUBLISHED_FEEDBACK']);
+    if ($delete_kit)
+      $this->setMessage($this->lang->translate('<p>Deleted {{ count }} feedback records and the associated KIT ID\'s.</p>',
+          array('count' => count($feedbacks))));
+    else
+      $this->setMessage($this->lang->translate('<p>Deleted {{ count }} feedback records.</p>',
+          array('count' => count($feedbacks))));
+    return $this->dlgAdmin();
+  } // deleteUnpublishedFeedback()
+
+  private function selectExportFormData() {
+    global $database;
+
+    $SQL = "SELECT `form_id`, `form_name`, `form_title` FROM `".self::$table_prefix."mod_kit_form` WHERE `form_status`='1' ORDER BY `form_name` ASC";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+
+    $items = array();
+
+    while (false !== ($form = $query->fetchRow(MYSQL_ASSOC))) {
+      $items[] = array(
+          'id' => $form['form_id'],
+          'name' => $form['form_name'],
+          'title' => $form['form_title']
+          );
+    }
+
+    $data = array(
+        'form' => array(
+            'action' => array(
+                'link' => $this->page_link,
+                'name' => self::request_action,
+                'value' => self::action_admin
+                ),
+            'sub_action' => array(
+                'name' => self::request_sub_action,
+                'value' => self::action_admin_exec_export_form_data
+                ),
+            'form' => array(
+                'name' => 'form_id',
+                'values' => $items
+                )
+            )
+        );
+    return $this->getTemplate('backend.admin.select_export.htt', $data);
+  } // checkExportFormData()
+
+  private function execExportFormData() {
+    global $database;
+    global $kitContactInterface;
+
+    $form_id = (isset($_REQUEST['form_id'])) ? (int) $_REQUEST['form_id'] : -1;
+
+    if ($form_id < 1) {
+      $this->setMessage($this->lang->translate('<p>No valid form ID submitted!</p>'));
+      return $this->dlgAdmin();
+    }
+
+    $SQL = "SELECT `form_id`, `form_name`, `form_title`, `form_desc`, `form_fields` FROM `".self::$table_prefix."mod_kit_form` WHERE `form_id`='$form_id'";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    if ($query->numRows() < 1) {
+      $this->setMessage($this->lang->translate('<p>No valid form ID submitted!</p>'));
+      return $this->dlgAdmin();
+    }
+    // get the form basic data
+    $form_data = $query->fetchRow(MYSQL_ASSOC);
+    $form_fields = explode(',', $form_data['form_fields']);
+
+    $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` WHERE `form_id`='$form_id' ORDER BY `data_timestamp` ASC";
+    if (null === ($query = $database->query($SQL))) {
+      $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+      return false;
+    }
+    if ($query->numRows() < 1) {
+      // no submitted data for this form!
+      $this->setMessage($this->lang->translate('<p>There exists no submitted data for the form with the ID {{ id }}.</p>',
+          array('id' => $form_id)));
+      return $this->dlgAdmin();
+    }
+
+    // array for the csv rows
+    $lines = array();
+
+    // add the first line with the field names
+    $cols = array();
+    foreach ($form_fields as $field_id) {
+      if ($field_id < 200) {
+        // KIT contact field
+        $cols[] = array_search($field_id, $kitContactInterface->index_array);
+      }
+      else {
+        // kitForm field
+        $SQL = "SELECT `field_name` FROM `".self::$table_prefix."mod_kit_form_fields` WHERE `field_id`='$field_id'";
+        if (null === ($field_name = $database->get_one($SQL, MYSQL_ASSOC))) {
+          $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
+          return false;
+        }
+        $cols[] = $field_name;
+      }
+    }
+    $lines[] = $cols;
+
+    while (false !== ($data = $query->fetchRow(MYSQL_ASSOC))) {
+      // loop through the submitted data
+      $cols = array();
+      $contact = array();
+      $kitContactInterface->getContact($data['kit_id'], $contact, true);
+      // parse the submitted values
+      $parse = str_replace('&amp;', '&', $data['data_values']);
+      parse_str($parse, $values);
+      foreach ($form_fields as $field_id) {
+        if ($field_id < 200) {
+          // KIT contact field
+          $field_name = array_search($field_id, $kitContactInterface->index_array);
+          $cols[] = utf8_decode($contact[$field_name]);
+        }
+        else {
+          // submitted values
+          if (is_array($values[$field_id]))
+            $cols[] = utf8_decode(implode('|', $values[$field_id]));
+          else
+            $cols[] = utf8_decode($values[$field_id]);
+        }
+      }
+      $lines[] = $cols;
+    }
+
+    // write the CSV file
+    $path = WB_PATH.MEDIA_DIRECTORY.'/'.date('Ymd_His').'_kit_form_export.csv';
+    $url = WB_URL.MEDIA_DIRECTORY.'/'.date('Ymd_His').'_kit_form_export.csv';
+    $fp = fopen($path, 'w');
+    foreach ($lines as $line)
+      fputcsv($fp, $line, ';', '"');
+    fclose($fp);
+
+    $this->setMessage($this->lang->translate('<p>Exported {{ count }} form data records as CSV file.</p><p>Please download the CSV file <a href="{{ download }}">{{ file }}</a>.</p>',
+        array('count' => count($lines), 'download' => $url, 'file' => basename($path))));
+    return $this->dlgAdmin();
+  } // execExportFormData()
+
 } // class formBackend
 
 ?>
