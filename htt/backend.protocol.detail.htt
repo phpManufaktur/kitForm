@@ -23,6 +23,10 @@
      </colgroup>
      <tr>
        <td></td>
+       <td style="text-align: right;"><a href="{$link.delete}">[ {translate('Delete')} ]</a></td>
+     </tr>
+     <tr>
+       <td></td>
        <td>
          <a href="{$contact.link}">{string_format($contact.id, '%03d')}</a><br /><br />
          {$contact.kit_first_name} {$contact.kit_last_name}<br />
@@ -42,4 +46,5 @@
      </tr>
      {/foreach}
    </table>
+   <p><a href="{$link.return}">{translate('Return ...')}</a></p>
  </div>
