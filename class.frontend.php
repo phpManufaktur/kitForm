@@ -137,6 +137,8 @@ class formFrontend {
       'html',
       'shtml');
 
+  protected static $table_prefix = TABLE_PREFIX;
+
   /**
    * Constructor for kitForm
    */
@@ -151,6 +153,12 @@ class formFrontend {
     $this->img_url = WB_URL.'/modules/'.basename(dirname(__FILE__)).'/images/';
     date_default_timezone_set(cfg_time_zone);
     $this->lang = $I18n;
+    // use another table prefix or change protocol limit?
+    if (file_exists(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
+      $config = json_decode(file_get_contents(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
+      if (isset($config['table_prefix']))
+        self::$table_prefix = $config['table_prefix'];
+    }
   } // __construct()
 
 
@@ -168,7 +176,7 @@ class formFrontend {
     require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/precheck.php');
 
     if (isset($PRECHECK['KIT']['kit'])) {
-      $table = TABLE_PREFIX.'addons';
+      $table = self::$table_prefix.'addons';
       $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit'", MYSQL_ASSOC);
       if (!version_compare($version, $PRECHECK['KIT']['kit']['VERSION'], $PRECHECK['KIT']['kit']['OPERATOR'])) {
         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
@@ -180,7 +188,7 @@ class formFrontend {
     if (file_exists(WB_PATH.'/modules/kit_dirlist/info.php')) {
       // check only if kitDirList is installed
       if (isset($PRECHECK['KIT']['kit_dirlist'])) {
-        $table = TABLE_PREFIX.'addons';
+        $table = self::$table_prefix.'addons';
         $version = $database->get_one("SELECT `version` FROM $table WHERE `directory`='kit_dirlist'", MYSQL_ASSOC);
         if (!version_compare($version, $PRECHECK['KIT']['kit_dirlist']['VERSION'], $PRECHECK['KIT']['kit_dirlist']['OPERATOR'])) {
           $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__,
@@ -458,7 +466,7 @@ class formFrontend {
 
     if (isset($_GET[self::REQUEST_SPECIAL_LINK]) || isset($_SESSION[self::SESSION_SPECIAL_LINK])) {
       $guid = (isset($_GET[self::REQUEST_SPECIAL_LINK])) ? $_GET[self::REQUEST_SPECIAL_LINK] : $_SESSION[self::SESSION_SPECIAL_LINK];
-      $SQL = "SELECT * FROM `".TABLE_PREFIX."mod_kit_links` WHERE `guid`='$guid'";
+      $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_links` WHERE `guid`='$guid'";
       $query = $database->query($SQL);
       if ($database->is_error()) {
         $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
@@ -473,7 +481,7 @@ class formFrontend {
             $this->setMessage($this->lang->translate('<p>The link <b>{{ guid }}</b> was already used and is no longer valid! Please contact the support.</p>', array('guid' => $guid)));
             return false;
           }
-          $SQL = "SELECT `contact_email`, `contact_email_standard` FROM `".TABLE_PREFIX."mod_kit_contact` WHERE `contact_id`='{$link['kit_id']}'";
+          $SQL = "SELECT `contact_email`, `contact_email_standard` FROM `".self::$table_prefix."mod_kit_contact` WHERE `contact_id`='{$link['kit_id']}'";
           $query = $database->query($SQL);
           if ($database->is_error()) {
             $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
@@ -510,7 +518,7 @@ class formFrontend {
     if (!isset($_SESSION[self::SESSION_SPECIAL_LINK]))
       return false;
 
-    $SQL = "SELECT * FROM `".TABLE_PREFIX."mod_kit_links` WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+    $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_links` WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
     $query = $database->query($SQL);
     if ($database->is_error()) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
@@ -521,10 +529,10 @@ class formFrontend {
       $count = $link['count']+1;
       $last_call = date('Y-m-d H:i:s');
       if ($link['option'] == 'THROW-AWAY') {
-        $SQL = "UPDATE `".TABLE_PREFIX."mod_kit_links` SET `status`='LOCKED', `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+        $SQL = "UPDATE `".self::$table_prefix."mod_kit_links` SET `status`='LOCKED', `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
       }
       else {
-        $SQL = "UPDATE `".TABLE_PREFIX."mod_kit_links` SET `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
+        $SQL = "UPDATE `".self::$table_prefix."mod_kit_links` SET `count`='$count', `last_call`='$last_call' WHERE `guid`='{$_SESSION[self::SESSION_SPECIAL_LINK]}'";
       }
       $query = $database->query($SQL);
       if ($database->is_error()) {
@@ -3362,7 +3370,7 @@ class formFrontend {
   protected function authenticate_wb_user($username, $password) {
     global $database;
     global $wb;
-    $query = sprintf("SELECT * FROM %susers WHERE username='%s' AND password='%s' AND active = '1'", TABLE_PREFIX, $username, $password);
+    $query = sprintf("SELECT * FROM %susers WHERE username='%s' AND password='%s' AND active = '1'", self::$table_prefix, $username, $password);
     $results = $database->query($query);
     if ($database->is_error()) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $database->get_error()));
