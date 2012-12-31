@@ -1,0 +1,37 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
+ * @link http://phpmanufaktur.de
+ * @copyright 2011 - 2013
+ * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *}
+<div class="form_admin">
+  <h2>{translate('Admin functions')}</h2>
+  {if $is_message == 1}
+    <div class="message">{$message}</div>
+  {else}
+    <div class="intro">{translate('<p>kitForm provide you with some administrative functions for data handling.</p>')}</div>
+  {/if}
+  <ul>
+    <li>
+      <p><a href="{$link.check_duplicates}">{translate('Remove duplicate submitted form data')}</a><br />
+      {translate('Sometimes it could happen that form data are submitted twice, this function try to find them.')}</p>
+    </li>
+    <li>
+      <p><a href="{$link.unpublished_feedback}">{translate('Search for unpublished feedbacks')}</a><br />
+      {translate('Assume that unpublished feedbacks are SPAM. This function select them and let you delete the form data and additional delete also the associated KIT ID\'s')}</p>
+    </li>
+    <li>
+      <p><a href="{$link.select_export}">{translate('Export form data')}</a><br />
+      {translate('Export the submitted form data for a specific form in CSV format')}</p>
+    </li>
+  </ul>
+</div>

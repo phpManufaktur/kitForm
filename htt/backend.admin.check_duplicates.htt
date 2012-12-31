@@ -1,0 +1,28 @@
+{*
+ * kitForm
+ *
+ * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
+ * @link http://phpmanufaktur.de
+ * @copyright 2011 - 2013
+ * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
+ *
+ * Please consult the Dwoo Documentation & WIKI to get further informations 
+ * and hints for the usage of the Dwoo template engine.
+ *
+ * @link http://wiki.dwoo.org/
+ *
+ * Use {dump()} to get a list of all in this template available variables!
+ *}
+<div class="form_admin">
+  <h2>{translate('Duplicate data records')}</h2>
+  <div class="intro">
+    {translate('<p>The following data records exists twice and can be deleted.</p>')}
+  </div>
+  {foreach $items item}
+  <div class="duplicate_item">
+    <a href="{$item.link}">{string_format($item.id, '%05d')}</a> - {$item.date} - <i>{$item.identifier}</i>
+  </div>
+  {/foreach}
+  <p><a href="{$link.remove_duplicates}">{translate('Delete these records!')}</a></p>
+  <p><a href="{$link.admin}">{translate('Return ...')}</a></p>
+</div>
