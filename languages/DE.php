@@ -41,6 +41,8 @@ $LANG = array(
       => '- keine Aktion -',
   '- not assigned -'
       => '- nicht zugeordnet -',
+  '- please select -'
+    => '- bitte auswählen -',
   '- select country -'
       => '- Land auswählen -',
   '- select datafield -'
@@ -70,8 +72,14 @@ $LANG = array(
       => 'Benutzerkonto',
   'Active'
       => 'Aktiv',
+  'Admin'
+    => 'Verwaltung',
+  'Admin functions'
+    => 'Administrative Funktionen',
   'Allowed filetypes'
       => 'Erlaubte Dateitypen',
+  'Assume that unpublished feedbacks are SPAM. This function select them and let you delete the form data and additional delete also the associated KIT ID\'s'
+    => 'Angenommen wird, dass nicht veröffentlichte Feedbacks SPAM sind. Diese Funktion wählt diese Feedbacks aus und ermöglicht es Ihnen die Formulardaten zu löschen und darüber hinaus auch die zugeordnenten KIT ID\'s',
 
   'Can\'t create the .htaccess file!'
       => 'Die .htaccess Datei konnte nicht erzeugt werden!',
@@ -85,6 +93,8 @@ $LANG = array(
       => 'Die E-Mail an <b>{{ email }}</b> konnte nicht versendet werden!',
   'Change password'
     => 'Passwort ändern',
+  '<p>Cannot detect any duplicate form data records!</p>'
+    => '<p>Konnte keine doppelten Formular Datensätze feststellen!</p>',
   'Chars'
     => 'Zeichen',
   'Checkbox'
@@ -94,6 +104,14 @@ $LANG = array(
       => 'Datum',
   'Delayed execution'
       => 'Übermittlung verzögern',
+  'Delete'
+      => 'Löschen',
+  'Delete the feedback data records!'
+    => 'Vorsicht! Feedback Datensätze löschen!',
+  'Delete the feedback data records and the associated KIT ID\'s!'
+    => 'Vorsicht! Feedback Datensätze sowie die zugeordneten KIT ID\'s löschen!',
+  '<p>Delete the form data record <b>{{ id }}</b>.</p>'
+    => 'Der Formular Datensatz <b>{{ id }}</b> wurde gelöscht!</p>',
   'Deleted'
       => 'Gelöscht',
   'Details of the submitted form'
@@ -123,6 +141,12 @@ $LANG = array(
       => 'Das Template {{ template }} wurde in keinem der möglichen Pfade gefunden!',
   'Error writing the file <b>{{ file }}</b>.'
       => 'Fehler beim Schreiben der Datei <b>{{ file }}</b>.',
+  'Export form data'
+    => 'Exportiere Formulardaten',
+  'Export the submitted form data for a specific form in CSV format'
+    => 'Exportiert übermittelte Formulardaten für ein spezifisches Formular im CSV Format (für Excel etc.)',
+  '<p>Exported {{ count }} form data records as CSV file.</p><p>Please download the CSV file <a href="{{ download }}">{{ file }}</a>.</p>'
+    => '<p>Es wurden {{ count }} Formular Datensätze als CSV Datei exportiert.</p><p>Bitte laden Sie sich die CSV Datei <a href="{{ download }}">{{ file }}</a> herunter.</p>',
 
   'File upload'
       => 'Datenübertragung',
@@ -277,6 +301,8 @@ $LANG = array(
 
   'kitForm can\'t determine the URL of the calling page.'
       => 'kitForm konnte die URL der aufrufenden Seite nicht ermitteln!',
+  '<p>kitForm provide you with some administrative functions for data handling.</p>'
+    => '<p>kitForm unterstützt Sie bei der Datenpflege mit administrativen Funktionen.</p>',
 
   'label_count_chars'
     => 'Zeichen zählen',
@@ -362,6 +388,9 @@ $LANG = array(
   'Move item up'
       => 'Element nach oben schieben',
 
+  '<p>No valid form ID submitted!</p>'
+    => '<p>Es wurde keine gültige Formular ID übermittelt!</p>',
+
   'Off'
       => 'Ausgeschaltet',
   'OK'
@@ -385,6 +414,8 @@ $LANG = array(
       => '<p>Bitte wählen Sie ein Datenfeld aus <b>und</b> geben Sie einen Titel für das neue Datenfeld an.</p>',
   '<p>Please select a service provider for this form!</p>'
       => '<p>Sie haben noch keinen E-Mail Dienstleister für dieses Formular ausgewählt!</p>',
+  '<p>Please select the form for which you want to export the submitted data.</p>'
+    => '<p>Bitte wählen Sie das Formular aus, zu dem Sie die übermittelten Daten exportieren möchten.</p>',
   '<p>Please start the file upload for the GUID <b>{{ guid }}</b>.</p>'
     => '<p>Bitte starten Sie die Datenübertragung für die GUID <b>{{ guid }}</b>.</p>',
   '<p>Please type in the birthday like <b>{{ date_str }}</b>.</p>'
@@ -404,17 +435,29 @@ $LANG = array(
       => 'Radiobutton',
   'Register'
       => 'Registrierung',
+  'Remove duplicate submitted form data'
+    => 'Entferne doppelt übermittelte Formular Einträge',
+  'Return ...'
+    => 'Zurück ...',
 
   'Save the form and submit it later'
       => 'Formular speichern und Daten noch nicht übermitteln',
+  'Search for unpublished feedbacks'
+    => 'Suche nach nicht veröffentlichten Feedbacks',
   'Select File'
       => 'Datei auswählen',
+  'Select form'
+    => 'Formular auswählen',
   'Select a form to get details and editing.<br />To create a new form please select the tab "Edit".'
       => '<p>Wählen Sie das gewünschte Formular zum Bearbeiten aus.</p><p>Um ein neues Formular zu erstellen wählen Sie direkt den Reiter "Bearbeiten".</p>',
+  'Select the form'
+    => 'Formular auswählen',
   'Select the KeepInTouch (KIT) contact fields you wish to use with this form.'
       => '<p>Wählen Sie die Kontaktfelder aus KeepInTouch (KIT) aus, die im Formular verwendet werden sollen.</p>',
   'Selection list'
       => 'Auswahlliste',
+  'Sometimes it could happen that form data are submitted twice, this function try to find them.'
+    => 'Gelegentlich kommt es vor, dass Formulardaten doppelt übermittelt werden. Diese Funktion versucht diese zu finden und kann sie löschen.',
   'Subscribe/unsubribe Newsletter'
       => 'Newsletter An-/Abmeldung',
   '<p>System does not allow uploads greater than <b>{{ max_filesize }} MB</b>. Please contact your webmaster to increase this value.</p>'
@@ -516,6 +559,8 @@ $LANG = array(
       => '<p>Die Datei <b>{{ file }}</b> wurde übertragen.</p>',
   '<p>The file <b>{{ file }}</b> was uploaded partial.</p>'
       => '<p>Die Datei <b>{{ file }}</b> wurde nur teilweise hochgeladen.</p>',
+  '<p>The following feedback data records are not published.</p><p>If you are shure that ONLY SPAM submissions are unpublished, you may delete the form data and also the assosiated KIT ID\'s.</p>'
+    => '<p>Die folgenden Feedback Formulardaten wurden noch nicht veröffentlicht.</p><p>Wenn Sie sicher sind, dass es sich bei diesen Datensätzen um SPAM handelt, können Sie diese löschen und darüber hinaus auch die zugeordneten KIT ID\'s.</p>',
   '<p>The form name <b>{{ name }}</b> is already in use, the import of <b>{{ file }}</b> was aborted.</p>'
       => '<p>Der Formular Bezeichner <b>{{ name }}</b> wird bereits verwendet, der Import der Datei <b>{{ file }}</b> wurde abgebrochen.</p>',
   'The form {{ name }} was successfull imported.\n'
@@ -560,6 +605,8 @@ $LANG = array(
       => 'Die hochgeladene Datei überschreitet die in dem HTML Formular mittels der Anweisung MAX_FILE_SIZE angegebene maximale Dateigröße.',
   '<p>The user account was updated.</p>'
       => '<p>Das Benutzerkonto wurde aktualisiert.</p>',
+  '<p>There are no unpublished feedback form data to process!</p>'
+      => '<p>Es wurden keine unveröffentlichten Feedback Formulardaten ermittelt.</p>',
   '<p>There was no file for import!</p>'
       => '<p>Es wurde keine Datei importiert!</p>',
   'Text'
@@ -578,6 +625,8 @@ $LANG = array(
       => 'Übertragungsmodus',
   '<p>Unknown upload method: <b>{{ method }}</b>, allowed methods are <i>standard</i> or <i>uploadify</i>.</p>'
       => 'Unbekannte Upload Methode: <b>{{ method }}</b>, erlaubte Methoden sind <i>standard</i> oder <i>uploadify</i>.</p>',
+  'Unpublished feedback data records'
+    => 'Nicht veröffentlichte Feedback Formulardaten',
   '<p>Unspecified error, no description available.</p>'
       => '<p>Während der Datenübertragung ist ein nicht näher beschriebener Fehler aufgetreteten.</p>',
   'Unsubscribe Feedback'
