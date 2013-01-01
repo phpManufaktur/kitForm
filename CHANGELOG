@@ -6,7 +6,7 @@ http://phpmanufaktur.de
 
 Release 0.41 - NOT PUBLISHED
 
-* added: admin functions to remove duplicate submitted forms
+* added: admin function to remove duplicate submitted forms
 * added: delete form data record in protocol detail view
 * added: use protocol_limit in the config.json to change the item limit in the
   protocol list, see also <http://yals.de/OQRv0Y> for more informations

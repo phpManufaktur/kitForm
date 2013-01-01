@@ -3107,6 +3107,10 @@ class formBackend {
     // get the form basic data
     $form_data = $query->fetchRow(MYSQL_ASSOC);
     $form_fields = explode(',', $form_data['form_fields']);
+    // add pseudo field numbers for data_id, form_id, kit_id and data_date
+    $form_fields = array_merge($form_fields, array(-1,-2,-3,-4));
+    // sort the field numbers
+    sort($form_fields, SORT_NUMERIC);
 
     $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` WHERE `form_id`='$form_id' ORDER BY `data_timestamp` ASC";
     if (null === ($query = $database->query($SQL))) {
@@ -3126,7 +3130,15 @@ class formBackend {
     // add the first line with the field names
     $cols = array();
     foreach ($form_fields as $field_id) {
-      if ($field_id < 200) {
+      if ($field_id < 0) {
+        switch ($field_id):
+          case -4: $cols[] = 'data_id'; break;
+          case -3: $cols[] = 'form_id'; break;
+          case -2: $cols[] = 'kit_id'; break;
+          case -1: $cols[] = 'data_date'; break;
+        endswitch;
+      }
+      elseif ($field_id < 200) {
         // KIT contact field
         $cols[] = array_search($field_id, $kitContactInterface->index_array);
       }
@@ -3151,7 +3163,15 @@ class formBackend {
       $parse = str_replace('&amp;', '&', $data['data_values']);
       parse_str($parse, $values);
       foreach ($form_fields as $field_id) {
-        if ($field_id < 200) {
+        if ($field_id < 0) {
+          switch ($field_id):
+            case -4: $cols[] = $data['data_id']; break;
+            case -3: $cols[] = $data['form_id']; break;
+            case -2: $cols[] = $data['kit_id']; break;
+            case -1: $cols[] = $data['data_date']; break;
+          endswitch;
+        }
+        elseif ($field_id < 200) {
           // KIT contact field
           $field_name = array_search($field_id, $kitContactInterface->index_array);
           $cols[] = utf8_decode($contact[$field_name]);
