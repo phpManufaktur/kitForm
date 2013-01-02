@@ -112,10 +112,20 @@ $LANG = array(
     => 'Vorsicht! Feedback Datensätze sowie die zugeordneten KIT ID\'s löschen!',
   '<p>Delete the form data record <b>{{ id }}</b>.</p>'
     => 'Der Formular Datensatz <b>{{ id }}</b> wurde gelöscht!</p>',
+  'Delete these records!'
+    => 'Diese Datensätze löschen!',
   'Deleted'
       => 'Gelöscht',
+  '<p>Deleted {{ count }} duplicate form data records!</p>'
+    => '<p>Es wurden {{ count }} doppelte Datensätze gelöscht!</p>',
+  '<p>Deleted {{ count }} feedback records.</p>'
+    => '<p>Es wurden {{ count }} Feedback Datensätze gelöscht.</p>',
+  '<p>Deleted {{ count }} feedback records and the associated KIT ID\'s.</p>'
+    => '<p>Es wurden {{ count }} Feedback Datensätze sowie die zugeordneten KeepInTouch (KIT) ID\'s gelöscht.</p>',
   'Details of the submitted form'
       => 'Details zu dem abgesendeten Formular',
+  'Duplicate data records'
+    => 'Doppelte Datensätze',
 
   'Edit'
       => 'Bearbeiten',
@@ -519,6 +529,8 @@ $LANG = array(
       => '<p>Die Definition des neuen Auswahlliste ist nicht vollständig, bitte geben Sie einen <b>Wert</b> und einen <b>Text</b> für die Liste an!</p>',
   'The droplets for kitForm were successfully installed.\n'
       => 'Die Droplets für kitForm wurden erfolgreich installiert.\n',
+  '<p>The following data records exists twice and can be deleted.</p>'
+    => '<p>Die aufgelisteten Datensätze existieren mehrfach und können ohne Datenverlust gelöscht werden.</p>',
   '<p>The email address and the retyped email address does not match!</p>'
       => '<p>Die E-Mail Adresse und die Wiederholung der E-Mail Adresse stimmen nicht überein!</p>',
   '<p>The email address <b>{{ email }}</b> is already registered, please login with your user data!</p>'
@@ -607,6 +619,8 @@ $LANG = array(
       => '<p>Das Benutzerkonto wurde aktualisiert.</p>',
   '<p>There are no unpublished feedback form data to process!</p>'
       => '<p>Es wurden keine unveröffentlichten Feedback Formulardaten ermittelt.</p>',
+  '<p>There exists no submitted data for the form with the ID {{ id }}.</p>'
+    => '<p>Für das Formular mit der ID {{ id }} wurden noch keine Daten übermittelt.</p>',
   '<p>There was no file for import!</p>'
       => '<p>Es wurde keine Datei importiert!</p>',
   'Text'
