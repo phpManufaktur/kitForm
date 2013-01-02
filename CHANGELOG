@@ -2,9 +2,9 @@
 
 Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
-(c) 2011-2012 - phpManufaktur by Ralf Hertsch
+(c) 2011-2013 - phpManufaktur by Ralf Hertsch
 
-Release 0.41 - NOT PUBLISHED
+Release 0.41 - 2013-01-03
 
 * added: admin function to remove duplicate submitted forms
 * added: delete form data record in protocol detail view
