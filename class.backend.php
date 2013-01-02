@@ -5,7 +5,7 @@
  *
  * @author Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
  * @link http://phpmanufaktur.de
- * @copyright 2011 - 2012
+ * @copyright 2011 - 2013
  * @license MIT License (MIT) http://www.opensource.org/licenses/MIT
  */
 
@@ -2731,6 +2731,12 @@ class formBackend {
     }
   } // importForm()
 
+  /**
+   * The main dialog for administrative operations within kitForm.
+   * Show a list to select specific actions
+   *
+   * @return Ambigous <boolean, string, mixed>
+   */
   private function dlgAdmin() {
     global $database;
 
@@ -2756,6 +2762,11 @@ class formBackend {
     return $this->getTemplate('backend.admin.htt', $data);
   } // dlgAdmin()
 
+  /**
+   * Admin function to detect duplicate submitted records within the table mod_kit_form_data
+   *
+   * @return Ambigous <boolean, string, mixed>
+   */
   private function checkDuplicates() {
     global $database;
 
@@ -2802,6 +2813,11 @@ class formBackend {
     return $this->getTemplate('backend.admin.check_duplicates.htt', $data);
   } // checkDuplicates()
 
+  /**
+   * Admin function which removes duplicate records from the table mod_kit_form_data
+   *
+   * @return boolean|Ambigous <Ambigous, boolean, string, mixed>
+   */
   private function removeDuplicates() {
     global $database;
 
@@ -2872,6 +2888,11 @@ class formBackend {
     return $this->dlgAdmin();
   } // removeDuplicates()
 
+  /**
+   * Admin function to delete a specific protocol ID from table mod_kit_form_data
+   *
+   * @return Ambigous <string, boolean, mixed>|boolean
+   */
   private function deleteProtocolID() {
     global $database;
 
@@ -2917,6 +2938,11 @@ class formBackend {
     return $this->dlgProtocolList();
   } // deleteProtocolID()
 
+  /**
+   * Admin function to check the table mod_kit_form_data for unpublished feedbacks
+   *
+   * @return boolean|Ambigous <Ambigous, boolean, string, mixed>|Ambigous <boolean, string, mixed>
+   */
   private function checkUnpublishedFeedback() {
     global $database;
 
@@ -2996,6 +3022,12 @@ class formBackend {
     return $this->getTemplate('backend.admin.unpublished_feedback.htt', $data);
   } // checkUnpublishedFeedback()
 
+  /**
+   * Admin function to delete unpublished feedbacks from table mod_kit_form_data
+   *
+   * @param boolean $delete_kit if true delete also the associated KIT record (attention!)
+   * @return boolean|Ambigous <Ambigous, boolean, string, mixed>
+   */
   private function deleteUnpublishedFeedback($delete_kit = false) {
     global $database;
 
@@ -3045,6 +3077,11 @@ class formBackend {
     return $this->dlgAdmin();
   } // deleteUnpublishedFeedback()
 
+  /**
+   * Admin function to select submitted kitForm data for CSV export
+   *
+   * @return boolean|Ambigous <Ambigous, boolean, string, mixed>
+   */
   private function selectExportFormData() {
     global $database;
 
@@ -3084,6 +3121,11 @@ class formBackend {
     return $this->getTemplate('backend.admin.select_export.htt', $data);
   } // checkExportFormData()
 
+  /**
+   * Execute a CSV export for the selected kitForm data
+   *
+   * @return Ambigous <Ambigous, boolean, string, mixed>|boolean
+   */
   private function execExportFormData() {
     global $database;
     global $kitContactInterface;
