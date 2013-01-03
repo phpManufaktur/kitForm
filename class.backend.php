@@ -3216,14 +3216,17 @@ class formBackend {
         elseif ($field_id < 200) {
           // KIT contact field
           $field_name = array_search($field_id, $kitContactInterface->index_array);
-          $cols[] = utf8_decode($contact[$field_name]);
+          $cols[] = (isset($contact[$field_name])) ? utf8_decode($contact[$field_name]) : '';
         }
-        else {
+        elseif (isset($values[$field_id])) {
           // submitted values
           if (is_array($values[$field_id]))
             $cols[] = utf8_decode(implode('|', $values[$field_id]));
           else
             $cols[] = utf8_decode($values[$field_id]);
+        }
+        else {
+          $cols[] = '';
         }
       }
       $lines[] = $cols;
