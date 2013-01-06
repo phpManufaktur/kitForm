@@ -3148,11 +3148,20 @@ class formBackend {
     }
     // get the form basic data
     $form_data = $query->fetchRow(MYSQL_ASSOC);
+
+    // get the form data fields
     $form_fields = explode(',', $form_data['form_fields']);
+
+    // remove special form fields
+    if (false !== ($idx = array_search($kitContactInterface->index_array['kit_email_retype'], $form_fields)))
+      unset($form_fields[$idx]);
+
     // add pseudo field numbers for data_id, form_id, kit_id and data_date
-    $form_fields = array_merge($form_fields, array(-1,-2,-3,-4));
+    $form_fields = array_merge($form_fields, array(-1,-2,-3,-4,-5));
+
     // sort the field numbers
     sort($form_fields, SORT_NUMERIC);
+
 
     $SQL = "SELECT * FROM `".self::$table_prefix."mod_kit_form_data` WHERE `form_id`='$form_id' ORDER BY `data_timestamp` ASC";
     if (null === ($query = $database->query($SQL))) {
@@ -3174,10 +3183,11 @@ class formBackend {
     foreach ($form_fields as $field_id) {
       if ($field_id < 0) {
         switch ($field_id):
-          case -4: $cols[] = 'data_id'; break;
-          case -3: $cols[] = 'form_id'; break;
-          case -2: $cols[] = 'kit_id'; break;
-          case -1: $cols[] = 'data_date'; break;
+          case -5: $cols[] = 'data_id'; break;
+          case -4: $cols[] = 'form_id'; break;
+          case -3: $cols[] = 'kit_id'; break;
+          case -2: $cols[] = 'data_date'; break;
+          //case -1: $cols[] = 'kit_contact_language'; break;
         endswitch;
       }
       elseif ($field_id < 200) {
@@ -3207,16 +3217,24 @@ class formBackend {
       foreach ($form_fields as $field_id) {
         if ($field_id < 0) {
           switch ($field_id):
-            case -4: $cols[] = $data['data_id']; break;
-            case -3: $cols[] = $data['form_id']; break;
-            case -2: $cols[] = $data['kit_id']; break;
-            case -1: $cols[] = $data['data_date']; break;
+            case -5: $cols[] = $data['data_id']; break;
+            case -4: $cols[] = $data['form_id']; break;
+            case -3: $cols[] = $data['kit_id']; break;
+            case -2: $cols[] = $data['data_date']; break;
+            //case -1: $cols[] = $contact['kit_contact_language']; break;
           endswitch;
         }
         elseif ($field_id < 200) {
           // KIT contact field
           $field_name = array_search($field_id, $kitContactInterface->index_array);
-          $cols[] = (isset($contact[$field_name])) ? utf8_decode($contact[$field_name]) : '';
+          if ($field_name == 'kit_zip_city') {
+            // kitForm uses a combined field for ZIP and city
+            $zip_city  = (isset($contact['kit_zip'])) ? utf8_decode($contact['kit_zip']).' ' : '';
+            $zip_city .= (isset($contact['kit_city'])) ? utf8_decode($contact['kit_city']) : '';
+            $cols[] = $zip_city;
+          }
+          else
+            $cols[] = (isset($contact[$field_name])) ? utf8_decode($contact[$field_name]) : '';
         }
         elseif (isset($values[$field_id])) {
           // submitted values
