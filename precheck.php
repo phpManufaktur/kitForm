@@ -55,16 +55,6 @@ $check = array(
         'version' => '0.68',
         'problem' => 'dbConnect_LE => <b><a href="https://addons.phpmanufaktur.de/download.php?file=dbConnect_LE" target="_blank">Download actual version</a></b>'
         ),
-    'Dwoo' => array(
-        'directory' => 'dwoo',
-        'version' => '0.16',
-        'problem' => 'Dwoo => <b><a href="https://addons.phpmanufaktur.de/download.php?file=Dwoo" target="_blank">Download actual version</a></b>'
-        ),
-    'dropletsExtension' => array(
-        'directory' => 'droplets_extension',
-        'version' => '0.24',
-        'problem' => 'dropletsExtension => <b><a href="https://addons.phpmanufaktur.de/download.php?file=dropletsExtension" target="_blank">Download actual version</a></b>'
-        ),
     'KeepInTouch' => array(
         'directory' => 'kit',
         'version' => '0.10',
@@ -92,6 +82,18 @@ $check = array(
         ),
     );
 
+if (!defined('CAT_VERSION')) {
+    $check['Dwoo'] = array(
+        'directory' => 'dwoo',
+        'version' => '0.16',
+        'problem' => 'Dwoo => <b><a href="https://addons.phpmanufaktur.de/download.php?file=Dwoo" target="_blank">Download actual version</a></b>'
+    );
+    $check['dropletsExtension'] = array(
+        'directory' => 'droplets_extension',
+        'version' => '0.24',
+        'problem' => 'dropletsExtension => <b><a href="https://addons.phpmanufaktur.de/download.php?file=dropletsExtension" target="_blank">Download actual version</a></b>'
+    );
+}
 $versionSQL = "SELECT `version` FROM `".TABLE_PREFIX."addons` WHERE `directory`='%s'";
 
 foreach ($check as $name => $addon) {

@@ -36,14 +36,25 @@ if (!defined('LEPTON_PATH'))
 
 // for extended error reporting set to true!
 if (!defined('KIT_DEBUG')) define('KIT_DEBUG', true);
+
 require_once (LEPTON_PATH . '/modules/kit_tools/debug.php');
 
 // use LEPTON 2.x I18n for access to language files
-if (!class_exists('LEPTON_Helper_I18n')) require_once LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('CAT_Helper_I18n') && !class_exists('LEPTON_Helper_I18n')) {
+    require_once LEPTON_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+}
 
 global $I18n;
+
 if (!is_object($I18n)) {
-    $I18n = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        // this is a BlackCat environment
+        $I18n = new CAT_Helper_I18n(array('lang' => LANGUAGE));
+    }
+    else {
+        // all other environments
+        $I18n = new LEPTON_Helper_I18n(array('lang' => LANGUAGE));
+    }
 }
 else {
     $I18n->addFile('DE.php', LEPTON_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');

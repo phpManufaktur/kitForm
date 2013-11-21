@@ -4,9 +4,12 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
 (c) 2011-2013 - phpManufaktur by Ralf Hertsch
 
-Release 0.42 - NOT PUBLISHED
+Release 0.42 - 2013-11-21
 
 * fixed: the CSV export does not support the combined field kit_zip_city
+* fixed: problem accessing language files at BlackCat CMS environment
+* changed: precheck.php does no longer check for Dwoo and DropletsExtension at
+  BlackCat CMS environment
 
 Release 0.41 - 2013-01-03
 
