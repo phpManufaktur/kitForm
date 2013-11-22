@@ -4,6 +4,11 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
 (c) 2011-2013 - phpManufaktur by Ralf Hertsch
 
+Release 0.43 - 2013-11-22
+
+* fixed missing parts: problem accessing language files at BlackCat CMS environment
+* added icon.png (BlackCat CMS) and tool_icon.png (WebsiteBaker 2.8.4)
+
 Release 0.42 - 2013-11-21
 
 * fixed: the CSV export does not support the combined field kit_zip_city
