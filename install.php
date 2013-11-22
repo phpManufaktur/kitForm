@@ -32,11 +32,20 @@ else {
 // end include class.secure.php
 
 // use LEPTON 2.x I18n for access to language files
-if (!class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('CAT_Helper_I18n') && !class_exists('LEPTON_Helper_I18n')) {
+    require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+}
 
 global $I18n;
 if (!is_object($I18n)) {
-    $I18n = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        // this is a BlackCat environment
+        $I18n = new CAT_Helper_I18n();
+    }
+    else {
+        // all other environments
+        $I18n = new LEPTON_Helper_I18n();
+    }
 }
 else {
     $I18n->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
@@ -63,13 +72,13 @@ $tables = array('dbKITform', 'dbKITformData', 'dbKITformFields', 'dbKITformTable
 $error = '';
 
 foreach ($tables as $table) {
-	$create = null;
-	$create = new $table();
-	if (!$create->sqlTableExists()) {
-		if (!$create->sqlCreateTable()) {
-			$error .= sprintf('[INSTALLATION %s] %s', $table, $create->getError());
-		}
-	}
+    $create = null;
+    $create = new $table();
+    if (!$create->sqlTableExists()) {
+        if (!$create->sqlCreateTable()) {
+            $error .= sprintf('[INSTALLATION %s] %s', $table, $create->getError());
+        }
+    }
 }
 
 // Standardformulare installieren
@@ -78,7 +87,7 @@ global $dbKITform;
 if (!is_object($dbKITform)) $dbKITform = new dbKITform();
 
 if (!$dbKITform->installStandardForms($message)) {
-	if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
 }
 $message = strip_tags($message);
 
@@ -98,4 +107,4 @@ if ($message != "") {
 
 // Prompt Errors
 if (!empty($error))
-	$admin->print_error($error);
+    $admin->print_error($error);

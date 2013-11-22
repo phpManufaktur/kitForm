@@ -36,7 +36,9 @@ require_once(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/class.backend.php
 require_once(WB_PATH.'/include/captcha/captcha.php');
 require_once(WB_PATH.'/framework/class.wb.php');
 require_once(WB_PATH.'/modules/kit/class.mail.php');
-require_once(WB_PATH.'/modules/droplets_extension/interface.php');
+if (!defined('CAT_VERSION')) {
+    require_once(WB_PATH.'/modules/droplets_extension/interface.php');
+}
 require_once(WB_PATH.'/framework/functions.php');
 
 global $dbKITform;
@@ -153,6 +155,8 @@ class formFrontend {
     $this->img_url = WB_URL.'/modules/'.basename(dirname(__FILE__)).'/images/';
     date_default_timezone_set(cfg_time_zone);
     $this->lang = $I18n;
+    $this->lang->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
+    $this->lang->addFile('EN.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
     // use another table prefix or change protocol limit?
     if (file_exists(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json')) {
       $config = json_decode(file_get_contents(WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/config.json'), true);
@@ -311,9 +315,9 @@ class formFrontend {
    * Execute the desired template and return the completed template
    *
    * @param $template string
-   *       	 - the filename of the template without path
+   *            - the filename of the template without path
    * @param $template_data array
-   *       	 - the template data
+   *            - the template data
    * @return string template or boolean false on error
    */
   protected function getTemplate($template, $template_data) {
@@ -364,7 +368,7 @@ class formFrontend {
    * Verhindert XSS Cross Site Scripting
    *
    * @param
-   *       	 reference array $request
+   *            reference array $request
    * @return $request
    */
   protected function xssPrevent(&$request) {
@@ -388,13 +392,25 @@ class formFrontend {
     if (isset($_SESSION['DROPLET_EXECUTED_BY_DROPLETS_EXTENSION'])) return '- passed call by DropletsExtension -';
 
     // CSS laden?
-    if ($this->params[self::PARAM_CSS]) {
-      if (!is_registered_droplet_css('kit_form', PAGE_ID)) {
-        register_droplet_css('kit_form', PAGE_ID, 'kit_form', 'kit_form.css');
-      }
+    if (defined('CAT_VERSION')) {
+        if ($this->params[self::PARAM_CSS]) {
+            if (!CAT_Helper_Droplet::is_registered_droplet_css('kit_form', PAGE_ID)) {
+                CAT_Helper_Droplet::register_droplet_css('kit_form', PAGE_ID, 'kit_form', 'kit_form.css');
+            }
+        }
+        elseif (CAT_Helper_Droplet::is_registered_droplet_css('kit_form', PAGE_ID)) {
+            CAT_Helper_Droplet::unregister_droplet_css('kit_form', PAGE_ID);
+        }
     }
-    elseif (is_registered_droplet_css('kit_form', PAGE_ID)) {
-      unregister_droplet_css('kit_form', PAGE_ID);
+    else {
+        if ($this->params[self::PARAM_CSS]) {
+          if (!is_registered_droplet_css('kit_form', PAGE_ID)) {
+            register_droplet_css('kit_form', PAGE_ID, 'kit_form', 'kit_form.css');
+          }
+        }
+        elseif (is_registered_droplet_css('kit_form', PAGE_ID)) {
+          unregister_droplet_css('kit_form', PAGE_ID);
+        }
     }
 
     // check dependency
@@ -2226,11 +2242,11 @@ class formFrontend {
    * the feedback thread.
    *
    * @param $form_id integer
-   *       	 - ID of the used form
+   *            - ID of the used form
    * @param $form_data array
-   *       	 - form data, ready for parser
+   *            - form data, ready for parser
    * @param $form_fields array
-   *       	 - field data, ready for parser
+   *            - field data, ready for parser
    * @return string feedback form on success or boolean false on error
    */
   protected function showFeedbackForm($form_id, $form_data, $form_fields, $clear_fields) {
@@ -3167,7 +3183,7 @@ class formFrontend {
    * Sendet dem User ein neues Passwort zu
    *
    * @param $form_data array
-   *       	 - Formulardaten
+   *            - Formulardaten
    * @return boolean false on program error STR dialog/message on success
    */
   protected function sendNewPassword($form_data = array()) {
@@ -3257,9 +3273,9 @@ class formFrontend {
    * Registriert ein Benutzerkonto und versendet einen Aktivierungslink
    *
    * @param $form_data array
-   *       	 - Formulardaten
+   *            - Formulardaten
    * @param $contact_data array
-   *       	 - Kontaktdaten
+   *            - Kontaktdaten
    */
   protected function registerAccount($form_data = array(), $contact_data = array()) {
     global $kitContactInterface;

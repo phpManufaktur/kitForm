@@ -32,11 +32,20 @@ else {
 // end include class.secure.php
 
 // use LEPTON 2.x I18n for access to language files
-if (!class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('CAT_Helper_I18n') && !class_exists('LEPTON_Helper_I18n')) {
+    require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+}
 
 global $I18n;
 if (!is_object($I18n)) {
-    $I18n = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        // this is a BlackCat environment
+        $I18n = new CAT_Helper_I18n();
+    }
+    else {
+        // all other environments
+        $I18n = new LEPTON_Helper_I18n();
+    }
 }
 else {
     $I18n->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
@@ -65,31 +74,31 @@ global $dbKITform;
 if (!is_object($dbKITform)) $dbKITform = new dbKITform();
 
 if (!$dbKITform->sqlFieldExists(dbKITform::field_action)) {
-	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_action, "VARCHAR(30) NOT NULL DEFAULT '".dbKITform::action_none."'")) {
-		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
-	}
+    if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_action, "VARCHAR(30) NOT NULL DEFAULT '".dbKITform::action_none."'")) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    }
 }
 if (!$dbKITform->sqlFieldExists(dbKITform::field_links)) {
-	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_links, "VARCHAR(255) NOT NULL DEFAULT ''")) {
-		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
-	}
+    if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_links, "VARCHAR(255) NOT NULL DEFAULT ''")) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    }
 }
 
 // Release 0.15 - add service provider and email cc
 if (!$dbKITform->sqlFieldExists(dbKITform::field_provider_id)) {
-	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_provider_id, "INT(11) NOT NULL DEFAULT '-1'", dbKITform::field_captcha)) {
-		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
-	}
+    if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_provider_id, "INT(11) NOT NULL DEFAULT '-1'", dbKITform::field_captcha)) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    }
 }
 if (!$dbKITform->sqlFieldExists(dbKITform::field_email_cc)) {
-	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_email_cc, "TEXT NOT NULL DEFAULT ''", dbKITform::field_provider_id)) {
-		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
-	}
+    if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_email_cc, "TEXT NOT NULL DEFAULT ''", dbKITform::field_provider_id)) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    }
 }
 if (!$dbKITform->sqlFieldExists(dbKITform::field_email_html)) {
-	if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_email_html, "TINYINT NOT NULL DEFAULT '".dbKITform::html_off."'", dbKITform::field_email_cc)) {
-		$error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
-	}
+    if (!$dbKITform->sqlAlterTableAddField(dbKITform::field_email_html, "TINYINT NOT NULL DEFAULT '".dbKITform::html_off."'", dbKITform::field_email_cc)) {
+        $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    }
 }
 
 // Release 0.21
@@ -115,21 +124,21 @@ if (!$dbKITformData->sqlFieldExists(dbKITformData::field_status)) {
 // Formulare installieren
 $message = '';
 if (!$dbKITform->installStandardForms($message)) {
-	if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
+    if ($dbKITform->isError()) $error .= sprintf('[UPGRADE] %s', $dbKITform->getError());
 }
 
 if (!empty($message)) {
-	echo '<script language="javascript">alert ("'.$message.'");</script>';
+    echo '<script language="javascript">alert ("'.$message.'");</script>';
 }
 
 // remove Droplets
 $dbDroplets = new dbDroplets();
 $droplets = array('kit_form');
 foreach ($droplets as $droplet) {
-	$where = array(dbDroplets::field_name => $droplet);
-	if (!$dbDroplets->sqlDeleteRecord($where)) {
-		$message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
-	}
+    $where = array(dbDroplets::field_name => $droplet);
+    if (!$dbDroplets->sqlDeleteRecord($where)) {
+        $message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
+    }
 }
 // Install Droplets
 $droplets = new checkDroplets();
@@ -148,4 +157,4 @@ if ($message != "") {
 
 // Prompt Errors
 if (!empty($error))
-	$admin->print_error($error);
+    $admin->print_error($error);

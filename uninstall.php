@@ -32,11 +32,20 @@ else {
 // end include class.secure.php
 
 // use LEPTON 2.x I18n for access to language files
-if (!class_exists('LEPTON_Helper_I18n')) require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+if (!class_exists('CAT_Helper_I18n') && !class_exists('LEPTON_Helper_I18n')) {
+    require_once WB_PATH . '/modules/' . basename(dirname(__FILE__)) . '/framework/LEPTON/Helper/I18n.php';
+}
 
 global $I18n;
 if (!is_object($I18n)) {
-    $I18n = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        // this is a BlackCat environment
+        $I18n = new CAT_Helper_I18n();
+    }
+    else {
+        // all other environments
+        $I18n = new LEPTON_Helper_I18n();
+    }
 }
 else {
     $I18n->addFile('DE.php', WB_PATH.'/modules/'.basename(dirname(__FILE__)).'/languages/');
@@ -63,28 +72,28 @@ $tables = array('dbKITform', 'dbKITformData', 'dbKITformFields', 'dbKITformTable
 $error = '';
 
 foreach ($tables as $table) {
-	$delete = null;
-	$delete = new $table();
-	if ($delete->sqlTableExists()) {
-		if (!$delete->sqlDeleteTable()) {
-			$error .= sprintf('[UNINSTALL] %s', $delete->getError());
-		}
-	}
+    $delete = null;
+    $delete = new $table();
+    if ($delete->sqlTableExists()) {
+        if (!$delete->sqlDeleteTable()) {
+            $error .= sprintf('[UNINSTALL] %s', $delete->getError());
+        }
+    }
 }
 
 // remove Droplets
 $dbDroplets = new dbDroplets();
 $droplets = array('kit_form');
 foreach ($droplets as $droplet) {
-	$where = array(dbDroplets::field_name => $droplet);
-	if (!$dbDroplets->sqlDeleteRecord($where)) {
-		$message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
-	}
+    $where = array(dbDroplets::field_name => $droplet);
+    if (!$dbDroplets->sqlDeleteRecord($where)) {
+        $message = sprintf('[UPGRADE] Error uninstalling Droplet: %s', $dbDroplets->getError());
+    }
 }
 
 // Prompt Errors
 if (!empty($error)) {
-	$admin->print_error($error);
+    $admin->print_error($error);
 }
 
 ?>

@@ -129,7 +129,12 @@ class dbKITform extends dbConnectLE {
     }
     date_default_timezone_set(cfg_time_zone);
 
-    $lang = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        $lang = new CAT_Helper_I18n();
+    }
+    else {
+        $lang = new LEPTON_Helper_I18n();
+    }
 
     $this->action_array = array(
         self::action_login => $lang->translate('Login'),
@@ -138,7 +143,7 @@ class dbKITform extends dbConnectLE {
         self::action_newsletter => $lang->translate('Subscribe/unsubribe Newsletter'),
         self::action_account => $lang->translate('Account'),
         self::action_logout => $lang->translate('Logout'),
-    		self::action_change_password => $lang->translate('Change password')
+            self::action_change_password => $lang->translate('Change password')
     );
     $this->status_array = array(
         self::status_active => $lang->translate('Active'),
@@ -194,7 +199,12 @@ class dbKITform extends dbConnectLE {
   public function importFormFile($form_file, $form_rename = '', &$form_id = -1, &$message = '', $ignore_existing = false) {
     global $dbKITformFields;
 
-    $lang = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        $lang = new CAT_Helper_I18n();
+    }
+    else {
+        $lang = new LEPTON_Helper_I18n();
+    }
 
     if (false === ($import = file_get_contents($form_file))) {
       $this->setError(sprintf('[%s - %s] %s', __METHOD__, __LINE__, $lang->translate('<p>Error reading the file <b>{{ file }}</b>.</p>', array(
@@ -387,7 +397,12 @@ class dbKITformFields extends dbConnectLE {
     }
     date_default_timezone_set(cfg_time_zone);
 
-    $lang = new LEPTON_Helper_I18n();
+    if (class_exists('CAT_Helper_I18n')) {
+        $lang = new CAT_Helper_I18n();
+    }
+    else {
+        $lang = new LEPTON_Helper_I18n();
+    }
 
     $this->type_array = array(
         self::type_text => $lang->translate('Input field (max. 255 chars)'),
