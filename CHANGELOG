@@ -4,6 +4,11 @@ Ralf Hertsch <ralf.hertsch@phpmanufaktur.de>
 http://phpmanufaktur.de
 (c) 2011-2013 - phpManufaktur by Ralf Hertsch
 
+Release 0.44 - 2014-05-21
+
+* fixed: A SQL injection error within the sorter.php file can be exploited by
+  unauthenticated people to conduct SQL injection attacks.
+
 Release 0.43 - 2013-11-22
 
 * fixed missing parts: problem accessing language files at BlackCat CMS environment
